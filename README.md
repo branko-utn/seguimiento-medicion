@@ -37,3 +37,4 @@ Aplicación para administrar proyectos de software y obtener información sobre 
 ## Enlaces
 
 - [Tablero del proyecto](https://github.com/users/branko-utn/projects/1)
+- [Repositorio del proyecto](https://github.com/branko-utn/seguimiento-medicion)
