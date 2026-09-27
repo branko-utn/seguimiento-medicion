@@ -1,2 +1,5 @@
 # Consigna del TP (no se versiona)
 *.pdf
+
+# Metadatos de Windows al copiar archivos a WSL
+*:Zone.Identifier
