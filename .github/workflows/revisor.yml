@@ -1,0 +1,35 @@
+# Revisión cruzada (CONTRIBUTING.md, sección 3): al abrir un Pull Request se le pide la revisión a quien le toca
+# según la rotación Sosa → Bianchi → Lara → Giorlando → Branko → Sosa (cada uno revisa al de su izquierda).
+# Si el autor no está en la rotación, no hace nada.
+name: Revisor
+
+on:
+  pull_request:
+    types: [opened, reopened, ready_for_review]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  pedir-revision:
+    name: Pedir la revisión según la rotación
+    runs-on: ubuntu-latest
+    if: ${{ !github.event.pull_request.draft }}
+    steps:
+      - name: Pedir la revisión
+        env:
+          GH_TOKEN: ${{ github.token }}
+          AUTOR: ${{ github.event.pull_request.user.login }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          case "$AUTOR" in
+            sosa-federico)    REVISOR=Igna-Bianchi ;;
+            Igna-Bianchi)     REVISOR=LaraAgustin ;;
+            LaraAgustin)      REVISOR=AgustinGiorlando ;;
+            AgustinGiorlando) REVISOR=branko-utn ;;
+            branko-utn)       REVISOR=sosa-federico ;;
+            *) echo "$AUTOR no está en la rotación: no se pide revisión"; exit 0 ;;
+          esac
+          gh api --method POST "repos/$GITHUB_REPOSITORY/pulls/$PR/requested_reviewers" \
+            -f "reviewers[]=$REVISOR" --silent
+          echo "Se le pidió la revisión del PR #$PR a $REVISOR"
