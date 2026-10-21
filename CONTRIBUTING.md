@@ -79,13 +79,58 @@ Plantillas: [`specs/_plantilla.md`](specs/_plantilla.md) y [`features/_plantilla
 | `internal/service` | Casos de uso: coordinan dominio y repositorios | `domain`, `metrics` |
 | `internal/store/memory` | Repositorios (en memoria con persistencia a archivo) | `domain` |
 | `internal/server` | Handlers HTTP y rutas | `service` |
-| `web/templates` | Pantallas HTML (`html/template` + HTMX) | — |
+| `web/templates` | Layout y pantallas HTML (`html/template` + HTMX) | — |
+| `web/static` | Estilos y scripts (Pico CSS, HTMX y Chart.js incluidos en el repo) | — |
 | `features` | Escenarios BDD y sus *steps* (godog) | `service`, `server` |
 | `cmd/server` | Punto de entrada de la aplicación | todo |
 
 Ver la decisión completa en [`docs/adr/0001-arquitectura.md`](docs/adr/0001-arquitectura.md).
 
-## 6. Comandos
+## 6. Cómo agregar una pantalla
+
+Ejemplo para la sección Proyectos (E1). Las otras secciones siguen el mismo patrón.
+
+1. **Plantilla** en `web/templates/paginas/proyectos.html`. Define dos bloques; el layout (navegación, estilos,
+   HTMX y Chart.js) ya lo pone `base.html`. Los datos que manda el handler llegan en `.Datos`:
+
+   ```html
+   {{define "titulo"}}Proyectos{{end}}
+
+   {{define "contenido"}}
+   <h1>Proyectos</h1>
+   {{range .Datos}}<p>{{.Nombre}}</p>{{end}}
+   {{end}}
+   ```
+
+2. **Handler** en `internal/server/proyectos.go`, con un método que registra las rutas de la épica:
+
+   ```go
+   func (a *app) rutasProyectos(mux *http.ServeMux) {
+   	mux.HandleFunc("GET /proyectos", a.listarProyectos)
+   }
+
+   func (a *app) listarProyectos(w http.ResponseWriter, r *http.Request) {
+   	proyectos, err := a.svc.Proyectos.Listar()
+   	if err != nil {
+   		a.renderError(w, r, http.StatusInternalServerError, "No se pudieron cargar los proyectos.")
+   		return
+   	}
+   	a.render(w, r, "proyectos.html", proyectos)
+   }
+   ```
+
+3. **Servicio**: agregar el campo `Proyectos *service.Proyectos` en `Servicios` (`internal/server/server.go`)
+   y crearlo en `cmd/server/main.go`.
+4. **Registrar** `a.rutasProyectos(mux)` en `NewRouter` y poner `EnConstruccion: false` en la sección de
+   `internal/server/secciones.go`. Si no se cambia, la ruta queda registrada dos veces y el servidor no arranca.
+5. **Errores de validación**: mostrarlos con `a.renderError(w, r, http.StatusBadRequest, err.Error())`,
+   o dentro del formulario.
+6. **Persistencia**: los repositorios usan `memory.Store[T]` (ver `internal/store/memory/doc.go`).
+
+Estilos: [Pico CSS](https://picocss.com/docs) le da formato al HTML semántico (`<article>`, `<form>`, `<table>`)
+sin clases. Los ajustes propios van en `web/static/app.css`.
+
+## 7. Comandos
 
 | Quiero… | Comando |
 |---|---|
@@ -95,7 +140,7 @@ Ver la decisión completa en [`docs/adr/0001-arquitectura.md`](docs/adr/0001-arq
 | Ver la cobertura | `make cover` |
 | Formatear el código | `make fmt` |
 
-## 7. Uso de IA
+## 8. Uso de IA
 
 Está permitido, pero **cada integrante debe entender y poder explicar todo lo que sube**.
 Registrar qué se pidió, qué se usó y cómo se validó en [`docs/ia/registro.md`](docs/ia/registro.md).
