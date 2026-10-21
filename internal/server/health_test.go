@@ -8,12 +8,12 @@ import (
 
 func TestHealth(t *testing.T) {
 	casos := []struct {
-		nombre     string
-		metodo     string
-		ruta       string
-		codigo     int
-		cuerpo     string
-		tipo string
+		nombre string
+		metodo string
+		ruta   string
+		codigo int
+		cuerpo string
+		tipo   string
 	}{
 		{nombre: "GET responde ok", metodo: http.MethodGet, ruta: "/health", codigo: http.StatusOK, cuerpo: `{"estado":"ok"}`, tipo: "application/json"},
 		{nombre: "POST no está permitido", metodo: http.MethodPost, ruta: "/health", codigo: http.StatusMethodNotAllowed},
