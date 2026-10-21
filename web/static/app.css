@@ -1,0 +1,8 @@
+/* Ajustes propios sobre Pico CSS (https://picocss.com). */
+:root { --pico-font-size: 100%; }
+header.container nav { flex-wrap: wrap; }
+.marca { white-space: nowrap; }
+.grilla { display: grid; grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr)); gap: 1rem; }
+.grilla article { margin: 0; }
+article.error header h1 { color: var(--pico-del-color); margin: 0; }
+footer.container { margin-top: 2rem; color: var(--pico-muted-color); }

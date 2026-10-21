@@ -6,5 +6,5 @@ import "embed"
 
 // FS tiene las carpetas templates/ y static/.
 //
-//go:embed static
+//go:embed templates static
 var FS embed.FS

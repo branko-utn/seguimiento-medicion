@@ -1,0 +1,9 @@
+{{define "titulo"}}Error {{.Datos.Codigo}}{{end}}
+
+{{define "contenido"}}
+<article class="error">
+  <header><h1>{{.Datos.Codigo}} · {{.Datos.Texto}}</h1></header>
+  <p>{{.Datos.Mensaje}}</p>
+  <footer><a href="/">Volver al inicio</a></footer>
+</article>
+{{end}}

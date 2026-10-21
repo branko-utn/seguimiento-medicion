@@ -1,0 +1,10 @@
+{{define "titulo"}}{{.Datos.Nombre}}{{end}}
+
+{{define "contenido"}}
+<article>
+  <header><h1>{{.Datos.Nombre}}</h1></header>
+  <p>{{.Datos.Descripcion}}</p>
+  <p>Esta sección se construye en el <strong>Sprint {{.Datos.Sprint}}</strong> (épica {{.Datos.Epica}}).</p>
+  <footer><a href="/">Volver al inicio</a></footer>
+</article>
+{{end}}

@@ -1,0 +1,20 @@
+{{define "titulo"}}Inicio{{end}}
+
+{{define "contenido"}}
+<hgroup>
+  <h1>Software Metrics &amp; Estimation</h1>
+  <p>Estimación, planificación, seguimiento y calidad de proyectos de software.</p>
+</hgroup>
+
+<div class="grilla">
+  {{- range .Secciones}}
+  <article>
+    <header><a href="{{.Ruta}}"><strong>{{.Nombre}}</strong></a></header>
+    <p>{{.Descripcion}}</p>
+    {{- if .EnConstruccion}}
+    <footer><small>En construcción · Sprint {{.Sprint}}</small></footer>
+    {{- end}}
+  </article>
+  {{- end}}
+</div>
+{{end}}
