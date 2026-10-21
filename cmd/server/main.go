@@ -16,9 +16,14 @@ func main() {
 		addr = ":" + port
 	}
 
+	router, err := server.NewRouter(server.Servicios{})
+	if err != nil {
+		log.Fatalf("no se pudo iniciar la aplicación: %v", err)
+	}
+
 	srv := &http.Server{
 		Addr:              addr,
-		Handler:           server.NewRouter(),
+		Handler:           router,
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 

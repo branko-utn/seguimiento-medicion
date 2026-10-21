@@ -2,7 +2,6 @@ package server
 
 import (
 	"net/http"
-	"net/http/httptest"
 	"testing"
 )
 
@@ -22,8 +21,7 @@ func TestHealth(t *testing.T) {
 
 	for _, c := range casos {
 		t.Run(c.nombre, func(t *testing.T) {
-			rec := httptest.NewRecorder()
-			NewRouter().ServeHTTP(rec, httptest.NewRequest(c.metodo, c.ruta, nil))
+			rec := pedir(t, c.metodo, c.ruta)
 
 			if rec.Code != c.codigo {
 				t.Fatalf("código = %d, se esperaba %d", rec.Code, c.codigo)
