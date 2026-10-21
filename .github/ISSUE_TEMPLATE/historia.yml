@@ -1,0 +1,54 @@
+name: Historia de usuario
+description: Nueva funcionalidad del Product Backlog
+title: "HU-XX · <título>"
+labels: ["tipo:historia"]
+body:
+  - type: textarea
+    id: historia
+    attributes:
+      label: Historia
+      description: Formato Como / Quiero / Para.
+      value: |
+        **Como** <rol>
+        **quiero** <funcionalidad>
+        **para** <beneficio>
+    validations:
+      required: true
+  - type: textarea
+    id: criterios
+    attributes:
+      label: Criterios de aceptación
+      description: Uno por línea, numerados CA-XX.1, CA-XX.2, … Cada criterio se convierte en al menos un escenario BDD.
+      value: |
+        - [ ] CA-XX.1
+        - [ ] CA-XX.2
+    validations:
+      required: true
+  - type: dropdown
+    id: epica
+    attributes:
+      label: Épica
+      options:
+        - E1 Proyectos
+        - E2 Backlog
+        - E3 Sprints
+        - E4 Estimación
+        - E5 Esfuerzo
+        - E6 Defectos
+        - E7 Métricas
+        - E8 Dashboard
+        - E9 Reportes
+    validations:
+      required: true
+  - type: textarea
+    id: trazabilidad
+    attributes:
+      label: Trazabilidad
+      value: |
+        - Spec SDD: `specs/HU-XX-....md`
+        - Escenarios BDD: `features/hu-xx-....feature`
+        - Tests: `internal/.../xxx_test.go`
+  - type: textarea
+    id: notas
+    attributes:
+      label: Notas y dependencias
