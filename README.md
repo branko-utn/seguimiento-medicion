@@ -22,15 +22,40 @@ Aplicación para administrar proyectos de software y obtener información sobre 
 - **SDD**, **BDD** (Given–When–Then) y **TDD** (Red → Green → Refactor).
 - **Git** y **GitHub Projects** para el control de versiones y el tablero.
 
+## Cómo empezar
+
+Requisitos: [Go](https://go.dev/dl/) 1.22 o superior y Git.
+
+```bash
+git clone https://github.com/branko-utn/seguimiento-medicion.git
+cd seguimiento-medicion
+make test   # tests unitarios + escenarios BDD
+make run    # http://localhost:8080
+```
+
+Sin `make` (por ejemplo en Windows): `go test ./...` y `go run ./cmd/server`.
+
+## Documentación
+
+| Documento | Qué tiene |
+|---|---|
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Ramas, commits de TDD, Pull Requests, revisión cruzada y estructura del código |
+| [docs/plan/cronograma-sprints.html](docs/plan/cronograma-sprints.html) | Cronograma de sprints, ceremonias y reparto de épicas |
+| [docs/scrum/](docs/scrum/) | Ceremonias, DoR/DoD, guía de Planning Poker y actas de cada sprint |
+| [docs/adr/](docs/adr/) | Decisiones de arquitectura |
+| [specs/](specs/) | Especificaciones SDD |
+| [features/](features/) | Escenarios BDD (Given–When–Then) |
+| [docs/ia/registro.md](docs/ia/registro.md) | Registro de uso de IA |
+
 ## Equipo
 
 | Apellido y Nombre | Rol |
 |---|---|
-| Almeira, Branko | Agile Enabler |
-| Sosa, Federico | Product Builder |
-| Bianchi, Ignacio | Product Builder |
-| Lara, Agustín | Product Builder |
-| Giorlando, Agustín | Product Builder |
+| Almeira, Branko | Agile Enabler y Product Builder (E9 Reportes) |
+| Sosa, Federico | Product Builder (E1 Proyectos, E3 Sprints) |
+| Bianchi, Ignacio | Product Builder (E2 Backlog, E4 Estimación) |
+| Lara, Agustín | Product Builder (E5 Esfuerzo, E6 Defectos) |
+| Giorlando, Agustín | Product Builder (E7 Métricas, E8 Dashboard) |
 
 **Product Architects:** profesores de la cátedra.
 

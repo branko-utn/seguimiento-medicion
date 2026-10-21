@@ -1,0 +1,20 @@
+name: Ítem técnico
+description: Trabajo técnico sin valor directo para el usuario (infraestructura, CI, refactor, documentación)
+title: "TEC-XX · <título>"
+labels: ["tipo:tecnica"]
+body:
+  - type: textarea
+    id: objetivo
+    attributes:
+      label: Objetivo
+      description: Qué se hace y por qué hace falta.
+    validations:
+      required: true
+  - type: textarea
+    id: terminado
+    attributes:
+      label: Criterio de terminado
+      value: |
+        - [ ]
+    validations:
+      required: true

@@ -1,5 +1,15 @@
-# Consigna del TP (no se versiona)
+# Consigna del TP y PDFs generados (se versiona la fuente, no el PDF)
 *.pdf
 
 # Metadatos de Windows al copiar archivos a WSL
 *:Zone.Identifier
+
+# Go
+/bin/
+*.exe
+*.test
+coverage.out
+coverage.html
+
+# Datos locales de la aplicación
+/data/

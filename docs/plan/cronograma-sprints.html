@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Cronograma de Sprints · TPI Software Metrics & Estimation</title>
+<style>
+  @page {
+    size: A4;
+    margin: 16mm 15mm 16mm 15mm;
+    @bottom-left { content: "UTN FRSR · Ingeniería y Calidad de Software 2026 · Cronograma de Sprints v1.0"; font: 7.5pt Inter; color: #8a8f98; }
+    @bottom-right { content: "Página " counter(page) " de " counter(pages); font: 7.5pt Inter; color: #8a8f98; }
+  }
+  :root {
+    --ink: #1d2330; --muted: #5b6372; --line: #dfe3ea; --soft: #f4f6f9;
+    --s0: #64748b; --s1: #2563eb; --s2: #0d9488; --s3: #d97706; --s4: #7c3aed;
+    --buf: #94a3b8; --demo: #dc2626;
+  }
+  * { box-sizing: border-box; }
+  body { font-family: Inter, "DejaVu Sans", sans-serif; color: var(--ink); font-size: 9.4pt; line-height: 1.45; margin: 0; }
+  h1 { font-size: 22pt; margin: 0 0 2mm; letter-spacing: -0.02em; line-height: 1.15; }
+  h2 { font-size: 13pt; margin: 7mm 0 2.5mm; padding-bottom: 1.5mm; border-bottom: 1.5px solid var(--ink); letter-spacing: -0.01em; }
+  h3 { font-size: 10.5pt; margin: 4mm 0 1.5mm; }
+  p { margin: 0 0 2mm; }
+  .muted { color: var(--muted); }
+  .small { font-size: 8.2pt; }
+  .eyebrow { text-transform: uppercase; letter-spacing: .12em; font-size: 7.5pt; color: var(--muted); font-weight: 600; }
+  .page-break { page-break-before: always; }
+  table { width: 100%; border-collapse: collapse; margin: 1mm 0 3mm; }
+  th, td { text-align: left; vertical-align: top; padding: 1.6mm 2mm; border-bottom: 1px solid var(--line); }
+  th { font-size: 7.8pt; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; background: var(--soft); }
+  tr { page-break-inside: avoid; }
+  ul { margin: 0 0 2mm; padding-left: 4.5mm; }
+  li { margin-bottom: .8mm; }
+  code { font-family: "DejaVu Sans Mono", monospace; font-size: 8pt; background: var(--soft); padding: 0 1mm; border-radius: 2px; }
+
+  /* Header */
+  .header { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 3px solid var(--ink); padding-bottom: 3mm; margin-bottom: 4mm; }
+  .header .meta { text-align: right; font-size: 8.2pt; color: var(--muted); }
+
+  /* KPI strip */
+  .kpis { display: flex; gap: 3mm; margin: 3mm 0 4mm; }
+  .kpi { flex: 1; border: 1px solid var(--line); border-radius: 2mm; padding: 2.5mm 3mm; }
+  .kpi b { display: block; font-size: 17pt; letter-spacing: -0.02em; line-height: 1.1; }
+  .kpi span { font-size: 7.8pt; color: var(--muted); }
+  .kpi.alert { border-color: var(--demo); }
+  .kpi.alert b { color: var(--demo); }
+
+  /* Callout */
+  .callout { border-left: 3px solid var(--s1); background: #eff4ff; padding: 2.5mm 3.5mm; border-radius: 0 2mm 2mm 0; margin: 3mm 0; page-break-inside: avoid; }
+  .callout.warn { border-color: var(--s3); background: #fff7ea; }
+  .callout b.t { display: block; margin-bottom: .8mm; }
+
+  /* Timeline strip */
+  .strip { display: flex; height: 13mm; border-radius: 2mm; overflow: hidden; margin: 2mm 0 1mm; }
+  .strip div { color: #fff; font-size: 7.6pt; font-weight: 600; padding: 1.6mm 2mm; line-height: 1.25; border-right: 1.5px solid #fff; }
+  .strip div small { display: block; font-weight: 400; opacity: .9; }
+  .ticks { display: flex; font-size: 6.8pt; color: var(--muted); }
+  .ticks span { flex: 1; text-align: center; }
+
+  /* Calendar */
+  .cal { width: 100%; border-collapse: separate; border-spacing: 1.2mm; margin: 0 -1.2mm; table-layout: fixed; }
+  .cal th { background: none; text-align: center; padding: 0 0 .5mm; border: 0; }
+  .cal td { height: 20.5mm; border: 1px solid var(--line); border-radius: 1.5mm; padding: 1.4mm 1.6mm; position: relative; font-size: 7.3pt; line-height: 1.3; }
+  .cal .d { font-size: 12pt; font-weight: 700; display: block; line-height: 1.1; }
+  .cal .tag { display: inline-block; color: #fff; font-size: 6.6pt; font-weight: 700; padding: .3mm 1.3mm; border-radius: 1mm; margin: .6mm 0 .8mm; }
+  .cal .past { background: #f6f7f9; color: #b0b6c0; border-style: dashed; }
+  .cal .empty { border: 0; }
+  .cal .ev { display: block; margin-top: .4mm; }
+  .cal .ev::before { content: "● "; }
+  .cal .ev.key { font-weight: 700; }
+
+  /* Sprint cards */
+  .sprint { border: 1px solid var(--line); border-radius: 2mm; margin: 0 0 2.4mm; font-size: 8.8pt; page-break-inside: avoid; overflow: hidden; }
+  .sprint .top { color: #fff; padding: 1.5mm 3.5mm; display: flex; justify-content: space-between; align-items: baseline; }
+  .sprint .top b { font-size: 10.5pt; }
+  .sprint .top span { font-size: 8pt; opacity: .95; }
+  .sprint .body { padding: 1.8mm 3.5mm 0; display: flex; gap: 5mm; }
+  .sprint .body > div { flex: 1; } .sprint .body > div:first-child { flex: 1.5; } .sprint ul { margin-bottom: 1.2mm; } .sprint li { margin-bottom: .3mm; }
+  .sprint .goal { font-style: italic; margin-bottom: 1.5mm; }
+  .lbl { font-size: 7.3pt; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; margin-bottom: .6mm; }
+
+  /* Roadmap */
+  .road { width: 100%; border-collapse: separate; border-spacing: 1mm; table-layout: fixed; margin: 0 -1mm; }
+  .road th { padding: 0 0 .5mm; border: 0; color: #fff; text-align: center; }
+  .road th.blank { background: none; }
+  .road th.h { border-radius: 1.2mm; padding: 1.2mm; }
+  .road td { border: 0; border-radius: 1.2mm; padding: 1.6mm 1.8mm; font-size: 7.3pt; line-height: 1.3; }
+  .road td.who { background: var(--soft); width: 27mm; }
+  .road td.who b { display: block; font-size: 8.4pt; }
+  .road td.who span { color: var(--muted); font-size: 7pt; }
+  .c0 { background: #eef1f5; } .c1 { background: #e8efff; } .c2 { background: #e2f5f2; } .c3 { background: #fdf1df; } .c4 { background: #f1eaff; }
+
+  .bg0 { background: var(--s0); } .bg1 { background: var(--s1); } .bg2 { background: var(--s2); }
+  .bg3 { background: var(--s3); } .bg4 { background: var(--s4); } .bgb { background: var(--buf); } .bgd { background: var(--demo); }
+
+  .two { display: flex; gap: 6mm; } .two > div { flex: 1; }
+  .rot { display: flex; align-items: center; gap: 1.5mm; flex-wrap: wrap; font-size: 8.4pt; margin: 1mm 0 2mm; }
+  .rot span.p { border: 1px solid var(--line); border-radius: 5mm; padding: .8mm 2.6mm; font-weight: 600; }
+  .check li { list-style: none; margin-left: -4.5mm; }
+  .check li::before { content: "☐  "; color: var(--muted); }
+  .nobreak { page-break-inside: avoid; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="eyebrow">TPI · Software Metrics &amp; Estimation</div>
+    <h1>Cronograma de Sprints</h1>
+    <div class="muted">Propuesta para el equipo · Sprint 0 → Presentación final</div>
+  </div>
+  <div class="meta">
+    Versión 1.0 · miércoles 21/10/2026<br>
+    Preparado por: Branko Almeira (Agile Enabler)<br>
+    Estado: <b>propuesta, a ratificar por el equipo</b>
+  </div>
+</div>
+
+<div class="kpis">
+  <div class="kpi alert"><b>Lun 2/11</b><span>Presentación final ante los Product Architects</span></div>
+  <div class="kpi"><b>12 días</b><span>desde hoy hasta la presentación</span></div>
+  <div class="kpi"><b>5 sprints</b><span>Sprint 0 + cuatro mini-sprints de 2–3 días</span></div>
+  <div class="kpi"><b>5 builders</b><span>cada uno dueño de épicas de punta a punta</span></div>
+</div>
+
+<h2>1. Situación y propuesta</h2>
+<p>Al 21/10 el repositorio y el tablero están creados y el Sprint 0 sigue en curso: faltan el Product Backlog,
+el esqueleto del código y las reglas de trabajo. Para llegar al <b>lunes 2/11</b> con los requerimientos mínimos
+y un proceso sostenible, <b>replanificamos el resto del trabajo en mini-sprints de 2–3 días</b>. Mantenemos los
+mismos cinco sprints y los objetivos que propone la cátedra para cada uno.</p>
+
+<div class="strip">
+  <div class="bg0" style="flex:2">S0 · Preparación<small>mié 21 – jue 22</small></div>
+  <div class="bg1" style="flex:3">S1 · MVP<small>vie 23 – dom 25</small></div>
+  <div class="bg2" style="flex:2">S2 · Interfaz<small>lun 26 – mar 27</small></div>
+  <div class="bg3" style="flex:2">S3 · Func. y calidad<small>mié 28 – jue 29</small></div>
+  <div class="bg4" style="flex:2">S4 · Cierre<small>vie 30 – sáb 31</small></div>
+  <div class="bgb" style="flex:1">Buffer<small>dom 1</small></div>
+  <div class="bgd" style="flex:1;border-right:0">Demo<small>lun 2</small></div>
+</div>
+<div class="ticks"><span>21</span><span>22</span><span>23</span><span>24</span><span>25</span><span>26</span><span>27</span><span>28</span><span>29</span><span>30</span><span>31</span><span>1</span><span>2</span></div>
+
+<div class="callout">
+  <b class="t">Esto no es un plan waterfall</b>
+  La línea de tiempo y el calendario son <b>recursos gráficos</b> para ubicarnos en las fechas, no fases secuenciales.
+  En <b>cada</b> sprint hacemos el ciclo completo (spec SDD → escenarios BDD → TDD → código → review y retro)
+  y cada sprint termina con <b>software funcionando</b>. El alcance de cada sprint se decide en su Planning y
+  puede cambiar según lo que aprendamos en la Review y la Retro anteriores. Lo que está fijo son las fechas
+  (<i>timebox</i>), no el contenido.
+</div>
+
+<h3>Lo mismo pasa dentro de cada sprint</h3>
+<svg viewBox="0 0 680 128" width="100%" xmlns="http://www.w3.org/2000/svg" font-family="Inter" font-size="11">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#5b6372"/></marker>
+  </defs>
+  <g>
+    <rect x="4" y="22" width="96" height="46" rx="8" fill="#eef1f5" stroke="#64748b"/>
+    <text x="52" y="41" text-anchor="middle" font-weight="700">Planning</text>
+    <text x="52" y="56" text-anchor="middle" fill="#5b6372" font-size="8.6">Sprint Goal + backlog</text>
+
+    <rect x="120" y="22" width="96" height="46" rx="8" fill="#e8efff" stroke="#2563eb"/>
+    <text x="168" y="41" text-anchor="middle" font-weight="700">Spec SDD</text>
+    <text x="168" y="56" text-anchor="middle" fill="#5b6372" font-size="8.6">specs/HU-XX.md</text>
+
+    <rect x="236" y="22" width="96" height="46" rx="8" fill="#e2f5f2" stroke="#0d9488"/>
+    <text x="284" y="41" text-anchor="middle" font-weight="700">BDD</text>
+    <text x="284" y="56" text-anchor="middle" fill="#5b6372" font-size="8.6">escenarios .feature</text>
+
+    <rect x="352" y="22" width="96" height="46" rx="8" fill="#fdf1df" stroke="#d97706"/>
+    <text x="400" y="41" text-anchor="middle" font-weight="700">TDD</text>
+    <text x="400" y="56" text-anchor="middle" fill="#5b6372" font-size="8.6">RED→GREEN→REFACTOR</text>
+
+    <rect x="468" y="22" width="96" height="46" rx="8" fill="#f1eaff" stroke="#7c3aed"/>
+    <text x="516" y="41" text-anchor="middle" font-weight="700">PR + revisión</text>
+    <text x="516" y="56" text-anchor="middle" fill="#5b6372" font-size="8.6">CI verde, 1 aprobación</text>
+
+    <rect x="584" y="22" width="92" height="46" rx="8" fill="#fde8e8" stroke="#dc2626"/>
+    <text x="630" y="41" text-anchor="middle" font-weight="700">Review + Retro</text>
+    <text x="630" y="56" text-anchor="middle" fill="#5b6372" font-size="8.6">incremento + mejoras</text>
+
+    <line x1="100" y1="45" x2="118" y2="45" stroke="#5b6372" stroke-width="1.5" marker-end="url(#a)"/>
+    <line x1="216" y1="45" x2="234" y2="45" stroke="#5b6372" stroke-width="1.5" marker-end="url(#a)"/>
+    <line x1="332" y1="45" x2="350" y2="45" stroke="#5b6372" stroke-width="1.5" marker-end="url(#a)"/>
+    <line x1="448" y1="45" x2="466" y2="45" stroke="#5b6372" stroke-width="1.5" marker-end="url(#a)"/>
+    <line x1="564" y1="45" x2="582" y2="45" stroke="#5b6372" stroke-width="1.5" marker-end="url(#a)"/>
+
+    <path d="M630,68 L630,100 Q630,110 620,110 L62,110 Q52,110 52,100 L52,70" fill="none" stroke="#5b6372" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#a)"/>
+    <text x="340" y="124" text-anchor="middle" fill="#5b6372" font-size="10">lo aprendido alimenta la Planning del sprint siguiente · se repite en S1, S2, S3 y S4</text>
+    <text x="340" y="12" text-anchor="middle" fill="#5b6372" font-size="10">Daily asíncrona todos los días ·  cada historia recorre este ciclo completo dentro del sprint</text>
+  </g>
+</svg>
+
+<!-- ===================================================== -->
+<div class="page-break"></div>
+<h2 style="margin-top:0">2. Calendario</h2>
+<p class="muted small">Cada color es un sprint. Los puntos son las ceremonias y los hitos de cada día. La Daily es asíncrona y ocurre todos los días, por eso no figura en cada celda.</p>
+
+<table class="cal">
+  <tr><th>Lun</th><th>Mar</th><th>Mié</th><th>Jue</th><th>Vie</th><th>Sáb</th><th>Dom</th></tr>
+  <tr>
+    <td class="past"><span class="d">19</span>oct</td>
+    <td class="past"><span class="d">20</span>oct</td>
+    <td style="border-color:var(--s0)"><span class="d">21</span><span class="tag bg0">SPRINT 0</span>
+      <span class="ev key">Kickoff: se comparte este plan</span><span class="ev">PR del esqueleto + borrador del backlog</span></td>
+    <td style="border-color:var(--s0)"><span class="d">22</span><span class="tag bg0">SPRINT 0</span>
+      <span class="ev key">Reunión 90' (noche)</span><span class="ev">DoR/DoD, Planning Poker, Planning S1</span></td>
+    <td style="border-color:var(--s1)"><span class="d">23</span><span class="tag bg1">SPRINT 1</span>
+      <span class="ev">Specs + BDD de las historias del MVP</span><span class="ev">Primeros commits RED</span></td>
+    <td style="border-color:var(--s1)"><span class="d">24</span><span class="tag bg1">SPRINT 1</span>
+      <span class="ev">TDD del dominio</span><span class="ev">PRs y revisiones</span></td>
+    <td style="border-color:var(--s1)"><span class="d">25</span><span class="tag bg1">SPRINT 1</span>
+      <span class="ev key">Cierre S1 (60')</span><span class="ev">Review + Retro + Planning S2</span></td>
+  </tr>
+  <tr>
+    <td style="border-color:var(--s2)"><span class="d">26</span><span class="tag bg2">SPRINT 2</span>
+      <span class="ev">Pantallas web</span><span class="ev">Planning Poker (dominio)</span></td>
+    <td style="border-color:var(--s2)"><span class="d">27</span><span class="tag bg2">SPRINT 2</span>
+      <span class="ev key">Cierre S2 (60')</span><span class="ev">Review + Retro + Planning S3</span></td>
+    <td style="border-color:var(--s3)"><span class="d">28</span><span class="tag bg3">SPRINT 3</span>
+      <span class="ev">Dashboard con gráficos</span><span class="ev">Métricas completas</span></td>
+    <td style="border-color:var(--s3)"><span class="d">29</span><span class="tag bg3">SPRINT 3</span>
+      <span class="ev key">Cierre S3 (60')</span><span class="ev">Review + Retro + Planning S4</span></td>
+    <td style="border-color:var(--s4)"><span class="d">30</span><span class="tag bg4">SPRINT 4</span>
+      <span class="ev">Exportación PDF</span><span class="ev">Manual + informe de métricas</span></td>
+    <td style="border-color:var(--s4)"><span class="d">31</span><span class="tag bg4">SPRINT 4</span>
+      <span class="ev key">Review interna + Retro final</span><span class="ev">Code freeze 23:59</span></td>
+    <td style="border-color:var(--buf)"><span class="d">1</span><span class="tag bgb">BUFFER</span>
+      <span class="ev key">Ensayo de la demo</span><span class="ev">Recorrido de trazabilidad</span></td>
+  </tr>
+  <tr>
+    <td style="border-color:var(--demo);border-width:2px"><span class="d" style="color:var(--demo)">2</span><span class="tag bgd">PRESENTACIÓN</span>
+      <span class="ev key">Sprint Review final</span></td>
+    <td class="empty"></td><td class="empty"></td><td class="empty"></td><td class="empty"></td><td class="empty"></td><td class="empty"></td>
+  </tr>
+</table>
+
+<div class="callout warn">
+  <b class="t">¿Por qué juntamos Review, Retro y Planning?</b>
+  Con sprints de 2–3 días, tres reuniones por sprint serían demasiadas. Hacemos <b>una sola reunión de cierre de 60 minutos</b>
+  la noche del último día: Review (20') → Retro (15') → Planning del sprint siguiente (25'). Cada parte tiene su propia acta en <code>docs/scrum/sprint-N/</code>; las actas de retro son un entregable de la consigna.
+  Si hay clase con los profesores en algún sprint, aprovechamos para mostrarles el incremento: son los Product Architects.
+</div>
+
+<h2>3. Ceremonias</h2>
+<table>
+  <tr><th style="width:20%">Ceremonia</th><th style="width:22%">Cuándo</th><th style="width:11%">Duración</th><th>Qué sale</th></tr>
+  <tr><td><b>Sprint 0: reunión de arranque</b></td><td>Jue 22/10, noche (hora a confirmar)</td><td>90'</td>
+      <td>DoR/DoD y acuerdo de trabajo ratificados · backlog estimado con <b>Planning Poker</b> · Sprint Backlog del S1</td></tr>
+  <tr><td><b>Daily</b></td><td>Todos los días, por chat, antes de las 10:00</td><td>2'</td>
+      <td>Tres líneas: <i>qué hice · qué voy a hacer · qué me bloquea</i>. El Agile Enabler las vuelca en <code>dailies.md</code> y destraba los bloqueos.</td></tr>
+  <tr><td><b>Cierre de sprint</b><br><span class="small muted">Review + Retro + Planning</span></td><td>Noche del último día de cada sprint: 25, 27, 29 y 31/10</td><td>60'</td>
+      <td>Demo del incremento · qué seguir, qué dejar y qué probar · Sprint Goal y Sprint Backlog del siguiente</td></tr>
+  <tr><td><b>Refinamiento</b></td><td>Continuo y asíncrono en los issues</td><td>—</td>
+      <td>Las historias cumplen la DoR antes de su Planning: criterios de aceptación claros y estimación</td></tr>
+  <tr><td><b>Ensayo de la demo</b></td><td>Dom 1/11</td><td>90'</td>
+      <td>Cada uno presenta su épica · recorrido completo de trazabilidad de una historia</td></tr>
+</table>
+
+<!-- ===================================================== -->
+<div class="page-break"></div>
+<h2 style="margin-top:0">4. Sprints: objetivo y entregables</h2>
+
+<div class="sprint">
+  <div class="top bg0"><b>Sprint 0 · La Preparación</b><span>mié 21 – jue 22/10 · 2 días</span></div>
+  <div class="body">
+    <div><div class="goal">“Dejar todo listo para que el viernes cada uno pueda programar su primera historia con TDD.”</div>
+      <div class="lbl">Entregables</div>
+      <ul><li>Esqueleto Go con CI en verde (tests + BDD + cobertura)</li><li>Plantillas de issue y PR, <code>CONTRIBUTING.md</code>, DoR/DoD</li><li>Product Backlog (~20 historias) cargado en el tablero y validado con los Product Architects</li></ul></div>
+    <div><div class="lbl">Revisión</div><p>Tablero con el backlog estimado y priorizado. Cada integrante clonó el repo y corrió <code>go test ./...</code>.</p></div>
+  </div>
+</div>
+
+<div class="sprint">
+  <div class="top bg1"><b>Sprint 1 · El MVP</b><span>vie 23 – dom 25/10 · 3 días</span></div>
+  <div class="body">
+    <div><div class="goal">“Poder crear un proyecto, armar su backlog, planificar un sprint y ver sus primeras métricas.”</div>
+      <div class="lbl">Entregables</div>
+      <ul><li>Dominio con TDD: proyectos, integrantes, backlog, sprints</li><li>Métricas básicas: SP planificados y completados, velocidad, % de historias completadas</li><li>Base web mínima navegable y persistencia en archivo o SQLite</li></ul></div>
+    <div><div class="lbl">Revisión</div><p>Demo del flujo proyecto → backlog → sprint → métricas. Primera spec, primer <code>.feature</code> y primeros commits RED → GREEN → REFACTOR de cada integrante.</p></div>
+  </div>
+</div>
+
+<div class="sprint">
+  <div class="top bg2"><b>Sprint 2 · La Interfaz</b><span>lun 26 – mar 27/10 · 2 días</span></div>
+  <div class="body">
+    <div><div class="goal">“Que cualquier integrante pueda usar la aplicación sin tocar código.”</div>
+      <div class="lbl">Entregables</div>
+      <ul><li>Pantallas de proyectos, backlog y sprints (incluido el cierre de sprint)</li><li>Planning Poker: votos ocultos, revelado, diferencias, rondas y estimación acordada</li><li>Registro de esfuerzo y de defectos</li></ul></div>
+    <div><div class="lbl">Revisión</div><p>Hacer una votación de Planning Poker real en la app y cargar las horas del propio equipo.</p></div>
+  </div>
+</div>
+
+<div class="sprint">
+  <div class="top bg3"><b>Sprint 3 · Funcionalidad y Calidad</b><span>mié 28 – jue 29/10 · 2 días</span></div>
+  <div class="body">
+    <div><div class="goal">“Ver el estado del proyecto de un vistazo y tener el sistema robusto.”</div>
+      <div class="lbl">Entregables</div>
+      <ul><li>Dashboard con gráficos (velocidad, SP, horas estimadas vs. reales, defectos)</li><li>Métricas completas: horas, desviación, defectos detectados y resueltos</li><li>Reporte de proyecto o sprint en pantalla · cobertura ≥ 80 % en dominio y métricas</li></ul></div>
+    <div><div class="lbl">Revisión</div><p>Dashboard con los <b>datos reales de nuestro propio proyecto</b> (sprints, SP, horas y defectos).</p></div>
+  </div>
+</div>
+
+<div class="sprint">
+  <div class="top bg4"><b>Sprint 4 · El Cierre y la Entrega Final</b><span>vie 30 – sáb 31/10 · 2 días</span></div>
+  <div class="body">
+    <div><div class="goal">“Producto pulido, documentado y listo para presentar.”</div>
+      <div class="lbl">Entregables</div>
+      <ul><li>Exportación del reporte a PDF</li><li>Manual breve de usuario + documentación técnica</li><li>Informe de métricas y cobertura · presentación</li></ul></div>
+    <div><div class="lbl">Revisión</div><p>Review interna con el producto completo. <b>Code freeze</b> el sábado 31 a las 23:59. Después solo se corrigen defectos críticos.</p></div>
+  </div>
+</div>
+
+<!-- ===================================================== -->
+<div class="page-break"></div>
+<h2 style="margin-top:0">5. Roadmap por épica y responsable</h2>
+<p class="muted small">Cada integrante es <b>dueño de sus épicas de punta a punta</b> (spec, BDD, tests, código y pantallas) y las defiende en la demo.
+Es una guía de alto nivel: el detalle se decide en cada Planning y lo que no entra en un sprint pasa al siguiente o se recorta (ver sección 7).</p>
+
+<table class="road">
+  <tr>
+    <th class="blank"></th>
+    <th class="h bg1">S1 · MVP<br><span style="font-weight:400;font-size:7pt">23–25/10</span></th>
+    <th class="h bg2">S2 · Interfaz<br><span style="font-weight:400;font-size:7pt">26–27/10</span></th>
+    <th class="h bg3">S3 · Func. y calidad<br><span style="font-weight:400;font-size:7pt">28–29/10</span></th>
+    <th class="h bg4">S4 · Cierre<br><span style="font-weight:400;font-size:7pt">30–31/10</span></th>
+  </tr>
+  <tr>
+    <td class="who"><b>Federico Sosa</b><span>E1 Proyectos<br>E3 Sprints</span></td>
+    <td class="c1">Crear y modificar proyecto, integrantes, fechas y estado · crear sprint, Sprint Goal, asignar historias</td>
+    <td class="c2">Pantallas de proyectos y sprints · registrar historias completadas · cerrar sprint</td>
+    <td class="c3">Consultar sprints anteriores · validaciones y casos de error</td>
+    <td class="c4">Pulido de pantallas · manual de su épica</td>
+  </tr>
+  <tr>
+    <td class="who"><b>Ignacio Bianchi</b><span>E2 Backlog<br>E4 Estimación</span></td>
+    <td class="c1">Ítems del backlog: id, título, descripción, prioridad, estado, SP y criterios de aceptación</td>
+    <td class="c2">Pantalla del backlog · Planning Poker en el dominio: votos ocultos, revelado, diferencias, rondas</td>
+    <td class="c3">Pantalla de Planning Poker · registro de la estimación acordada</td>
+    <td class="c4">Pulido · manual de su épica</td>
+  </tr>
+  <tr>
+    <td class="who"><b>Agustín Lara</b><span>E5 Esfuerzo<br>E6 Defectos</span></td>
+    <td class="c1">Registro de esfuerzo en el dominio: integrante, fecha, actividad, horas y validaciones</td>
+    <td class="c2">Pantalla de esfuerzo · defectos en el dominio: severidad, estado, historia, sprints de detección y resolución</td>
+    <td class="c3">Pantalla de defectos y cambios de estado</td>
+    <td class="c4">Pulido · manual de su épica</td>
+  </tr>
+  <tr>
+    <td class="who"><b>Agustín Giorlando</b><span>E7 Métricas<br>E8 Dashboard</span></td>
+    <td class="c1">SP planificados y completados · velocidad · % de historias completadas</td>
+    <td class="c2">Horas estimadas y reales · desviación · defectos detectados y resueltos</td>
+    <td class="c3">Dashboard con gráficos (Chart.js)</td>
+    <td class="c4">Informe de métricas y cobertura</td>
+  </tr>
+  <tr>
+    <td class="who"><b>Branko Almeira</b><span>E9 Reportes<br>+ Agile Enabler</span></td>
+    <td class="c1">Base web (layout y navegación) · persistencia · <i>S0: esqueleto, CI y plantillas</i></td>
+    <td class="c2">Reporte de sprint y proyecto: historias, estimaciones, esfuerzo</td>
+    <td class="c3">Reporte con métricas y defectos · umbral de cobertura en CI</td>
+    <td class="c4">Exportación a PDF · presentación final</td>
+  </tr>
+</table>
+
+<h2>6. Riesgos y plan de recorte</h2>
+<div class="two"><div>
+    <p><b>Regla: los sprints no se estiran.</b> Si algo no entra, se recorta alcance <b>sin tocar los requerimientos mínimos</b>, en este orden:</p>
+    <ol>
+      <li>Filtros y orden manual del backlog</li>
+      <li>Descomponer historias en tareas (el esfuerzo se carga por historia)</li>
+      <li>Edición o borrado de registros ya cargados</li>
+      <li>Estética de las pantallas por encima de lo usable</li>
+    </ol>
+    </div><div>
+    <p class="small"><b>Fuera de alcance:</b> login de usuarios, base de datos en la nube y deploy. No son requerimientos de la consigna: priorizamos los requerimientos mínimos.</p>
+    <p class="small"><b>Riesgo principal:</b> que alguien se trabe y no avise. Por eso la Daily es diaria aunque sea de dos líneas.</p>
+  </div></div>
+<div class="page-break"></div>
+<h2 style="margin-top:0">7. Cómo trabajamos</h2>
+    <ul>
+      <li><b>Una rama por historia:</b> <code>feature/HU-01-crear-proyecto</code>, <code>fix/DEF-3-…</code>, <code>docs/sprint-1-retro</code>.</li>
+      <li><b>Commits con la fase de TDD</b> (es la evidencia que se evalúa):<br>
+        <code>test(HU-01): RED - …</code><br><code>feat(HU-01): GREEN - …</code><br><code>refactor(HU-01): …</code></li>
+      <li><b><code>main</code> protegida:</b> todo entra por PR con CI en verde y <b>una aprobación</b>. El squash está deshabilitado para no perder los commits de TDD.</li>
+      <li><b>Trazabilidad:</b> Issue HU-XX → <code>specs/HU-XX.md</code> → criterios → <code>features/hu-xx.feature</code> → tests → código.</li>
+      <li><b>IA permitida</b>, pero cada uno entiende y puede explicar lo que sube. Lo registramos en <code>docs/ia/registro.md</code>.</li>
+    </ul>
+    <div class="lbl" style="margin-top:2mm">Revisión cruzada de PRs (rotación)</div>
+    <div class="rot"><span class="p">Sosa</span>→<span class="p">Bianchi</span>→<span class="p">Lara</span>→<span class="p">Giorlando</span>→<span class="p">Branko</span>→<span class="p">Sosa</span></div>
+    <p class="small muted">Cada uno revisa los PRs de quien está a su izquierda. GitHub asigna al revisor automáticamente cuando se abre el PR.</p>
+  <h2>8. Qué necesito de cada uno, antes del jueves 22</h2>
+<ul class="check">
+  <li>Leer este documento y marcar dudas o cambios en el grupo <b>hoy</b>.</li>
+  <li>Confirmar el <b>horario de la reunión del jueves 22</b> (90') y el de las reuniones de cierre (25, 27, 29 y 31/10).</li>
+  <li>Instalar <b>Go</b> (última versión estable) y Git, clonar el repositorio y correr <code>go test ./...</code> cuando se mergee el esqueleto.</li>
+  <li>Leer la guía de <b>Planning Poker</b> que va a estar en <code>docs/scrum/</code>. El jueves estimamos el backlog con esa técnica.</li>
+  <li>Revisar el borrador del Product Backlog y proponer ajustes a las historias de <b>tus épicas</b>.</li>
+</ul>
+<p class="small muted" style="margin-top:3mm">Enlaces · Repositorio: github.com/branko-utn/seguimiento-medicion · Tablero: github.com/users/branko-utn/projects/1</p>
+
+</body>
+</html>
