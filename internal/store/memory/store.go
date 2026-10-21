@@ -12,10 +12,10 @@ import (
 // Store guarda un dato de tipo T en memoria y lo persiste en un archivo JSON (TEC-04).
 // Es seguro para uso concurrente. Cada repositorio usa su propio Store y su propio archivo.
 type Store[T any] struct {
-	mu     sync.RWMutex
-	ruta   string
-	dato   T
-	guarda []byte // último JSON guardado, para restaurar si un Update falla
+	mu       sync.RWMutex
+	ruta     string
+	dato     T
+	guardado []byte // último JSON guardado, para restaurar si un Update falla
 }
 
 // Open abre el archivo de la ruta indicada. Si no existe, arranca con el valor cero de T.
@@ -36,7 +36,7 @@ func Open[T any](ruta string) (*Store[T], error) {
 	if err := json.Unmarshal(contenido, &s.dato); err != nil {
 		return nil, fmt.Errorf("el archivo %s no es un JSON válido: %w", ruta, err)
 	}
-	s.guarda = contenido
+	s.guardado = contenido
 	return s, nil
 }
 
@@ -47,8 +47,8 @@ func (s *Store[T]) View(fn func(T)) {
 	fn(s.dato)
 }
 
-// Update ejecuta fn sobre el estado y, si no devuelve error, lo guarda en el archivo.
-// Si fn o la escritura fallan, no se guarda nada y el estado vuelve a ser el anterior.
+// Update ejecuta fn sobre el estado y, si no devuelve error, lo guardado en el archivo.
+// Si fn o la escritura fallan, no se guardado nada y el estado vuelve a ser el anterior.
 func (s *Store[T]) Update(fn func(*T) error) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -66,21 +66,21 @@ func (s *Store[T]) Update(fn func(*T) error) error {
 		s.restaurar()
 		return err
 	}
-	s.guarda = contenido
+	s.guardado = contenido
 	return nil
 }
 
 // restaurar vuelve el estado en memoria al último guardado.
 func (s *Store[T]) restaurar() {
 	var anterior T
-	if s.guarda != nil {
-		// No puede fallar: s.guarda se generó con json.Marshal del mismo tipo.
-		_ = json.Unmarshal(s.guarda, &anterior)
+	if s.guardado != nil {
+		// No puede fallar: s.guardado se generó con json.Marshal del mismo tipo.
+		_ = json.Unmarshal(s.guardado, &anterior)
 	}
 	s.dato = anterior
 }
 
-// escribir guarda el contenido de forma atómica: escribe un temporal y lo renombra.
+// escribir guardado el contenido de forma atómica: escribe un temporal y lo renombra.
 func (s *Store[T]) escribir(contenido []byte) error {
 	if s.ruta == "" {
 		return nil
