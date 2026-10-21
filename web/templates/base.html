@@ -1,0 +1,31 @@
+{{define "base"}}<!doctype html>
+<html lang="es" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{template "titulo" .}} · Software Metrics &amp; Estimation</title>
+  <link rel="stylesheet" href="/static/vendor/pico.min.css">
+  <link rel="stylesheet" href="/static/app.css">
+  <script src="/static/vendor/htmx.min.js" defer></script>
+  <script src="/static/vendor/chart.umd.min.js" defer></script>
+</head>
+<body>
+  <header class="container">
+    <nav>
+      <ul><li><a href="/" class="marca"><strong>Software Metrics &amp; Estimation</strong></a></li></ul>
+      <ul>
+        {{- range .Secciones}}
+        <li><a href="{{.Ruta}}"{{if $.Activa .Ruta}} aria-current="page"{{end}}>{{.Nombre}}</a></li>
+        {{- end}}
+      </ul>
+    </nav>
+  </header>
+  <main class="container">
+    {{template "contenido" .}}
+  </main>
+  <footer class="container">
+    <small>UTN FRSR · Ingeniería y Calidad de Software 2026</small>
+  </footer>
+</body>
+</html>
+{{end}}

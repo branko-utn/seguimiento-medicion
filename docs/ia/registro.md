@@ -7,3 +7,4 @@ Registramos cada uso relevante: qué se pidió, qué se usó del resultado y có
 |---|---|---|---|---|---|
 | 21/10/2026 | Branko Almeira | Claude Code | Análisis de la consigna y de buenas prácticas de otros repositorios del curso; cronograma de sprints | Cronograma, reparto de épicas y ceremonias (`docs/plan/`) | Revisado por Branko y aprobado por el equipo |
 | 21/10/2026 | Branko Almeira | Claude Code | Esqueleto del repositorio: estructura, CI, plantillas, guías de Scrum y ejemplo TEC-01 | Archivos del PR `chore/TEC-01-esqueleto` | Revisión del PR por otro integrante; CI en verde |
+| 21/10/2026 | Branko Almeira | Claude Code | TEC-03 (base web) y TEC-04 (persistencia): specs, tests, código y guía para agregar pantallas | Archivos de los PR #6 y #7 | Branko revisó cada fase (spec → RED → GREEN); revisión del PR por otro integrante; CI en verde |
