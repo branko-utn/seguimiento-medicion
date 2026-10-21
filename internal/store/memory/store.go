@@ -47,8 +47,8 @@ func (s *Store[T]) View(fn func(T)) {
 	fn(s.dato)
 }
 
-// Update ejecuta fn sobre el estado y, si no devuelve error, lo guardado en el archivo.
-// Si fn o la escritura fallan, no se guardado nada y el estado vuelve a ser el anterior.
+// Update ejecuta fn sobre el estado y, si no devuelve error, lo guarda en el archivo.
+// Si fn o la escritura fallan, no se guarda nada y el estado vuelve a ser el anterior.
 func (s *Store[T]) Update(fn func(*T) error) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -80,7 +80,7 @@ func (s *Store[T]) restaurar() {
 	s.dato = anterior
 }
 
-// escribir guardado el contenido de forma atómica: escribe un temporal y lo renombra.
+// escribir guarda el contenido de forma atómica: escribe un temporal y lo renombra.
 func (s *Store[T]) escribir(contenido []byte) error {
 	if s.ruta == "" {
 		return nil
