@@ -2,7 +2,9 @@ package project
 
 import (
 	"errors"
+	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/branko-utn/seguimiento-medicion/internal/domain"
 )
@@ -32,7 +34,21 @@ var (
 	ErrNombreDuplicado = errors.New("ya existe un proyecto con ese nombre")
 )
 
-// Nuevo crea un proyecto válido. El stub existe solo para que los tests de la fase RED compilen.
+// Nuevo crea un proyecto válido en estado Planificado (RN-01.1, RN-01.2 y RN-01.4).
+// La unicidad del nombre (RN-01.3) la controla el servicio.
 func Nuevo(nombre, descripcion string, inicio, fin time.Time) (Proyecto, error) {
-	return Proyecto{}, nil
+	nombre = strings.TrimSpace(nombre)
+	if largo := utf8.RuneCountInString(nombre); largo < 3 || largo > 100 {
+		return Proyecto{}, ErrNombreInvalido
+	}
+	if inicio.IsZero() || fin.IsZero() || fin.Before(inicio) {
+		return Proyecto{}, ErrFechasInvalidas
+	}
+	return Proyecto{
+		Nombre:      nombre,
+		Descripcion: descripcion,
+		Inicio:      inicio,
+		Fin:         fin,
+		Estado:      Planificado,
+	}, nil
 }
