@@ -7,14 +7,27 @@ import (
 	"github.com/branko-utn/seguimiento-medicion/internal/domain"
 )
 
-// Rol es el rol de un integrante en el proyecto. Su valor es el texto que ve el usuario.
-type Rol string
+// Rol es el rol de un integrante en el proyecto (ADR 0003: el cero no es válido).
+type Rol int
 
 const (
-	AgileEnabler     Rol = "Agile Enabler"
-	ProductBuilder   Rol = "Product Builder"
-	ProductArchitect Rol = "Product Architect"
+	AgileEnabler Rol = iota + 1
+	ProductBuilder
+	ProductArchitect
 )
+
+// String devuelve el texto que usan las specs y los escenarios BDD.
+func (r Rol) String() string {
+	switch r {
+	case AgileEnabler:
+		return "Agile Enabler"
+	case ProductBuilder:
+		return "Product Builder"
+	case ProductArchitect:
+		return "Product Architect"
+	}
+	return ""
+}
 
 // Integrante es una persona que forma parte de un proyecto (ADR 0002).
 type Integrante struct {
