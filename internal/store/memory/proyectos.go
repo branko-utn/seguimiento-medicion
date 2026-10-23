@@ -34,6 +34,11 @@ func (r *Proyectos) Agregar(p project.Proyecto) (project.Proyecto, error) {
 	return p, nil
 }
 
+// Buscar devuelve el proyecto con ese ID, o project.ErrNoExiste. El stub existe solo para la fase RED.
+func (r *Proyectos) Buscar(id domain.ProyectoID) (project.Proyecto, error) {
+	return project.Proyecto{}, nil
+}
+
 // Listar devuelve una copia de todos los proyectos.
 func (r *Proyectos) Listar() []project.Proyecto {
 	var copia []project.Proyecto

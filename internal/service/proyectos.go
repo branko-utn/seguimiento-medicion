@@ -4,6 +4,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/branko-utn/seguimiento-medicion/internal/domain"
 	"github.com/branko-utn/seguimiento-medicion/internal/domain/project"
 )
 
@@ -12,6 +13,8 @@ type RepoProyectos interface {
 	// Agregar guarda un proyecto nuevo y lo devuelve con el ID generado.
 	Agregar(p project.Proyecto) (project.Proyecto, error)
 	Listar() []project.Proyecto
+	// Buscar devuelve project.ErrNoExiste si no hay un proyecto con ese ID.
+	Buscar(id domain.ProyectoID) (project.Proyecto, error)
 }
 
 // Proyectos son los casos de uso de la épica E1.

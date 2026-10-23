@@ -1,6 +1,7 @@
 package memory
 
 import (
+	"errors"
 	"path/filepath"
 	"testing"
 
@@ -69,5 +70,24 @@ func TestProyectos_ListarDevuelveCopia(t *testing.T) {
 
 	if got := r.Listar()[0].Nombre; got != "Demo" {
 		t.Errorf("modificar lo que devuelve Listar cambió el repositorio: nombre = %q", got)
+	}
+}
+
+func TestProyectos_Buscar(t *testing.T) {
+	r, _ := NuevoProyectos("")
+	if _, err := r.Agregar(project.Proyecto{Nombre: "Demo"}); err != nil {
+		t.Fatal(err)
+	}
+
+	p, err := r.Buscar("P1")
+	if err != nil {
+		t.Fatalf("error inesperado: %v", err)
+	}
+	if p.ID != "P1" || p.Nombre != "Demo" {
+		t.Errorf("Buscar(P1) = %+v, se esperaba el proyecto Demo", p)
+	}
+
+	if _, err := r.Buscar("P9"); !errors.Is(err, project.ErrNoExiste) {
+		t.Errorf("Buscar(P9): se esperaba %v, se obtuvo %v", project.ErrNoExiste, err)
 	}
 }
