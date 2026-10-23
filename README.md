@@ -42,7 +42,8 @@ Sin `make` (por ejemplo en Windows): `go test ./...` y `go run ./cmd/server`.
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Ramas, commits de TDD, Pull Requests, revisión cruzada y estructura del código |
 | [docs/plan/cronograma-sprints.html](docs/plan/cronograma-sprints.html) | Cronograma de sprints, ceremonias y reparto de épicas |
 | [docs/scrum/](docs/scrum/) | Ceremonias, DoR/DoD, guía de Planning Poker y actas de cada sprint |
-| [docs/adr/](docs/adr/) | Decisiones de arquitectura |
+| [docs/adr/](docs/adr/) | Decisiones de arquitectura (0002: contratos de dominio entre épicas) |
+| [docs/guias/de-issue-a-spec.md](docs/guias/de-issue-a-spec.md) | Cómo arrancar una historia: de issue a spec y escenarios, con prompt para IA |
 | [specs/](specs/) | Especificaciones SDD |
 | [features/](features/) | Escenarios BDD (Given–When–Then) |
 | [docs/ia/registro.md](docs/ia/registro.md) | Registro de uso de IA |

@@ -68,6 +68,8 @@ Issue HU-XX → specs/HU-XX-*.md → criterios CA-XX.n → features/hu-xx-*.feat
 ```
 
 Plantillas: [`specs/_plantilla.md`](specs/_plantilla.md) y [`features/_plantilla.feature`](features/_plantilla.feature).
+Paso a paso para arrancar una historia (con prompt para IA): [`docs/guias/de-issue-a-spec.md`](docs/guias/de-issue-a-spec.md).
+Tipos que comparten las épicas: [`docs/adr/0002-contratos-de-dominio.md`](docs/adr/0002-contratos-de-dominio.md).
 
 ## 5. Estructura del código
 
