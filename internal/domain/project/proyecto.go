@@ -45,6 +45,7 @@ var (
 	ErrNombreInvalido  = errors.New("el nombre debe tener entre 3 y 100 caracteres")
 	ErrFechasInvalidas = errors.New("la fecha de fin no puede ser anterior a la de inicio")
 	ErrNombreDuplicado = errors.New("ya existe un proyecto con ese nombre")
+	ErrNoExiste        = errors.New("el proyecto no existe")
 )
 
 // Nuevo crea un proyecto válido en estado Planificado (RN-01.1, RN-01.2 y RN-01.4).

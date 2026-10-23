@@ -34,6 +34,26 @@ func (r *Proyectos) Agregar(p project.Proyecto) (project.Proyecto, error) {
 	return p, nil
 }
 
+// Buscar devuelve el proyecto con ese ID, o project.ErrNoExiste.
+func (r *Proyectos) Buscar(id domain.ProyectoID) (project.Proyecto, error) {
+	var (
+		encontrado project.Proyecto
+		existe     bool
+	)
+	r.store.View(func(lista []project.Proyecto) {
+		for _, p := range lista {
+			if p.ID == id {
+				encontrado, existe = p, true
+				return
+			}
+		}
+	})
+	if !existe {
+		return project.Proyecto{}, project.ErrNoExiste
+	}
+	return encontrado, nil
+}
+
 // Listar devuelve una copia de todos los proyectos.
 func (r *Proyectos) Listar() []project.Proyecto {
 	var copia []project.Proyecto

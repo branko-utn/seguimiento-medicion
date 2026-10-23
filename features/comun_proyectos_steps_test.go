@@ -3,6 +3,7 @@ package features
 import (
 	"fmt"
 
+	"github.com/branko-utn/seguimiento-medicion/internal/domain"
 	"github.com/branko-utn/seguimiento-medicion/internal/domain/project"
 	"github.com/cucumber/godog"
 )
@@ -18,6 +19,33 @@ const (
 func registrarPasosComunesProyectos(sc *godog.ScenarioContext, m *mundo) {
 	sc.Step(`^que existe un proyecto "([^"]*)"$`, m.queExisteUnProyecto)
 	sc.Step(`^que existe un proyecto "([^"]*)" del "([^"]*)" al "([^"]*)"$`, m.queExisteUnProyectoDelAl)
+	sc.Step(`^que "([^"]*)" es integrante del proyecto "([^"]*)"$`, m.queEsIntegranteDelProyecto)
+}
+
+// queEsIntegranteDelProyecto registra a la persona como Product Builder: el escenario no indica el rol.
+func (m *mundo) queEsIntegranteDelProyecto(nombre, proyecto string) error {
+	return m.registrarIntegrante(nombre, project.ProductBuilder, proyecto)
+}
+
+// registrarIntegrante registra un integrante y recuerda su ID con el nombre guardado (sin espacios sobrantes).
+func (m *mundo) registrarIntegrante(nombre string, rol project.Rol, proyecto string) error {
+	i, err := m.integrantes.Registrar(domain.ProyectoID(m.id("proyecto", proyecto)), nombre, rol)
+	if err != nil {
+		return err
+	}
+	m.recordar("integrante", i.Nombre, string(i.ID))
+	return nil
+}
+
+// rolDesdeTexto convierte el texto del escenario en un Rol (ADR 0003: la conversión va en el borde).
+// Si el texto no es un rol, devuelve el cero, que project.NuevoIntegrante rechaza con ErrRolInvalido.
+func rolDesdeTexto(texto string) project.Rol {
+	for _, rol := range []project.Rol{project.AgileEnabler, project.ProductBuilder, project.ProductArchitect} {
+		if rol.String() == texto {
+			return rol
+		}
+	}
+	return 0
 }
 
 func (m *mundo) queExisteUnProyecto(nombre string) error {
