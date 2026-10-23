@@ -29,8 +29,13 @@ func TestFeatures(t *testing.T) {
 	}
 }
 
+// inicializarEscenario se ejecuta antes de cada escenario: crea un mundo nuevo y registra los pasos.
 func inicializarEscenario(sc *godog.ScenarioContext) {
+	m := nuevoMundo()
+	registrarPasosComunes(sc, m)
 	registrarPasosHTTP(sc)
+	// Cada historia registra acá sus pasos, por ejemplo: registrarPasosHU01(sc, m)
+	// Los pasos compartidos entre historias los registra una sola vez su responsable (features/README.md).
 }
 
 // archivosFeature devuelve los .feature de la carpeta, salvo las plantillas (empiezan con "_").
