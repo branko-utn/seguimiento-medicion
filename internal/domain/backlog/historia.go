@@ -57,20 +57,20 @@ func (e Estado) String() string {
 
 // Criterio es un criterio de aceptación de una historia (spec HU-07).
 type Criterio struct {
-	Texto string `json:"texto"`
+	Texto string
 }
 
 // Historia es un ítem del Product Backlog (ADR 0002).
 type Historia struct {
-	ID          domain.HistoriaID `json:"id"`
-	ProyectoID  domain.ProyectoID `json:"proyecto_id"`
-	Titulo      string            `json:"titulo"`
-	Descripcion string            `json:"descripcion"`
-	Prioridad   Prioridad         `json:"prioridad"`
-	Estado      Estado            `json:"estado"`
-	StoryPoints int               `json:"story_points"`
-	Criterios   []Criterio        `json:"criterios,omitempty"`
-	SprintID    domain.SprintID   `json:"sprint_id,omitempty"`
+	ID          domain.HistoriaID
+	ProyectoID  domain.ProyectoID
+	Titulo      string
+	Descripcion string
+	Prioridad   Prioridad
+	Estado      Estado
+	StoryPoints int
+	Criterios   []Criterio
+	SprintID    domain.SprintID
 }
 
 // Errores que devuelve este paquete (los mensajes son los de las specs).
