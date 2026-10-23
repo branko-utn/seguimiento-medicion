@@ -2,6 +2,7 @@ package project
 
 import (
 	"errors"
+	"strings"
 
 	"github.com/branko-utn/seguimiento-medicion/internal/domain"
 )
@@ -29,7 +30,17 @@ var (
 	ErrIntegranteDuplicado = errors.New("el integrante ya está registrado en el proyecto")
 )
 
-// NuevoIntegrante crea un integrante válido. El stub existe solo para que los tests de la fase RED compilen.
+// NuevoIntegrante crea un integrante válido (RN-03.1 y RN-03.2). Que el proyecto exista y que el integrante no
+// esté repetido (RN-03.3) lo controla el servicio.
 func NuevoIntegrante(proyectoID domain.ProyectoID, nombre string, rol Rol) (Integrante, error) {
-	return Integrante{}, nil
+	nombre = strings.TrimSpace(nombre)
+	if nombre == "" {
+		return Integrante{}, ErrIntegranteSinNombre
+	}
+	switch rol {
+	case AgileEnabler, ProductBuilder, ProductArchitect:
+	default:
+		return Integrante{}, ErrRolInvalido
+	}
+	return Integrante{ProyectoID: proyectoID, Nombre: nombre, Rol: rol}, nil
 }
