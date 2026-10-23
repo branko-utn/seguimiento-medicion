@@ -35,7 +35,7 @@ Reglas:
    épicas: referencialas por ID.
 3. No agregues funcionalidades que el issue no pide. Si algo es ambiguo, no lo decidas: listalo al final
    como "Dudas para el equipo".
-4. Escribí el archivo .feature con "# language: es", etiquetas @HU-XX, @CA-XX.n y @normal / @alternativo /
+4. Escribí el archivo .feature con "# language: es", etiquetas @HU-XX @pendiente en la Característica, @CA-XX.n y @normal / @alternativo /
    @limite / @error, cubriendo como mínimo un caso normal, uno de error y uno límite.
 5. Usá pasos concretos y reutilizables (por ejemplo: Dado que existe un proyecto "Demo"), no pasos que
    describan la interfaz (clics, botones).
@@ -72,6 +72,9 @@ gh pr create --draft --fill   # o desde la web
 ```
 
 - Abrí el PR como **draft** desde este primer commit, con `Closes #N` en la descripción.
+- El `.feature` va con la etiqueta **`@pendiente`** junto a `@HU-XX` (en la línea de la `Característica`): así el CI no
+  falla por pasos que todavía no programaste. Cuando escribas los pasos (`features/huXX_steps_test.go`), **quitá la
+  etiqueta** en el commit RED: los escenarios empiezan a fallar y pasan a verde con el código.
 - Anotá el uso de IA en [`docs/ia/registro.md`](../ia/registro.md): fecha, qué pediste, qué usaste, cómo lo validaste.
 - Sigue el ciclo TDD (sección 2 de `CONTRIBUTING.md`): `test(HU-XX): RED - …`, `feat(HU-XX): GREEN - …`, `refactor(HU-XX): …`.
 

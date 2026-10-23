@@ -1,7 +1,8 @@
 # language: es
 # Plantilla: copiar como hu-xx-<titulo>.feature. Un escenario por criterio de aceptación como mínimo,
 # cubriendo caso normal, alternativo, límite y error. Etiquetar con el ID de la historia y del criterio.
-@HU-XX
+# @pendiente: quitarla cuando se implementen los pasos (commit RED).
+@HU-XX @pendiente
 Característica: <Título de la historia>
   Como <rol>
   Quiero <funcionalidad>
