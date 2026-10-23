@@ -18,6 +18,11 @@ const (
 func registrarPasosComunesProyectos(sc *godog.ScenarioContext, m *mundo) {
 	sc.Step(`^que existe un proyecto "([^"]*)"$`, m.queExisteUnProyecto)
 	sc.Step(`^que existe un proyecto "([^"]*)" del "([^"]*)" al "([^"]*)"$`, m.queExisteUnProyectoDelAl)
+	sc.Step(`^que "([^"]*)" es integrante del proyecto "([^"]*)"$`, m.queEsIntegranteDelProyecto)
+}
+
+func (m *mundo) queEsIntegranteDelProyecto(nombre, proyecto string) error {
+	return godog.ErrPending
 }
 
 func (m *mundo) queExisteUnProyecto(nombre string) error {
