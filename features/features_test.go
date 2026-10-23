@@ -34,8 +34,12 @@ func inicializarEscenario(sc *godog.ScenarioContext) {
 	m := nuevoMundo()
 	registrarPasosComunes(sc, m)
 	registrarPasosHTTP(sc)
+<<<<<<< HEAD
 	registrarPasosComunesProyectos(sc, m)
 	registrarPasosHU01(sc, m)
+=======
+	registrarPasosHU24(sc, m)
+>>>>>>> origin/main
 	// Cada historia registra acá sus pasos, por ejemplo: registrarPasosHU01(sc, m)
 	// Los pasos compartidos entre historias los registra una sola vez su responsable (features/README.md).
 }
