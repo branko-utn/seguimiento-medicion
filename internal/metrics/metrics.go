@@ -9,15 +9,33 @@ type HistoriaSprint struct {
 
 // SPPlanificados suma los Story Points de las historias asignadas al sprint (RN-24.1).
 func SPPlanificados(hs []HistoriaSprint) int {
-	return 0
+	total := 0
+	for _, h := range hs {
+		total += h.StoryPoints
+	}
+	return total
 }
 
 // SPCompletados suma los Story Points de las historias completadas del sprint (RN-24.2).
 func SPCompletados(hs []HistoriaSprint) int {
-	return 0
+	total := 0
+	for _, h := range hs {
+		if h.Completada {
+			total += h.StoryPoints
+		}
+	}
+	return total
 }
 
 // Velocidad devuelve el promedio de Story Points completados de los sprints cerrados (RN-24.3).
+// Sin sprints cerrados devuelve 0 (RN-24.4).
 func Velocidad(completados []int) float64 {
-	return 0
+	if len(completados) == 0 {
+		return 0
+	}
+	total := 0
+	for _, sp := range completados {
+		total += sp
+	}
+	return float64(total) / float64(len(completados))
 }
