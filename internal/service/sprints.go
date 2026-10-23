@@ -28,22 +28,53 @@ func NuevoSprints(sprints RepoSprints, proyectos RepoProyectos) *Sprints {
 	return &Sprints{sprints: sprints, proyectos: proyectos}
 }
 
-// Crear da de alta un sprint en un proyecto (HU-10). El stub existe solo para que los tests de la fase RED compilen.
+// Crear da de alta un sprint en un proyecto (HU-10). Valida en este orden: que el proyecto exista, el Sprint Goal y
+// las fechas (sprint.Nuevo), que las fechas estén dentro del proyecto y que no se superponga con otro sprint.
 func (s *Sprints) Crear(proyectoID domain.ProyectoID, goal string, inicio, fin time.Time) (sprint.Sprint, error) {
-	return sprint.Sprint{}, nil
+	p, err := s.proyectos.Buscar(proyectoID)
+	if err != nil {
+		return sprint.Sprint{}, err
+	}
+	sp, err := sprint.Nuevo(proyectoID, goal, inicio, fin)
+	if err != nil {
+		return sprint.Sprint{}, err
+	}
+	if err := sp.ValidarFechasEnProyecto(p); err != nil {
+		return sprint.Sprint{}, err
+	}
+	if err := sp.ValidarSinSuperposicion(s.sprints.DelProyecto(proyectoID)); err != nil {
+		return sprint.Sprint{}, err
+	}
+	return s.sprints.Agregar(sp)
 }
 
-// Iniciar pasa un sprint a Activo (HU-10). El stub existe solo para la fase RED.
+// Iniciar pasa un sprint a Activo (HU-10). Primero el sprint valida su propio estado (RN-10.6) y después se controla
+// que no haya otro sprint activo en el proyecto (RN-10.5).
 func (s *Sprints) Iniciar(id domain.SprintID) error {
-	return nil
+	sp, err := s.sprints.Buscar(id)
+	if err != nil {
+		return err
+	}
+	if err := sp.Iniciar(); err != nil {
+		return err
+	}
+	for _, otro := range s.sprints.DelProyecto(sp.ProyectoID) {
+		if otro.ID != sp.ID && otro.Estado == sprint.Activo {
+			return sprint.ErrOtroActivo
+		}
+	}
+	return s.sprints.Actualizar(sp)
 }
 
-// Buscar devuelve un sprint, o sprint.ErrNoExiste. El stub existe solo para la fase RED.
+// Buscar devuelve un sprint, o sprint.ErrNoExiste.
 func (s *Sprints) Buscar(id domain.SprintID) (sprint.Sprint, error) {
-	return sprint.Sprint{}, nil
+	return s.sprints.Buscar(id)
 }
 
-// DelProyecto devuelve los sprints de un proyecto, o project.ErrNoExiste. El stub existe solo para la fase RED.
+// DelProyecto devuelve los sprints de un proyecto en el orden en que se crearon, o project.ErrNoExiste.
 func (s *Sprints) DelProyecto(proyectoID domain.ProyectoID) ([]sprint.Sprint, error) {
-	return nil, nil
+	if _, err := s.proyectos.Buscar(proyectoID); err != nil {
+		return nil, err
+	}
+	return s.sprints.DelProyecto(proyectoID), nil
 }
