@@ -1,6 +1,8 @@
 package service
 
 import (
+	"strings"
+
 	"github.com/branko-utn/seguimiento-medicion/internal/domain"
 	"github.com/branko-utn/seguimiento-medicion/internal/domain/project"
 )
@@ -23,12 +25,28 @@ func NuevoIntegrantes(integrantes RepoIntegrantes, proyectos RepoProyectos) *Int
 	return &Integrantes{integrantes: integrantes, proyectos: proyectos}
 }
 
-// Registrar agrega un integrante a un proyecto. El stub existe solo para que los tests de la fase RED compilen.
+// Registrar agrega un integrante a un proyecto. Primero verifica que el proyecto exista; después el dominio valida
+// nombre y rol (RN-03.1, RN-03.2) y el servicio controla que no esté repetido en ese proyecto (RN-03.3).
 func (s *Integrantes) Registrar(proyectoID domain.ProyectoID, nombre string, rol project.Rol) (project.Integrante, error) {
-	return project.Integrante{}, nil
+	if _, err := s.proyectos.Buscar(proyectoID); err != nil {
+		return project.Integrante{}, err
+	}
+	i, err := project.NuevoIntegrante(proyectoID, nombre, rol)
+	if err != nil {
+		return project.Integrante{}, err
+	}
+	for _, otro := range s.integrantes.DelProyecto(proyectoID) {
+		if strings.EqualFold(otro.Nombre, i.Nombre) {
+			return project.Integrante{}, project.ErrIntegranteDuplicado
+		}
+	}
+	return s.integrantes.Agregar(i)
 }
 
-// DelProyecto devuelve los integrantes de un proyecto. El stub existe solo para la fase RED.
+// DelProyecto devuelve los integrantes de un proyecto en el orden en que se registraron, o project.ErrNoExiste.
 func (s *Integrantes) DelProyecto(proyectoID domain.ProyectoID) ([]project.Integrante, error) {
-	return nil, nil
+	if _, err := s.proyectos.Buscar(proyectoID); err != nil {
+		return nil, err
+	}
+	return s.integrantes.DelProyecto(proyectoID), nil
 }
