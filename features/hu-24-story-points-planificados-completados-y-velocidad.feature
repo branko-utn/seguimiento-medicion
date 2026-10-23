@@ -1,6 +1,6 @@
 # language: es
 # @pendiente: se quita al implementar los pasos (commit RED).
-@HU-24 @pendiente
+@HU-24
 Característica: Story Points planificados, completados y velocidad
   Como líder del proyecto
   Quiero ver los SP planificados y completados de cada sprint y la velocidad del equipo

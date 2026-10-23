@@ -1,6 +1,5 @@
 # language: es
-# @pendiente: se quita al implementar los pasos (commit RED).
-@HU-03 @pendiente
+@HU-03
 Característica: Registrar integrantes
   Como líder del proyecto
   Quiero registrar los integrantes del proyecto con su rol
