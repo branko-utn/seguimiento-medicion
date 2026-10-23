@@ -111,11 +111,11 @@ func TestIntegrantes_Registrar_errores(t *testing.T) {
 		quiereError error
 	}{
 		{"proyecto inexistente", "P9", "Beto Gómez", project.ProductBuilder, project.ErrNoExiste},
-		{"primero se verifica el proyecto", "P9", "", project.Rol("Tester"), project.ErrNoExiste},
+		{"primero se verifica el proyecto", "P9", "", project.Rol(99), project.ErrNoExiste},
 		{"duplicado sin distinguir mayúsculas", "P1", "ana pérez", project.ProductBuilder, project.ErrIntegranteDuplicado},
 		{"duplicado con espacios sobrantes", "P1", "  ANA PÉREZ ", project.AgileEnabler, project.ErrIntegranteDuplicado},
 		{"nombre vacío del dominio", "P1", "   ", project.ProductBuilder, project.ErrIntegranteSinNombre},
-		{"rol inválido del dominio", "P1", "Beto Gómez", project.Rol("Tester"), project.ErrRolInvalido},
+		{"rol inválido del dominio", "P1", "Beto Gómez", project.Rol(99), project.ErrRolInvalido},
 	}
 
 	for _, caso := range casos {
