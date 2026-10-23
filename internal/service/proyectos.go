@@ -1,6 +1,7 @@
 package service
 
 import (
+	"strings"
 	"time"
 
 	"github.com/branko-utn/seguimiento-medicion/internal/domain/project"
@@ -22,12 +23,22 @@ func NuevoProyectos(repo RepoProyectos) *Proyectos {
 	return &Proyectos{repo: repo}
 }
 
-// Crear da de alta un proyecto (HU-01). El stub existe solo para que los tests de la fase RED compilen.
+// Crear da de alta un proyecto (HU-01). El dominio valida nombre y fechas; el servicio controla que el nombre
+// no esté repetido sin distinguir mayúsculas (RN-01.3).
 func (s *Proyectos) Crear(nombre, descripcion string, inicio, fin time.Time) (project.Proyecto, error) {
-	return project.Proyecto{}, nil
+	p, err := project.Nuevo(nombre, descripcion, inicio, fin)
+	if err != nil {
+		return project.Proyecto{}, err
+	}
+	for _, otro := range s.repo.Listar() {
+		if strings.EqualFold(otro.Nombre, p.Nombre) {
+			return project.Proyecto{}, project.ErrNombreDuplicado
+		}
+	}
+	return s.repo.Agregar(p)
 }
 
 // Listar devuelve todos los proyectos.
 func (s *Proyectos) Listar() ([]project.Proyecto, error) {
-	return nil, nil
+	return s.repo.Listar(), nil
 }
