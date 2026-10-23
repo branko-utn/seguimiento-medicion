@@ -39,6 +39,7 @@ Sin `make` (por ejemplo en Windows): `go test ./...` y `go run ./cmd/server`.
 
 | Documento | Qué tiene |
 |---|---|
+| [AGENTS.md](AGENTS.md) | Instrucciones para asistentes de IA (cualquier herramienta) |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Ramas, commits de TDD, Pull Requests, revisión cruzada y estructura del código |
 | [docs/plan/cronograma-sprints.html](docs/plan/cronograma-sprints.html) | Cronograma de sprints, ceremonias y reparto de épicas |
 | [docs/scrum/](docs/scrum/) | Ceremonias, DoR/DoD, guía de Planning Poker y actas de cada sprint |
