@@ -9,14 +9,27 @@ import (
 	"github.com/branko-utn/seguimiento-medicion/internal/domain"
 )
 
-// Estado es la situación de un proyecto en su ciclo de vida.
-type Estado string
+// Estado es la situación de un proyecto en su ciclo de vida (ADR 0003: el cero no es válido).
+type Estado int
 
 const (
-	Planificado Estado = "Planificado"
-	EnCurso     Estado = "EnCurso"
-	Finalizado  Estado = "Finalizado"
+	Planificado Estado = iota + 1
+	EnCurso
+	Finalizado
 )
+
+// String devuelve el texto que usan las specs y los escenarios BDD.
+func (e Estado) String() string {
+	switch e {
+	case Planificado:
+		return "Planificado"
+	case EnCurso:
+		return "En curso" // con espacio, como en HU-04
+	case Finalizado:
+		return "Finalizado"
+	}
+	return ""
+}
 
 // Proyecto es un proyecto del equipo (ADR 0002).
 type Proyecto struct {

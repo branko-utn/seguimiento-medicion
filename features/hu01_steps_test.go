@@ -52,7 +52,7 @@ func (m *mundo) elProyectoEstaEnEstado(nombre, estado string) error {
 	if err != nil {
 		return err
 	}
-	if string(p.Estado) != estado {
+	if p.Estado.String() != estado {
 		return fmt.Errorf("el proyecto %q está en estado %q, se esperaba %q", nombre, p.Estado, estado)
 	}
 	return nil
