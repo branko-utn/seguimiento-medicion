@@ -56,7 +56,7 @@ pasan a sumar como completados y la historia queda en estado "Completada" en el 
 | La historia no existe | `backlog.ErrNoExiste`: "la historia no existe" |
 | La historia no está asignada a ese sprint | `sprint.ErrHistoriaNoAsignada`: "la historia no está asignada a este sprint" |
 | El sprint está cerrado | `sprint.ErrSprintCerrado`: "el sprint está cerrado y no se puede modificar" |
-| La historia ya está completada | `sprint.ErrYaCompletada`: "la historia ya está completada" |
+| La historia ya está completada | `sprint.ErrHistoriaCompletada`: "la historia ya está completada" (el mismo error que usa HU-11) |
 
 ## Criterios de aceptación
 

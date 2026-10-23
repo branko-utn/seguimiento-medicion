@@ -41,7 +41,7 @@ historia quede en dos sprints a la vez.
 
 - `Sprint.Asignar(h backlog.Historia) error` valida RN-11.1, RN-11.2, RN-11.4, RN-11.5 y RN-11.6 (`sprint` importa `backlog`, ADR 0002).
 - `Historia.AsignarASprint(id domain.SprintID) error` valida RN-11.3 y guarda el `SprintID`.
-- El servicio coordina las dos y guarda ambas; si una falla, no se modifica ninguna.
+- El servicio coordina las dos **en este orden**: primero `Sprint.Asignar(h)` y después `h.AsignarASprint(id)`. Así una historia completada (que siempre tiene `SprintID`) informa "la historia ya está completada" y no "ya está asignada". Guarda ambas solo si las dos validaciones pasan; si una falla, no se modifica ninguna.
 - Al cerrar un sprint (HU-13), las historias no completadas vuelven al backlog con `SprintID` vacío, y se pueden asignar a otro.
 
 ## Casos límite
