@@ -1,6 +1,5 @@
 # language: es
-# @pendiente: se quita al implementar los pasos (commit RED).
-@HU-01 @pendiente
+@HU-01
 Característica: Crear proyecto
   Como líder del proyecto
   Quiero crear un proyecto con nombre, descripción y fechas de inicio y fin
