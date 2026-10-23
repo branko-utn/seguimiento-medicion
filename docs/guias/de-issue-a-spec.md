@@ -78,6 +78,10 @@ gh pr create --draft --fill   # o desde la web
 - Anotá el uso de IA en [`docs/ia/registro.md`](../ia/registro.md): fecha, qué pediste, qué usaste, cómo lo validaste.
 - Sigue el ciclo TDD (sección 2 de `CONTRIBUTING.md`): `test(HU-XX): RED - …`, `feat(HU-XX): GREEN - …`, `refactor(HU-XX): …`.
 
+## 5. Después: los pasos BDD
+
+Cómo implementar los pasos de tu historia y **qué pasos compartidos implementa cada uno**: [`features/README.md`](../../features/README.md).
+
 ## Si estás bloqueado
 
 Si tu historia necesita un tipo de otra épica que todavía no está mergeado (ver la sección 6 del ADR 0002), avanzá
