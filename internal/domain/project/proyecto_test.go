@@ -160,3 +160,25 @@ func TestNuevo(t *testing.T) {
 		})
 	}
 }
+
+// TestEstadoString verifica el texto de cada estado (ADR 0003: el cero no es válido).
+func TestEstadoString(t *testing.T) {
+	casos := []struct {
+		titulo string
+		estado Estado
+		quiere string
+	}{
+		{titulo: "planificado", estado: Planificado, quiere: "Planificado"},
+		{titulo: "en curso", estado: EnCurso, quiere: "En curso"},
+		{titulo: "finalizado", estado: Finalizado, quiere: "Finalizado"},
+		{titulo: "valor cero no es un estado válido", estado: Estado(0), quiere: ""},
+	}
+
+	for _, caso := range casos {
+		t.Run(caso.titulo, func(t *testing.T) {
+			if got := caso.estado.String(); got != caso.quiere {
+				t.Errorf("String() = %q, se esperaba %q", got, caso.quiere)
+			}
+		})
+	}
+}
