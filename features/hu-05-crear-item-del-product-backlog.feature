@@ -1,6 +1,5 @@
 # language: es
-# @pendiente: se quita al implementar los pasos (commit RED).
-@HU-05 @pendiente
+@HU-05
 Característica: Crear ítem del Product Backlog
   Como líder del proyecto
   Quiero agregar historias al Product Backlog
