@@ -157,3 +157,163 @@ func TestBacklog_Listar(t *testing.T) {
 		}
 	}
 }
+
+func TestBacklog_AgregarCriterio(t *testing.T) {
+	s := nuevoServicioBacklog(t)
+	h, err := s.Crear("P1", "Login", "", backlog.PrioridadAlta)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// El criterio queda al final y sin espacios sobrantes (spec HU-07, salidas esperadas).
+	if err := s.AgregarCriterio(h.ID, "El nombre es obligatorio"); err != nil {
+		t.Fatalf("error inesperado: %v", err)
+	}
+	if err := s.AgregarCriterio(h.ID, "  La fecha de fin no es anterior a la de inicio  "); err != nil {
+		t.Fatalf("error inesperado: %v", err)
+	}
+
+	guardada, err := s.Buscar(h.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	quiere := []string{"El nombre es obligatorio", "La fecha de fin no es anterior a la de inicio"}
+	if len(guardada.Criterios) != len(quiere) {
+		t.Fatalf("hay %d criterios, se esperaban %d", len(guardada.Criterios), len(quiere))
+	}
+	for n, texto := range quiere {
+		if guardada.Criterios[n].Texto != texto {
+			t.Errorf("criterio %d = %q, se esperaba %q", n+1, guardada.Criterios[n].Texto, texto)
+		}
+	}
+	if !guardada.TieneCriterios() {
+		t.Error("la historia debería tener criterios (RN-07.2)")
+	}
+}
+
+func TestBacklog_AgregarCriterio_errores(t *testing.T) {
+	casos := []struct {
+		nombre    string
+		historia  domain.HistoriaID
+		texto     string
+		quiereErr error
+	}{
+		{"historia inexistente", "HU-99", "El nombre es obligatorio", backlog.ErrNoExiste},
+		{"criterio vacío", "HU-1", "   ", backlog.ErrCriterioVacio},
+	}
+	for _, caso := range casos {
+		t.Run(caso.nombre, func(t *testing.T) {
+			s := nuevoServicioBacklog(t)
+			if _, err := s.Crear("P1", "Login", "", backlog.PrioridadAlta); err != nil {
+				t.Fatal(err)
+			}
+
+			if err := s.AgregarCriterio(caso.historia, caso.texto); !errors.Is(err, caso.quiereErr) {
+				t.Fatalf("se esperaba el error %v, se obtuvo %v", caso.quiereErr, err)
+			}
+
+			// El criterio inválido no queda guardado.
+			h, _ := s.Buscar("HU-1")
+			if len(h.Criterios) != 0 {
+				t.Errorf("hay %d criterios guardados, se esperaba 0", len(h.Criterios))
+			}
+		})
+	}
+}
+
+func TestBacklog_QuitarCriterio(t *testing.T) {
+	s := nuevoServicioBacklog(t)
+	h, err := s.Crear("P1", "Login", "", backlog.PrioridadAlta)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, texto := range []string{"A", "B", "C"} {
+		if err := s.AgregarCriterio(h.ID, texto); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	// Los siguientes se renumeran: quitar el 2 deja "A, C" (spec HU-07, salidas esperadas).
+	if err := s.QuitarCriterio(h.ID, 2); err != nil {
+		t.Fatalf("error inesperado: %v", err)
+	}
+
+	guardada, err := s.Buscar(h.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	quiere := []string{"A", "C"}
+	if len(guardada.Criterios) != len(quiere) {
+		t.Fatalf("quedan %d criterios, se esperaban %d", len(guardada.Criterios), len(quiere))
+	}
+	for n, texto := range quiere {
+		if guardada.Criterios[n].Texto != texto {
+			t.Errorf("criterio %d = %q, se esperaba %q", n+1, guardada.Criterios[n].Texto, texto)
+		}
+	}
+}
+
+func TestBacklog_QuitarCriterio_elUnico(t *testing.T) {
+	// Caso límite: quitar el único criterio deja la historia sin criterios, y es válido.
+	s := nuevoServicioBacklog(t)
+	h, err := s.Crear("P1", "Login", "", backlog.PrioridadAlta)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := s.AgregarCriterio(h.ID, "A"); err != nil {
+		t.Fatal(err)
+	}
+	// Preparación: la historia debe tener exactamente el criterio "A" antes de quitarlo.
+	conCriterio, err := s.Buscar(h.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(conCriterio.Criterios) != 1 {
+		t.Fatalf("preparación: hay %d criterios, se esperaba 1", len(conCriterio.Criterios))
+	}
+
+	if err := s.QuitarCriterio(h.ID, 1); err != nil {
+		t.Fatalf("error inesperado: %v", err)
+	}
+	guardada, err := s.Buscar(h.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(guardada.Criterios) != 0 || guardada.TieneCriterios() {
+		t.Errorf("se esperaba la historia sin criterios, se obtuvo %+v", guardada.Criterios)
+	}
+}
+
+func TestBacklog_QuitarCriterio_errores(t *testing.T) {
+	casos := []struct {
+		nombre    string
+		historia  domain.HistoriaID
+		numero    int
+		quiereErr error
+	}{
+		{"historia inexistente", "HU-99", 1, backlog.ErrNoExiste},
+		{"criterio inexistente", "HU-1", 2, backlog.ErrCriterioNoExiste},
+	}
+	for _, caso := range casos {
+		t.Run(caso.nombre, func(t *testing.T) {
+			s := nuevoServicioBacklog(t)
+			h, err := s.Crear("P1", "Login", "", backlog.PrioridadAlta)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if err := s.AgregarCriterio(h.ID, "A"); err != nil {
+				t.Fatal(err)
+			}
+
+			if err := s.QuitarCriterio(caso.historia, caso.numero); !errors.Is(err, caso.quiereErr) {
+				t.Fatalf("se esperaba el error %v, se obtuvo %v", caso.quiereErr, err)
+			}
+
+			// El criterio que sí existe no debe haberse tocado.
+			guardada, _ := s.Buscar("HU-1")
+			if len(guardada.Criterios) != 1 || guardada.Criterios[0].Texto != "A" {
+				t.Errorf("el criterio existente no debe cambiar; se obtuvo %+v", guardada.Criterios)
+			}
+		})
+	}
+}
