@@ -5,6 +5,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/branko-utn/seguimiento-medicion/internal/service"
+	"github.com/branko-utn/seguimiento-medicion/internal/store/memory"
 	"github.com/cucumber/godog"
 )
 
@@ -23,12 +25,28 @@ type mundo struct {
 
 	// Cada épica agrega acá su servicio y lo crea en nuevoMundo con repositorios en memoria (ruta ""),
 	// por ejemplo: proyectos *service.Proyectos
+	proyectos   *service.Proyectos
+	integrantes *service.Integrantes
+	backlog     *service.Backlog
+	historias   *memory.Historias // repositorio, para preparar escenarios (pasos "Dado" de backlog)
+	sprints     *service.Sprints
 }
 
 func nuevoMundo() *mundo {
+	// Con ruta "" los repositorios funcionan solo en memoria y Open no puede fallar.
+	repoProyectos, _ := memory.NuevoProyectos("")
+	repoIntegrantes, _ := memory.NuevoIntegrantes("")
+	repoHistorias, _ := memory.NuevoHistorias("")
+	repoSprints, _ := memory.NuevoSprints("")
+
 	return &mundo{
-		hoy:   time.Now().Truncate(24 * time.Hour),
-		alias: map[string]string{},
+		hoy:         time.Now().Truncate(24 * time.Hour),
+		alias:       map[string]string{},
+		proyectos:   service.NuevoProyectos(repoProyectos),
+		integrantes: service.NuevoIntegrantes(repoIntegrantes, repoProyectos),
+		backlog:     service.NuevoBacklog(repoHistorias, repoProyectos),
+		historias:   repoHistorias,
+		sprints:     service.NuevoSprints(repoSprints, repoProyectos),
 	}
 }
 
