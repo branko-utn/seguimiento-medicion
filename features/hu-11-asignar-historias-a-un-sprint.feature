@@ -1,6 +1,5 @@
 # language: es
-# @pendiente: se quita al implementar los pasos (commit RED).
-@HU-11 @pendiente
+@HU-11
 Característica: Asignar historias a un sprint
   Como líder del proyecto
   Quiero asignar historias del backlog a un sprint

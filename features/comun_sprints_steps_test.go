@@ -14,6 +14,11 @@ import (
 func registrarPasosComunesSprints(sc *godog.ScenarioContext, m *mundo) {
 	sc.Step(`^(?:que )?existe un sprint "([^"]*)" en "([^"]*)"$`, m.existeUnSprintEn)
 	sc.Step(`^(?:que )?existe un sprint activo "([^"]*)" en "([^"]*)"$`, m.existeUnSprintActivoEn)
+	sc.Step(`^que la historia "([^"]*)" está asignada al sprint "([^"]*)"$`, m.queLaHistoriaEstaAsignadaAlSprint)
+}
+
+func (m *mundo) queLaHistoriaEstaAsignadaAlSprint(historia, sprint string) error {
+	return godog.ErrPending
 }
 
 func (m *mundo) existeUnSprintEn(nombre, proyecto string) error {
