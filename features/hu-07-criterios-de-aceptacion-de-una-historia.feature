@@ -1,6 +1,5 @@
 # language: es
-# @pendiente: se quita al implementar los pasos (commit RED).
-@HU-07 @pendiente
+@HU-07
 Característica: Criterios de aceptación de una historia
   Como integrante del equipo
   Quiero agregar y quitar criterios de aceptación a una historia
