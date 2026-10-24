@@ -54,3 +54,11 @@ func cantidadDe(historias []backlog.Historia, proyectoID domain.ProyectoID) int 
 	}
 	return cantidad
 }
+
+// Buscar devuelve la historia con ese ID.
+func (r *Historias) Buscar(id domain.HistoriaID) (backlog.Historia, error) {
+	return backlog.Historia{}, nil
+}
+
+// Guardar reemplaza una historia ya guardada.
+func (r *Historias) Guardar(h backlog.Historia) error { return nil }

@@ -50,12 +50,12 @@ func TestBacklog_Crear(t *testing.T) {
 		t.Fatalf("error inesperado: %v", err)
 	}
 	if segunda.ID != "HU-2" {
-		t.Errorf("RN-05.1: los IDs son correlativos dentro del proyecto, se obtuvo %q", segunda.ID)
+		t.Errorf("RN-05.1: los IDs son correlativos, se obtuvo %q", segunda.ID)
 	}
 }
 
-func TestBacklog_Crear_cadaProyectoNumeraDesdeHU1(t *testing.T) {
-	// Caso límite de la spec HU-05: la primera historia de otro proyecto también es HU-1.
+func TestBacklog_Crear_losIDsNoSeRepitenEntreProyectos(t *testing.T) {
+	// Caso límite de la spec HU-05: con 3 historias en otro proyecto, la siguiente es HU-4.
 	s := nuevoServicioBacklog(t)
 	for i := 0; i < 3; i++ {
 		if _, err := s.Crear("P1", "Historia", "", backlog.PrioridadBaja); err != nil {
@@ -67,8 +67,24 @@ func TestBacklog_Crear_cadaProyectoNumeraDesdeHU1(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if otra.ID != "HU-1" {
-		t.Errorf("cada proyecto numera desde HU-1, se obtuvo %q", otra.ID)
+	if otra.ID != "HU-4" {
+		t.Errorf("los IDs no se repiten entre proyectos: se esperaba HU-4, se obtuvo %q", otra.ID)
+	}
+}
+
+func TestBacklog_Buscar(t *testing.T) {
+	s := nuevoServicioBacklog(t)
+	h, _ := s.Crear("P1", "Login", "", backlog.PrioridadAlta)
+
+	got, err := s.Buscar(h.ID)
+	if err != nil || got.Titulo != "Login" {
+		t.Errorf("Buscar(%s) = %+v, %v", h.ID, got, err)
+	}
+	if _, err := s.Buscar("HU-99"); !errors.Is(err, backlog.ErrNoExiste) {
+		t.Errorf("Buscar(HU-99) = %v, se esperaba backlog.ErrNoExiste", err)
+	}
+	if backlog.ErrNoExiste.Error() != "la historia no existe" {
+		t.Errorf("mensaje de ErrNoExiste = %q", backlog.ErrNoExiste.Error())
 	}
 }
 

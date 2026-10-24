@@ -41,3 +41,8 @@ func (s *Backlog) Crear(proyectoID domain.ProyectoID, titulo, descripcion string
 func (s *Backlog) Listar() ([]backlog.Historia, error) {
 	return s.historias.Listar(), nil
 }
+
+// Buscar devuelve la historia con ese ID.
+func (s *Backlog) Buscar(id domain.HistoriaID) (backlog.Historia, error) {
+	return backlog.Historia{}, nil
+}
