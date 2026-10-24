@@ -34,7 +34,7 @@ implementás vos en ese archivo, pero no en el tuyo.
 | `que existe un proyecto "…" del "…" al "…"` | Sosa | `comun_proyectos_steps_test.go` ✅ | HU-10 |
 | `que "…" es integrante del proyecto "…"` | Sosa | `comun_proyectos_steps_test.go` ✅ | HU-03, HU-20 |
 | `existe un sprint "…" en "…"` · `existe un sprint activo "…" en "…"` | Sosa | `comun_sprints_steps_test.go` ✅ | HU-08, HU-11, HU-22 |
-| `que la historia "…" está asignada al sprint "…"` | Sosa | `comun_sprints_steps_test.go` | HU-08, HU-11 |
+| `que la historia "…" está asignada al sprint "…"` | Sosa | `comun_sprints_steps_test.go` ✅ | HU-08, HU-11 |
 | `que el backlog de "…" tiene la historia "…" "…"` | Bianchi | `comun_backlog_steps_test.go` ✅ | HU-07, HU-08, HU-15, HU-19, HU-20, HU-22 |
 | `el proyecto tiene las historias:` (tabla; `criterios` opcional, vale 1) | Bianchi | `comun_backlog_steps_test.go` ✅ | HU-11, HU-12 |
 | `la historia "…" está en estado "…"` (Dado y Entonces) | Bianchi | `comun_backlog_steps_test.go` ✅ | HU-05, HU-08, HU-12 |

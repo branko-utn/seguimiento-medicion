@@ -2,9 +2,12 @@ package sprint
 
 import (
 	"errors"
+	"slices"
 	"testing"
 	"time"
 
+	"github.com/branko-utn/seguimiento-medicion/internal/domain"
+	"github.com/branko-utn/seguimiento-medicion/internal/domain/backlog"
 	"github.com/branko-utn/seguimiento-medicion/internal/domain/project"
 )
 
@@ -142,6 +145,97 @@ func TestIniciar(t *testing.T) {
 			}
 			if s.Estado != caso.quiere {
 				t.Errorf("estado = %v, se esperaba %v", s.Estado, caso.quiere)
+			}
+		})
+	}
+}
+
+// historiaLista devuelve una historia de P1 que cumple todo para entrar a un sprint: estimada, con criterios y pendiente.
+func historiaLista() backlog.Historia {
+	return backlog.Historia{
+		ID:          "HU-1",
+		ProyectoID:  "P1",
+		Titulo:      "Crear proyecto",
+		Estado:      backlog.Pendiente,
+		StoryPoints: 3,
+		Criterios:   []backlog.Criterio{{Texto: "se guarda el proyecto"}},
+	}
+}
+
+func TestAsignar(t *testing.T) {
+	casos := []struct {
+		titulo string
+		estado Estado
+		h      func(h *backlog.Historia)
+	}{
+		{titulo: "a un sprint planificado", estado: Planificado},
+		{titulo: "a un sprint activo", estado: Activo},
+		// RN-11.3 (ya asignada) la valida Historia.AsignarASprint, no el sprint.
+		{titulo: "no controla si la historia ya tiene sprint", estado: Planificado, h: func(h *backlog.Historia) { h.SprintID = "S2" }},
+	}
+
+	for _, caso := range casos {
+		t.Run(caso.titulo, func(t *testing.T) {
+			s := Sprint{ID: "S1", ProyectoID: "P1", Estado: caso.estado, Historias: []domain.HistoriaID{"HU-9"}}
+			h := historiaLista()
+			if caso.h != nil {
+				caso.h(&h)
+			}
+
+			if err := s.Asignar(h); err != nil {
+				t.Fatalf("error inesperado: %v", err)
+			}
+			if !slices.Equal(s.Historias, []domain.HistoriaID{"HU-9", "HU-1"}) {
+				t.Errorf("historias = %v, se esperaba [HU-9 HU-1]", s.Historias)
+			}
+		})
+	}
+}
+
+func TestAsignar_errores(t *testing.T) {
+	sinEstimar := func(h *backlog.Historia) { h.StoryPoints = 0 }
+	sinCriterios := func(h *backlog.Historia) { h.Criterios = nil }
+	completada := func(h *backlog.Historia) { h.Estado = backlog.Completada; h.SprintID = "S2" }
+	deOtroProyecto := func(h *backlog.Historia) { h.ProyectoID = "P2" }
+
+	casos := []struct {
+		titulo      string
+		estado      Estado
+		cambios     []func(h *backlog.Historia)
+		quiereError error
+	}{
+		{"historia sin estimar", Planificado, []func(*backlog.Historia){sinEstimar}, ErrHistoriaSinEstimar},
+		{"historia con Story Points negativos", Planificado, []func(*backlog.Historia){func(h *backlog.Historia) { h.StoryPoints = -1 }}, ErrHistoriaSinEstimar},
+		{"historia sin criterios", Planificado, []func(*backlog.Historia){sinCriterios}, ErrHistoriaSinCriterios},
+		{"sprint cerrado", Cerrado, nil, ErrSprintCerrado},
+		{"historia completada", Activo, []func(*backlog.Historia){completada}, ErrHistoriaCompletada},
+		{"historia de otro proyecto", Planificado, []func(*backlog.Historia){deOtroProyecto}, ErrOtroProyecto},
+
+		// Orden de validación: primero el sprint, después la historia.
+		{"primero se controla que el sprint no esté cerrado", Cerrado,
+			[]func(*backlog.Historia){deOtroProyecto, completada, sinEstimar, sinCriterios}, ErrSprintCerrado},
+		{"después que la historia sea del proyecto", Planificado,
+			[]func(*backlog.Historia){deOtroProyecto, completada, sinEstimar, sinCriterios}, ErrOtroProyecto},
+		{"después que no esté completada", Planificado,
+			[]func(*backlog.Historia){completada, sinEstimar, sinCriterios}, ErrHistoriaCompletada},
+		{"después que esté estimada", Planificado,
+			[]func(*backlog.Historia){sinEstimar, sinCriterios}, ErrHistoriaSinEstimar},
+	}
+
+	for _, caso := range casos {
+		t.Run(caso.titulo, func(t *testing.T) {
+			s := Sprint{ID: "S1", ProyectoID: "P1", Estado: caso.estado, Historias: []domain.HistoriaID{"HU-9"}}
+			h := historiaLista()
+			for _, cambiar := range caso.cambios {
+				cambiar(&h)
+			}
+
+			err := s.Asignar(h)
+			if !errors.Is(err, caso.quiereError) {
+				t.Fatalf("se esperaba el error %v, se obtuvo %v", caso.quiereError, err)
+			}
+			if !slices.Equal(s.Historias, []domain.HistoriaID{"HU-9"}) {
+				t.Errorf("historias = %v, se esperaba [HU-9]: un error no debe cambiar el sprint", s.Historias)
 			}
 		})
 	}

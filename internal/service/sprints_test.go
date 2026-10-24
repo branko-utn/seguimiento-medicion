@@ -2,10 +2,12 @@ package service
 
 import (
 	"errors"
+	"slices"
 	"testing"
 	"time"
 
 	"github.com/branko-utn/seguimiento-medicion/internal/domain"
+	"github.com/branko-utn/seguimiento-medicion/internal/domain/backlog"
 	"github.com/branko-utn/seguimiento-medicion/internal/domain/project"
 	"github.com/branko-utn/seguimiento-medicion/internal/domain/sprint"
 	"github.com/branko-utn/seguimiento-medicion/internal/store/memory"
@@ -20,11 +22,22 @@ func octubre(d int) time.Time {
 // Devuelve también el repositorio de sprints para preparar estados que todavía no tienen caso de uso (Cerrado).
 func nuevoServicioSprints(t *testing.T) (*Sprints, *memory.Sprints) {
 	t.Helper()
+	s, repoSprints, _ := armarServicioSprints(t)
+	return s, repoSprints
+}
+
+// armarServicioSprints es nuevoServicioSprints, pero devuelve también el repositorio de historias (HU-11).
+func armarServicioSprints(t *testing.T) (*Sprints, *memory.Sprints, *memory.Historias) {
+	t.Helper()
 	repoProyectos, err := memory.NuevoProyectos("")
 	if err != nil {
 		t.Fatal(err)
 	}
 	repoSprints, err := memory.NuevoSprints("")
+	if err != nil {
+		t.Fatal(err)
+	}
+	repoHistorias, err := memory.NuevoHistorias("")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -34,7 +47,7 @@ func nuevoServicioSprints(t *testing.T) (*Sprints, *memory.Sprints) {
 			t.Fatal(err)
 		}
 	}
-	return NuevoSprints(repoSprints, repoProyectos), repoSprints
+	return NuevoSprints(repoSprints, repoProyectos, repoHistorias), repoSprints, repoHistorias
 }
 
 func TestSprints_Crear(t *testing.T) {
@@ -200,6 +213,98 @@ func TestSprints_Iniciar_errores(t *testing.T) {
 				if sp, _ := s.Buscar(caso.sprint); sp.Estado != caso.quiere {
 					t.Errorf("estado = %v, se esperaba %v: un error no debe cambiar el sprint", sp.Estado, caso.quiere)
 				}
+			}
+		})
+	}
+}
+
+// prepararAsignacion arma el escenario de HU-11. En P1: S1 (23–25) planificado, S2 (26–27) planificado con HU-6 y
+// S3 (28–29) cerrado. Historias: HU-1 lista, HU-2 sin estimar, HU-3 sin criterios, HU-4 completada en S2, HU-5 de
+// P2 y HU-6 lista pero ya asignada a S2. Los estados se cargan directo en los repositorios.
+func prepararAsignacion(t *testing.T) (*Sprints, *memory.Sprints, *memory.Historias) {
+	t.Helper()
+	s, repoSprints, repoHistorias := armarServicioSprints(t)
+	for _, f := range [][2]int{{23, 25}, {26, 27}, {28, 29}} {
+		if _, err := s.Crear("P1", "Sprint", octubre(f[0]), octubre(f[1])); err != nil {
+			t.Fatal(err)
+		}
+	}
+	s2, _ := repoSprints.Buscar("S2")
+	s2.Historias = []domain.HistoriaID{"HU-6"}
+	s3, _ := repoSprints.Buscar("S3")
+	s3.Estado = sprint.Cerrado
+	for _, sp := range []sprint.Sprint{s2, s3} {
+		if err := repoSprints.Actualizar(sp); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	criterio := []backlog.Criterio{{Texto: "funciona"}}
+	historias := []backlog.Historia{
+		{ProyectoID: "P1", Titulo: "Lista", Estado: backlog.Pendiente, StoryPoints: 3, Criterios: criterio},
+		{ProyectoID: "P1", Titulo: "Sin estimar", Estado: backlog.Pendiente, Criterios: criterio},
+		{ProyectoID: "P1", Titulo: "Sin criterios", Estado: backlog.Pendiente, StoryPoints: 5},
+		{ProyectoID: "P1", Titulo: "Completada", Estado: backlog.Completada, StoryPoints: 2, Criterios: criterio, SprintID: "S2"},
+		{ProyectoID: "P2", Titulo: "De otro proyecto", Estado: backlog.Pendiente, StoryPoints: 2, Criterios: criterio},
+		{ProyectoID: "P1", Titulo: "Ya asignada", Estado: backlog.Pendiente, StoryPoints: 1, Criterios: criterio, SprintID: "S2"},
+	}
+	for _, h := range historias {
+		if _, err := repoHistorias.Agregar(h); err != nil {
+			t.Fatal(err)
+		}
+	}
+	return s, repoSprints, repoHistorias
+}
+
+func TestSprints_Asignar(t *testing.T) {
+	s, repoSprints, repoHistorias := prepararAsignacion(t)
+
+	if err := s.Asignar("S1", "HU-1"); err != nil {
+		t.Fatalf("error inesperado: %v", err)
+	}
+	if sp, _ := repoSprints.Buscar("S1"); !slices.Equal(sp.Historias, []domain.HistoriaID{"HU-1"}) {
+		t.Errorf("historias de S1 = %v, se esperaba [HU-1]", sp.Historias)
+	}
+	if h, _ := repoHistorias.Buscar("HU-1"); h.SprintID != "S1" {
+		t.Errorf("sprint de HU-1 = %q, se esperaba S1", h.SprintID)
+	}
+}
+
+func TestSprints_Asignar_errores(t *testing.T) {
+	casos := []struct {
+		titulo      string
+		sprint      domain.SprintID
+		historia    domain.HistoriaID
+		quiereError error
+	}{
+		{"sprint inexistente", "S9", "HU-1", sprint.ErrNoExiste},
+		{"historia inexistente", "S1", "HU-9", backlog.ErrNoExiste},
+		{"primero se busca el sprint", "S9", "HU-9", sprint.ErrNoExiste},
+		{"historia sin estimar", "S1", "HU-2", sprint.ErrHistoriaSinEstimar},
+		{"historia sin criterios", "S1", "HU-3", sprint.ErrHistoriaSinCriterios},
+		{"sprint cerrado", "S3", "HU-1", sprint.ErrSprintCerrado},
+		{"historia de otro proyecto", "S1", "HU-5", sprint.ErrOtroProyecto},
+		{"historia ya asignada a otro sprint", "S1", "HU-6", backlog.ErrYaAsignada},
+		{"misma historia dos veces al mismo sprint", "S2", "HU-6", backlog.ErrYaAsignada},
+		// Una completada siempre tiene sprint: valida primero el sprint, así no informa "ya está asignada".
+		{"historia completada", "S1", "HU-4", sprint.ErrHistoriaCompletada},
+	}
+
+	for _, caso := range casos {
+		t.Run(caso.titulo, func(t *testing.T) {
+			s, repoSprints, repoHistorias := prepararAsignacion(t)
+			spAntes, _ := repoSprints.Buscar(caso.sprint)
+			hAntes, _ := repoHistorias.Buscar(caso.historia)
+
+			err := s.Asignar(caso.sprint, caso.historia)
+			if !errors.Is(err, caso.quiereError) {
+				t.Fatalf("se esperaba el error %v, se obtuvo %v", caso.quiereError, err)
+			}
+			if sp, _ := repoSprints.Buscar(caso.sprint); !slices.Equal(sp.Historias, spAntes.Historias) {
+				t.Errorf("historias de %s = %v, antes %v: un error no debe cambiar el sprint", caso.sprint, sp.Historias, spAntes.Historias)
+			}
+			if h, _ := repoHistorias.Buscar(caso.historia); h.SprintID != hAntes.SprintID {
+				t.Errorf("sprint de %s = %q, antes %q: un error no debe cambiar la historia", caso.historia, h.SprintID, hAntes.SprintID)
 			}
 		})
 	}

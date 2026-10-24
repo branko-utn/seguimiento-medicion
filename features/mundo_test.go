@@ -50,7 +50,7 @@ func nuevoMundo() *mundo {
 		integrantes:  service.NuevoIntegrantes(repoIntegrantes, repoProyectos),
 		backlog:      service.NuevoBacklog(repoHistorias, repoProyectos),
 		historias:    repoHistorias,
-		sprints:      service.NuevoSprints(repoSprints, repoProyectos),
+		sprints:      service.NuevoSprints(repoSprints, repoProyectos, repoHistorias),
 		repoSprints:  repoSprints,
 		estimaciones: service.NuevoEstimaciones(repoEstimaciones, repoHistorias),
 		registros:    service.NuevoRegistros(repoRegistros, repoIntegrantes, repoHistorias),
