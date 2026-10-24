@@ -35,10 +35,10 @@ implementás vos en ese archivo, pero no en el tuyo.
 | `que "…" es integrante del proyecto "…"` | Sosa | `comun_proyectos_steps_test.go` ✅ | HU-03, HU-20 |
 | `existe un sprint "…" en "…"` · `existe un sprint activo "…" en "…"` | Sosa | `comun_sprints_steps_test.go` ✅ | HU-08, HU-11, HU-22 |
 | `que la historia "…" está asignada al sprint "…"` | Sosa | `comun_sprints_steps_test.go` | HU-08, HU-11 |
-| `que el backlog de "…" tiene la historia "…" "…"` | Bianchi | `comun_backlog_steps_test.go` | HU-07, HU-08, HU-15, HU-19, HU-20, HU-22 |
-| `el proyecto tiene las historias:` (tabla) | Bianchi | `comun_backlog_steps_test.go` | HU-11, HU-12 |
-| `la historia "…" está en estado "…"` (Dado y Entonces) | Bianchi | `comun_backlog_steps_test.go` | HU-05, HU-08, HU-12 |
-| `la historia "…" tiene N Story Points` (Dado y Entonces) | Bianchi | `comun_backlog_steps_test.go` | HU-15 |
+| `que el backlog de "…" tiene la historia "…" "…"` | Bianchi | `comun_backlog_steps_test.go` ✅ | HU-07, HU-08, HU-15, HU-19, HU-20, HU-22 |
+| `el proyecto tiene las historias:` (tabla; `criterios` opcional, vale 1) | Bianchi | `comun_backlog_steps_test.go` ✅ | HU-11, HU-12 |
+| `la historia "…" está en estado "…"` (Dado y Entonces) | Bianchi | `comun_backlog_steps_test.go` ✅ | HU-05, HU-08, HU-12 |
+| `la historia "…" tiene N Story Points` (Dado y Entonces) | Bianchi | `comun_backlog_steps_test.go` ✅ | HU-15 |
 | `que la historia "…" ya está completada en el sprint "…"` | Branko | `comun_sprints_steps_test.go` | HU-08, HU-12 |
 | `que la historia "…" está completada` | Branko | `comun_sprints_steps_test.go` | HU-15, HU-22 |
 | `que el sprint "…" está cerrado` | Branko | `comun_sprints_steps_test.go` | HU-11, HU-12 |
@@ -52,5 +52,7 @@ Valores por defecto de los pasos de proyectos y sprints (cuando el escenario no 
   como alias: se usa con `m.id("sprint", "S9")`.
 
 Los demás pasos aparecen en una sola historia: los implementa su responsable en su propio archivo.
+
+Los pasos "Dado" de backlog fijan Story Points, criterios y estado directamente en el repositorio (`m.historias`): son preparación del escenario, no los casos de uso de HU-07, HU-08 ni HU-15.
 
 **Orden:** los pasos de Sosa y Bianchi desbloquean a los demás, igual que sus tipos (ADR 0002, sección 6).
