@@ -30,10 +30,10 @@ implementás vos en ese archivo, pero no en el tuyo.
 |---|---|---|---|
 | `veo el error "…"` | Branko (TEC-10) | `mundo_test.go` ✅ | Todas |
 | `hoy es "AAAA-MM-DD"` | Branko (TEC-10) | `mundo_test.go` ✅ | HU-20 |
-| `que existe un proyecto "…"` | Sosa | `comun_proyectos_steps_test.go` | Todas |
-| `que existe un proyecto "…" del "…" al "…"` | Sosa | `comun_proyectos_steps_test.go` | HU-10 |
-| `que "…" es integrante del proyecto "…"` | Sosa | `comun_proyectos_steps_test.go` | HU-03, HU-20 |
-| `existe un sprint "…" en "…"` · `existe un sprint activo "…" en "…"` | Sosa | `comun_sprints_steps_test.go` | HU-08, HU-11, HU-22 |
+| `que existe un proyecto "…"` | Sosa | `comun_proyectos_steps_test.go` ✅ | Todas |
+| `que existe un proyecto "…" del "…" al "…"` | Sosa | `comun_proyectos_steps_test.go` ✅ | HU-10 |
+| `que "…" es integrante del proyecto "…"` | Sosa | `comun_proyectos_steps_test.go` ✅ | HU-03, HU-20 |
+| `existe un sprint "…" en "…"` · `existe un sprint activo "…" en "…"` | Sosa | `comun_sprints_steps_test.go` ✅ | HU-08, HU-11, HU-22 |
 | `que la historia "…" está asignada al sprint "…"` | Sosa | `comun_sprints_steps_test.go` | HU-08, HU-11 |
 | `que el backlog de "…" tiene la historia "…" "…"` | Bianchi | `comun_backlog_steps_test.go` | HU-07, HU-08, HU-15, HU-19, HU-20, HU-22 |
 | `el proyecto tiene las historias:` (tabla) | Bianchi | `comun_backlog_steps_test.go` | HU-11, HU-12 |
@@ -42,6 +42,14 @@ implementás vos en ese archivo, pero no en el tuyo.
 | `que la historia "…" ya está completada en el sprint "…"` | Branko | `comun_sprints_steps_test.go` | HU-08, HU-12 |
 | `que la historia "…" está completada` | Branko | `comun_sprints_steps_test.go` | HU-15, HU-22 |
 | `que el sprint "…" está cerrado` | Branko | `comun_sprints_steps_test.go` | HU-11, HU-12 |
+
+Valores por defecto de los pasos de proyectos y sprints (cuando el escenario no los indica):
+
+- `que existe un proyecto "…"`: del 2026-10-21 al 2026-11-02 (el período del TP).
+- `que "…" es integrante del proyecto "…"`: rol Product Builder.
+- `existe un sprint "…" en "…"` (y `activo`): 3 días a partir del día siguiente al último sprint del proyecto (el
+  primero empieza el día de inicio del proyecto), con el Sprint Goal "Sprint de prueba". El nombre ("S1", "S9") queda
+  como alias: se usa con `m.id("sprint", "S9")`.
 
 Los demás pasos aparecen en una sola historia: los implementa su responsable en su propio archivo.
 
