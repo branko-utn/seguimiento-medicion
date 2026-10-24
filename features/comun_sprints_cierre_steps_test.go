@@ -23,3 +23,9 @@ func (m *mundo) queElSprintEstaCerrado(nombre string) error {
 	sp.Estado = sprint.Cerrado
 	return m.repoSprints.Actualizar(sp)
 }
+
+func (m *mundo) queLaHistoriaEstaCompletada(historia string) error { return nil }
+
+func (m *mundo) queLaHistoriaYaEstaCompletadaEnElSprint(historia, nombreSprint string) error {
+	return nil
+}
