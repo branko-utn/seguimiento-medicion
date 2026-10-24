@@ -51,3 +51,13 @@ func (s *Backlog) Listar() ([]backlog.Historia, error) {
 func (s *Backlog) Buscar(id domain.HistoriaID) (backlog.Historia, error) {
 	return s.historias.Buscar(id)
 }
+
+// AgregarCriterio agrega un criterio de aceptación a la historia (HU-07).
+func (s *Backlog) AgregarCriterio(id domain.HistoriaID, texto string) error {
+	return nil // stub RED
+}
+
+// QuitarCriterio quita de la historia el criterio en la posición numero (HU-07).
+func (s *Backlog) QuitarCriterio(id domain.HistoriaID, numero int) error {
+	return nil // stub RED
+}
