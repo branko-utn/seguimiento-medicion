@@ -52,12 +52,28 @@ func (s *Backlog) Buscar(id domain.HistoriaID) (backlog.Historia, error) {
 	return s.historias.Buscar(id)
 }
 
-// AgregarCriterio agrega un criterio de aceptación a la historia (HU-07).
+// AgregarCriterio agrega un criterio de aceptación a la historia (HU-07). Busca la historia, aplica la regla del
+// dominio (RN-07.1) y guarda el resultado (ADR 0002, sección 4).
 func (s *Backlog) AgregarCriterio(id domain.HistoriaID, texto string) error {
-	return nil // stub RED
+	h, err := s.historias.Buscar(id)
+	if err != nil {
+		return err
+	}
+	if err := h.AgregarCriterio(texto); err != nil {
+		return err
+	}
+	return s.historias.Guardar(h)
 }
 
-// QuitarCriterio quita de la historia el criterio en la posición numero (HU-07).
+// QuitarCriterio quita de la historia el criterio en la posición numero (empezando en 1) y guarda el resultado
+// (HU-07, RN-07.3). Si la historia o el criterio no existen, devuelve el error del dominio o del repositorio.
 func (s *Backlog) QuitarCriterio(id domain.HistoriaID, numero int) error {
-	return nil // stub RED
+	h, err := s.historias.Buscar(id)
+	if err != nil {
+		return err
+	}
+	if err := h.QuitarCriterio(numero); err != nil {
+		return err
+	}
+	return s.historias.Guardar(h)
 }
