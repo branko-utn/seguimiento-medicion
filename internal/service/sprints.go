@@ -22,10 +22,11 @@ type RepoSprints interface {
 type Sprints struct {
 	sprints   RepoSprints
 	proyectos RepoProyectos
+	historias RepoHistorias // para asignar historias al sprint (HU-11)
 }
 
-func NuevoSprints(sprints RepoSprints, proyectos RepoProyectos) *Sprints {
-	return &Sprints{sprints: sprints, proyectos: proyectos}
+func NuevoSprints(sprints RepoSprints, proyectos RepoProyectos, historias RepoHistorias) *Sprints {
+	return &Sprints{sprints: sprints, proyectos: proyectos, historias: historias}
 }
 
 // Crear da de alta un sprint en un proyecto (HU-10). Valida en este orden: que el proyecto exista, el Sprint Goal y
@@ -64,6 +65,31 @@ func (s *Sprints) Iniciar(id domain.SprintID) error {
 		}
 	}
 	return s.sprints.Actualizar(sp)
+}
+
+// Asignar agrega una historia al Sprint Backlog (HU-11). Busca el sprint y la historia, y valida en el orden de la
+// spec: primero Sprint.Asignar (RN-11.1, 11.2, 11.4, 11.5 y 11.6) y después Historia.AsignarASprint (RN-11.3), así
+// una historia completada informa "ya está completada" y no "ya está asignada". Guarda los dos solo si ambas
+// validaciones pasan.
+func (s *Sprints) Asignar(sprintID domain.SprintID, historiaID domain.HistoriaID) error {
+	sp, err := s.sprints.Buscar(sprintID)
+	if err != nil {
+		return err
+	}
+	h, err := s.historias.Buscar(historiaID)
+	if err != nil {
+		return err
+	}
+	if err := sp.Asignar(h); err != nil {
+		return err
+	}
+	if err := h.AsignarASprint(sp.ID); err != nil {
+		return err
+	}
+	if err := s.sprints.Actualizar(sp); err != nil {
+		return err
+	}
+	return s.historias.Guardar(h)
 }
 
 // Buscar devuelve un sprint, o sprint.ErrNoExiste.
