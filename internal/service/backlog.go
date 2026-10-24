@@ -23,12 +23,21 @@ func NuevoBacklog(historias RepoHistorias, proyectos RepoProyectos) *Backlog {
 	return &Backlog{historias: historias, proyectos: proyectos}
 }
 
-// Crear agrega una historia al Product Backlog de un proyecto (HU-05).
+// Crear agrega una historia al Product Backlog de un proyecto (HU-05). Primero verifica que el proyecto exista;
+// después el dominio valida título y prioridad (RN-05.2, RN-05.3) y el repositorio genera el ID (RN-05.1).
+// La historia nueva queda en estado Pendiente, sin Story Points, sin criterios y sin sprint (RN-05.4).
 func (s *Backlog) Crear(proyectoID domain.ProyectoID, titulo, descripcion string, prioridad backlog.Prioridad) (backlog.Historia, error) {
-	return backlog.Historia{}, nil // stub RED
+	if _, err := s.proyectos.Buscar(proyectoID); err != nil {
+		return backlog.Historia{}, err
+	}
+	h, err := backlog.Nueva(proyectoID, titulo, descripcion, prioridad)
+	if err != nil {
+		return backlog.Historia{}, err
+	}
+	return s.historias.Agregar(h)
 }
 
-// Listar devuelve todas las historias del backlog.
+// Listar devuelve todas las historias del backlog, en el orden en que se crearon.
 func (s *Backlog) Listar() ([]backlog.Historia, error) {
-	return nil, nil // stub RED
+	return s.historias.Listar(), nil
 }
