@@ -47,6 +47,22 @@ func (r *Integrantes) DelProyecto(id domain.ProyectoID) []project.Integrante {
 	return delProyecto
 }
 
+// Buscar devuelve una copia del integrante, o project.ErrIntegranteNoExiste.
 func (r *Integrantes) Buscar(id domain.IntegranteID) (project.Integrante, error) {
-	return project.Integrante{}, nil
+	var (
+		encontrado project.Integrante
+		existe     bool
+	)
+	r.store.View(func(lista []project.Integrante) {
+		for _, i := range lista {
+			if i.ID == id {
+				encontrado, existe = i, true
+				return
+			}
+		}
+	})
+	if !existe {
+		return project.Integrante{}, project.ErrIntegranteNoExiste
+	}
+	return encontrado, nil
 }
