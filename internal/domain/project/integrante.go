@@ -41,6 +41,7 @@ var (
 	ErrIntegranteSinNombre = errors.New("el nombre del integrante es obligatorio")
 	ErrRolInvalido         = errors.New("el rol debe ser Agile Enabler, Product Builder o Product Architect")
 	ErrIntegranteDuplicado = errors.New("el integrante ya está registrado en el proyecto")
+	ErrIntegranteNoExiste  = errors.New("el integrante no existe")
 )
 
 // NuevoIntegrante crea un integrante válido (RN-03.1 y RN-03.2). Que el proyecto exista y que el integrante no

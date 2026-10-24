@@ -1,6 +1,7 @@
 package memory
 
 import (
+	"errors"
 	"path/filepath"
 	"testing"
 
@@ -84,5 +85,33 @@ func TestIntegrantes_DelProyectoDevuelveCopia(t *testing.T) {
 
 	if got := r.DelProyecto("P1")[0].Nombre; got != "Ana" {
 		t.Errorf("modificar lo que devuelve DelProyecto cambió el repositorio: nombre = %q", got)
+	}
+}
+
+// Buscar lo usa el registro de esfuerzo (HU-20) para validar que el integrante exista y conocer su proyecto.
+func TestIntegrantes_Buscar(t *testing.T) {
+	r, err := NuevoIntegrantes("")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, nombre := range []string{"Ana", "Beto"} {
+		if _, err := r.Agregar(project.Integrante{ProyectoID: "P1", Nombre: nombre}); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	i, err := r.Buscar("I2")
+	if err != nil {
+		t.Fatalf("Buscar(I2): %v", err)
+	}
+	if i.ID != "I2" || i.Nombre != "Beto" || i.ProyectoID != "P1" {
+		t.Errorf("Buscar(I2) = %+v, se esperaba Beto del proyecto P1", i)
+	}
+
+	if _, err := r.Buscar("I99"); !errors.Is(err, project.ErrIntegranteNoExiste) {
+		t.Errorf("Buscar(I99): error = %v, se esperaba project.ErrIntegranteNoExiste", err)
+	}
+	if got := project.ErrIntegranteNoExiste.Error(); got != "el integrante no existe" {
+		t.Errorf("mensaje = %q, la spec de HU-20 dice %q", got, "el integrante no existe")
 	}
 }

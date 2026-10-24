@@ -46,3 +46,7 @@ func (r *Integrantes) DelProyecto(id domain.ProyectoID) []project.Integrante {
 	})
 	return delProyecto
 }
+
+func (r *Integrantes) Buscar(id domain.IntegranteID) (project.Integrante, error) {
+	return project.Integrante{}, nil
+}
