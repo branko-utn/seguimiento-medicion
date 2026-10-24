@@ -12,5 +12,10 @@ var Escala = []int{1, 2, 3, 5, 8, 13, 21}
 // ValidarStoryPoints informa si sp pertenece a la escala de Planning Poker (RN-15.1).
 // 0 significa "sin estimar" y no es un valor asignable (RN-15.3).
 func ValidarStoryPoints(sp int) error {
-	return nil // stub RED
+	for _, valido := range Escala {
+		if sp == valido {
+			return nil
+		}
+	}
+	return ErrStoryPointsInvalidos
 }
