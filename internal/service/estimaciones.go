@@ -23,10 +23,24 @@ func NuevoEstimaciones(estimaciones RepoEstimaciones, historias RepoHistorias) *
 
 // Estimar registra o reemplaza las horas estimadas de una historia (HU-19).
 func (s *Estimaciones) Estimar(historiaID domain.HistoriaID, horas float64) (effort.EstimacionHoras, error) {
-	return effort.EstimacionHoras{}, effort.ErrHorasInvalidas
+	if _, err := s.historias.Buscar(historiaID); err != nil {
+		return effort.EstimacionHoras{}, err
+	}
+	e, err := effort.NuevaEstimacion(historiaID, horas)
+	if err != nil {
+		return effort.EstimacionHoras{}, err
+	}
+	if err := s.estimaciones.Guardar(e); err != nil {
+		return effort.EstimacionHoras{}, err
+	}
+	return e, nil
 }
 
 // Buscar devuelve las horas estimadas de una historia.
 func (s *Estimaciones) Buscar(historiaID domain.HistoriaID) (effort.EstimacionHoras, bool, error) {
-	return effort.EstimacionHoras{}, false, nil
+	if _, err := s.historias.Buscar(historiaID); err != nil {
+		return effort.EstimacionHoras{}, false, err
+	}
+	e, ok := s.estimaciones.Buscar(historiaID)
+	return e, ok, nil
 }
