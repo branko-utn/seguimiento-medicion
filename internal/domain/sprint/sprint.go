@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/branko-utn/seguimiento-medicion/internal/domain"
+	"github.com/branko-utn/seguimiento-medicion/internal/domain/backlog"
 	"github.com/branko-utn/seguimiento-medicion/internal/domain/project"
 )
 
@@ -53,6 +54,13 @@ var (
 	ErrOtroActivo       = errors.New("ya hay un sprint activo en el proyecto")
 	ErrNoPlanificado    = errors.New("solo se puede iniciar un sprint planificado")
 	ErrNoExiste         = errors.New("el sprint no existe")
+
+	// Errores de HU-11 (asignar historias).
+	ErrHistoriaSinEstimar   = errors.New("la historia no está estimada")
+	ErrHistoriaSinCriterios = errors.New("la historia no tiene criterios de aceptación")
+	ErrSprintCerrado        = errors.New("el sprint está cerrado y no se puede modificar")
+	ErrHistoriaCompletada   = errors.New("la historia ya está completada")
+	ErrOtroProyecto         = errors.New("la historia pertenece a otro proyecto")
 )
 
 // Nuevo crea un sprint válido en estado Planificado y sin historias (RN-10.1, RN-10.2 y RN-10.5).
@@ -99,5 +107,10 @@ func (s *Sprint) Iniciar() error {
 		return ErrNoPlanificado
 	}
 	s.Estado = Activo
+	return nil
+}
+
+// Asignar agrega la historia al Sprint Backlog (HU-11). Todavía sin implementar (RED).
+func (s *Sprint) Asignar(h backlog.Historia) error {
 	return nil
 }
