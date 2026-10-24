@@ -81,6 +81,8 @@ var (
 	ErrPrioridadInvalida = errors.New("la prioridad debe ser Alta, Media o Baja")
 	// ErrYaAsignada: RN-11.3, la usa HU-11 (AsignarASprint).
 	ErrYaAsignada = errors.New("la historia ya está asignada a un sprint")
+	// ErrNoExiste: la historia buscada no está guardada.
+	ErrNoExiste = errors.New("la historia no existe")
 )
 
 // Nueva crea una historia del backlog de un proyecto y valida RN-05.2, RN-05.3 y RN-05.4 (spec HU-05).

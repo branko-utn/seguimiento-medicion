@@ -10,7 +10,7 @@ type ProyectoID string
 // IntegranteID identifica a un integrante de un proyecto (épica E1). Formato: "I1", "I2", …
 type IntegranteID string
 
-// HistoriaID identifica una historia del Product Backlog (épica E2). Formato: "HU-1", "HU-2", … único por proyecto.
+// HistoriaID identifica una historia del Product Backlog (épica E2). Formato: "HU-1", "HU-2", … único en todo el sistema.
 type HistoriaID string
 
 // SprintID identifica un sprint (épica E3). Formato: "S1", "S2", …
