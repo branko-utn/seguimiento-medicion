@@ -31,6 +31,7 @@ type mundo struct {
 	sprints      *service.Sprints
 	repoSprints  *memory.Sprints // repositorio, para preparar escenarios (paso "que el sprint … está cerrado")
 	estimaciones *service.Estimaciones
+	registros    *service.Registros
 }
 
 func nuevoMundo() *mundo {
@@ -40,6 +41,7 @@ func nuevoMundo() *mundo {
 	repoHistorias, _ := memory.NuevoHistorias("")
 	repoSprints, _ := memory.NuevoSprints("")
 	repoEstimaciones, _ := memory.NuevoEstimaciones("")
+	repoRegistros, _ := memory.NuevoRegistros("")
 
 	return &mundo{
 		hoy:          time.Now().Truncate(24 * time.Hour),
@@ -51,6 +53,7 @@ func nuevoMundo() *mundo {
 		sprints:      service.NuevoSprints(repoSprints, repoProyectos),
 		repoSprints:  repoSprints,
 		estimaciones: service.NuevoEstimaciones(repoEstimaciones, repoHistorias),
+		registros:    service.NuevoRegistros(repoRegistros, repoIntegrantes, repoHistorias),
 	}
 }
 
