@@ -67,9 +67,29 @@ func (s *Sprints) Iniciar(id domain.SprintID) error {
 	return s.sprints.Actualizar(sp)
 }
 
-// Asignar agrega una historia al Sprint Backlog (HU-11). Todavía sin implementar (RED).
+// Asignar agrega una historia al Sprint Backlog (HU-11). Busca el sprint y la historia, y valida en el orden de la
+// spec: primero Sprint.Asignar (RN-11.1, 11.2, 11.4, 11.5 y 11.6) y después Historia.AsignarASprint (RN-11.3), así
+// una historia completada informa "ya está completada" y no "ya está asignada". Guarda los dos solo si ambas
+// validaciones pasan.
 func (s *Sprints) Asignar(sprintID domain.SprintID, historiaID domain.HistoriaID) error {
-	return nil
+	sp, err := s.sprints.Buscar(sprintID)
+	if err != nil {
+		return err
+	}
+	h, err := s.historias.Buscar(historiaID)
+	if err != nil {
+		return err
+	}
+	if err := sp.Asignar(h); err != nil {
+		return err
+	}
+	if err := h.AsignarASprint(sp.ID); err != nil {
+		return err
+	}
+	if err := s.sprints.Actualizar(sp); err != nil {
+		return err
+	}
+	return s.historias.Guardar(h)
 }
 
 // Buscar devuelve un sprint, o sprint.ErrNoExiste.
