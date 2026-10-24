@@ -22,10 +22,11 @@ type RepoSprints interface {
 type Sprints struct {
 	sprints   RepoSprints
 	proyectos RepoProyectos
+	historias RepoHistorias // para asignar historias al sprint (HU-11)
 }
 
-func NuevoSprints(sprints RepoSprints, proyectos RepoProyectos) *Sprints {
-	return &Sprints{sprints: sprints, proyectos: proyectos}
+func NuevoSprints(sprints RepoSprints, proyectos RepoProyectos, historias RepoHistorias) *Sprints {
+	return &Sprints{sprints: sprints, proyectos: proyectos, historias: historias}
 }
 
 // Crear da de alta un sprint en un proyecto (HU-10). Valida en este orden: que el proyecto exista, el Sprint Goal y
@@ -64,6 +65,11 @@ func (s *Sprints) Iniciar(id domain.SprintID) error {
 		}
 	}
 	return s.sprints.Actualizar(sp)
+}
+
+// Asignar agrega una historia al Sprint Backlog (HU-11). Todavía sin implementar (RED).
+func (s *Sprints) Asignar(sprintID domain.SprintID, historiaID domain.HistoriaID) error {
+	return nil
 }
 
 // Buscar devuelve un sprint, o sprint.ErrNoExiste.
