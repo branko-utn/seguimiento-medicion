@@ -5,7 +5,7 @@ import (
 	"github.com/branko-utn/seguimiento-medicion/internal/domain/effort"
 )
 
-// Estimaciones guarda las horas estimadas por historia (Epica E5).
+// Estimaciones guarda las horas estimadas por historia (épica E5).
 type Estimaciones struct {
 	store *Store[[]effort.EstimacionHoras]
 }
@@ -19,7 +19,7 @@ func NuevoEstimaciones(ruta string) (*Estimaciones, error) {
 	return &Estimaciones{store: s}, nil
 }
 
-// Guardar guarda o reemplaza la estimacion de una historia (RN-19.2).
+// Guardar guarda o reemplaza la estimación de una historia (RN-19.2).
 func (r *Estimaciones) Guardar(e effort.EstimacionHoras) error {
 	return r.store.Update(func(lista *[]effort.EstimacionHoras) error {
 		for i := range *lista {
@@ -33,7 +33,8 @@ func (r *Estimaciones) Guardar(e effort.EstimacionHoras) error {
 	})
 }
 
-// Buscar devuelve la estimacion de una historia. Si no existe, devuelve (cero, false).
+// Buscar devuelve la estimación de una historia y si se encontró. A diferencia de otros repositorios, no devuelve
+// ErrNoExiste: que una historia todavía no tenga estimación no es un error, sino un estado válido.
 func (r *Estimaciones) Buscar(id domain.HistoriaID) (effort.EstimacionHoras, bool) {
 	var (
 		encontrada effort.EstimacionHoras

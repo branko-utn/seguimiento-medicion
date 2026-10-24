@@ -8,15 +8,17 @@ import (
 // RepoEstimaciones es lo que el servicio de estimaciones necesita del almacenamiento.
 type RepoEstimaciones interface {
 	Guardar(e effort.EstimacionHoras) error
+	// Buscar devuelve (estimación, encontrada): que no haya estimación no es un error.
 	Buscar(id domain.HistoriaID) (effort.EstimacionHoras, bool)
 }
 
-// Estimaciones son los casos de uso de estimacion de horas (Epica E5).
+// Estimaciones son los casos de uso de estimación de horas (épica E5).
 type Estimaciones struct {
 	estimaciones RepoEstimaciones
 	historias    RepoHistorias
 }
 
+// NuevoEstimaciones crea el servicio. Usa el repositorio de historias (épica E2) para validar que la historia exista.
 func NuevoEstimaciones(estimaciones RepoEstimaciones, historias RepoHistorias) *Estimaciones {
 	return &Estimaciones{estimaciones: estimaciones, historias: historias}
 }
@@ -36,7 +38,7 @@ func (s *Estimaciones) Estimar(historiaID domain.HistoriaID, horas float64) (eff
 	return e, nil
 }
 
-// Buscar devuelve las horas estimadas de una historia.
+// Buscar devuelve las horas estimadas de una historia y si las tiene. Si la historia no existe, devuelve su error.
 func (s *Estimaciones) Buscar(historiaID domain.HistoriaID) (effort.EstimacionHoras, bool, error) {
 	if _, err := s.historias.Buscar(historiaID); err != nil {
 		return effort.EstimacionHoras{}, false, err
