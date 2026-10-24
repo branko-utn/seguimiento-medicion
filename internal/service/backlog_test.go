@@ -6,6 +6,7 @@ import (
 
 	"github.com/branko-utn/seguimiento-medicion/internal/domain"
 	"github.com/branko-utn/seguimiento-medicion/internal/domain/backlog"
+	"github.com/branko-utn/seguimiento-medicion/internal/domain/estimation"
 	"github.com/branko-utn/seguimiento-medicion/internal/domain/project"
 	"github.com/branko-utn/seguimiento-medicion/internal/store/memory"
 )
@@ -315,5 +316,136 @@ func TestBacklog_QuitarCriterio_errores(t *testing.T) {
 				t.Errorf("el criterio existente no debe cambiar; se obtuvo %+v", guardada.Criterios)
 			}
 		})
+	}
+}
+
+// nuevoServicioConHistoriaCompletada arma el servicio con una historia "Login" (HU-1) estimada en 3 SP y
+// completada. Fija el estado directamente en el repositorio: es preparación, como los pasos "Dado" de los
+// escenarios (la historia se completa desde la aplicación con HU-12).
+func nuevoServicioConHistoriaCompletada(t *testing.T) *Backlog {
+	t.Helper()
+	repoProyectos, err := memory.NuevoProyectos("")
+	if err != nil {
+		t.Fatal(err)
+	}
+	repoHistorias, err := memory.NuevoHistorias("")
+	if err != nil {
+		t.Fatal(err)
+	}
+	proyectos := NuevoProyectos(repoProyectos)
+	if _, err := proyectos.Crear("Demo", "", inicio, fin); err != nil {
+		t.Fatal(err)
+	}
+	s := NuevoBacklog(repoHistorias, repoProyectos)
+	if _, err := s.Crear("P1", "Login", "", backlog.PrioridadAlta); err != nil {
+		t.Fatal(err)
+	}
+
+	h, err := repoHistorias.Buscar("HU-1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	h.StoryPoints = 3
+	h.Estado = backlog.Completada
+	if err := repoHistorias.Guardar(h); err != nil {
+		t.Fatal(err)
+	}
+
+	guardada, err := s.Buscar("HU-1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if guardada.StoryPoints != 3 || guardada.Estado != backlog.Completada {
+		t.Fatalf("preparación: se obtuvo %+v", guardada)
+	}
+	return s
+}
+
+func TestBacklog_Estimar(t *testing.T) {
+	s := nuevoServicioBacklog(t)
+	h, err := s.Crear("P1", "Login", "", backlog.PrioridadAlta)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// La estimación queda persistida (spec HU-15, salidas esperadas).
+	if err := s.Estimar(h.ID, 3); err != nil {
+		t.Fatalf("error inesperado: %v", err)
+	}
+	guardada, err := s.Buscar(h.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if guardada.StoryPoints != 3 {
+		t.Errorf("StoryPoints = %d, se esperaba 3", guardada.StoryPoints)
+	}
+}
+
+func TestBacklog_Estimar_reemplazaElValorAnterior(t *testing.T) {
+	// RN-15.2: se puede re-estimar mientras no esté completada; el valor anterior se reemplaza.
+	s := nuevoServicioBacklog(t)
+	h, err := s.Crear("P1", "Login", "", backlog.PrioridadAlta)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := s.Estimar(h.ID, 3); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := s.Estimar(h.ID, 5); err != nil {
+		t.Fatalf("re-estimar debería ser válido: %v", err)
+	}
+	guardada, err := s.Buscar(h.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if guardada.StoryPoints != 5 {
+		t.Errorf("StoryPoints = %d, se esperaba 5", guardada.StoryPoints)
+	}
+}
+
+func TestBacklog_Estimar_errores(t *testing.T) {
+	casos := []struct {
+		nombre    string
+		historia  domain.HistoriaID
+		sp        int
+		quiereErr error
+	}{
+		{"historia inexistente", "HU-99", 5, backlog.ErrNoExiste},
+		{"fuera de la escala", "HU-1", 4, estimation.ErrStoryPointsInvalidos},
+	}
+	for _, caso := range casos {
+		t.Run(caso.nombre, func(t *testing.T) {
+			s := nuevoServicioBacklog(t)
+			if _, err := s.Crear("P1", "Login", "", backlog.PrioridadAlta); err != nil {
+				t.Fatal(err)
+			}
+
+			if err := s.Estimar(caso.historia, caso.sp); !errors.Is(err, caso.quiereErr) {
+				t.Fatalf("se esperaba el error %v, se obtuvo %v", caso.quiereErr, err)
+			}
+
+			// Un valor inválido no queda guardado.
+			guardada, _ := s.Buscar("HU-1")
+			if guardada.StoryPoints != 0 {
+				t.Errorf("StoryPoints = %d, se esperaba 0", guardada.StoryPoints)
+			}
+		})
+	}
+}
+
+func TestBacklog_Estimar_historiaCompletada(t *testing.T) {
+	// RN-15.2: no se puede re-estimar una historia completada, y la estimación anterior no cambia.
+	s := nuevoServicioConHistoriaCompletada(t)
+
+	if err := s.Estimar("HU-1", 5); !errors.Is(err, backlog.ErrHistoriaCompletada) {
+		t.Fatalf("se esperaba ErrHistoriaCompletada, se obtuvo %v", err)
+	}
+	guardada, err := s.Buscar("HU-1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if guardada.StoryPoints != 3 {
+		t.Errorf("StoryPoints = %d, se esperaba 3: la estimación anterior no cambia", guardada.StoryPoints)
 	}
 }

@@ -24,12 +24,14 @@ type mundo struct {
 
 	// Cada épica agrega acá su servicio y lo crea en nuevoMundo con repositorios en memoria (ruta ""),
 	// por ejemplo: proyectos *service.Proyectos
-	proyectos   *service.Proyectos
-	integrantes *service.Integrantes
-	backlog     *service.Backlog
-	historias   *memory.Historias // repositorio, para preparar escenarios (pasos "Dado" de backlog)
-	sprints     *service.Sprints
-	repoSprints *memory.Sprints // repositorio, para preparar escenarios (paso "que el sprint … está cerrado")
+	proyectos    *service.Proyectos
+	integrantes  *service.Integrantes
+	backlog      *service.Backlog
+	historias    *memory.Historias // repositorio, para preparar escenarios (pasos "Dado" de backlog)
+	sprints      *service.Sprints
+	repoSprints  *memory.Sprints // repositorio, para preparar escenarios (paso "que el sprint … está cerrado")
+	estimaciones *service.Estimaciones
+	registros    *service.Registros
 }
 
 func nuevoMundo() *mundo {
@@ -38,16 +40,20 @@ func nuevoMundo() *mundo {
 	repoIntegrantes, _ := memory.NuevoIntegrantes("")
 	repoHistorias, _ := memory.NuevoHistorias("")
 	repoSprints, _ := memory.NuevoSprints("")
+	repoEstimaciones, _ := memory.NuevoEstimaciones("")
+	repoRegistros, _ := memory.NuevoRegistros("")
 
 	return &mundo{
-		hoy:         time.Now().Truncate(24 * time.Hour),
-		alias:       map[string]string{},
-		proyectos:   service.NuevoProyectos(repoProyectos),
-		integrantes: service.NuevoIntegrantes(repoIntegrantes, repoProyectos),
-		backlog:     service.NuevoBacklog(repoHistorias, repoProyectos),
-		historias:   repoHistorias,
-		sprints:     service.NuevoSprints(repoSprints, repoProyectos),
-		repoSprints: repoSprints,
+		hoy:          time.Now().Truncate(24 * time.Hour),
+		alias:        map[string]string{},
+		proyectos:    service.NuevoProyectos(repoProyectos),
+		integrantes:  service.NuevoIntegrantes(repoIntegrantes, repoProyectos),
+		backlog:      service.NuevoBacklog(repoHistorias, repoProyectos),
+		historias:    repoHistorias,
+		sprints:      service.NuevoSprints(repoSprints, repoProyectos, repoHistorias),
+		repoSprints:  repoSprints,
+		estimaciones: service.NuevoEstimaciones(repoEstimaciones, repoHistorias),
+		registros:    service.NuevoRegistros(repoRegistros, repoIntegrantes, repoHistorias),
 	}
 }
 

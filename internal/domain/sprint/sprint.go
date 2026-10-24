@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/branko-utn/seguimiento-medicion/internal/domain"
+	"github.com/branko-utn/seguimiento-medicion/internal/domain/backlog"
 	"github.com/branko-utn/seguimiento-medicion/internal/domain/project"
 )
 
@@ -53,6 +54,13 @@ var (
 	ErrOtroActivo       = errors.New("ya hay un sprint activo en el proyecto")
 	ErrNoPlanificado    = errors.New("solo se puede iniciar un sprint planificado")
 	ErrNoExiste         = errors.New("el sprint no existe")
+
+	// Errores de HU-11 (asignar historias).
+	ErrHistoriaSinEstimar   = errors.New("la historia no está estimada")
+	ErrHistoriaSinCriterios = errors.New("la historia no tiene criterios de aceptación")
+	ErrSprintCerrado        = errors.New("el sprint está cerrado y no se puede modificar")
+	ErrHistoriaCompletada   = errors.New("la historia ya está completada")
+	ErrOtroProyecto         = errors.New("la historia pertenece a otro proyecto")
 )
 
 // Nuevo crea un sprint válido en estado Planificado y sin historias (RN-10.1, RN-10.2 y RN-10.5).
@@ -99,5 +107,29 @@ func (s *Sprint) Iniciar() error {
 		return ErrNoPlanificado
 	}
 	s.Estado = Activo
+	return nil
+}
+
+// Asignar agrega la historia al Sprint Backlog (HU-11). Valida primero el sprint y después la historia: que el
+// sprint no esté cerrado (RN-11.4), que la historia sea del mismo proyecto (RN-11.6), que no esté completada
+// (RN-11.5), que esté estimada (RN-11.1) y que tenga criterios (RN-11.2). Que la historia no esté ya en otro sprint
+// (RN-11.3) lo valida Historia.AsignarASprint; el servicio coordina las dos.
+func (s *Sprint) Asignar(h backlog.Historia) error {
+	if s.Estado == Cerrado {
+		return ErrSprintCerrado
+	}
+	if h.ProyectoID != s.ProyectoID {
+		return ErrOtroProyecto
+	}
+	if h.Estado == backlog.Completada {
+		return ErrHistoriaCompletada
+	}
+	if h.StoryPoints <= 0 {
+		return ErrHistoriaSinEstimar
+	}
+	if !h.TieneCriterios() {
+		return ErrHistoriaSinCriterios
+	}
+	s.Historias = append(s.Historias, h.ID)
 	return nil
 }
