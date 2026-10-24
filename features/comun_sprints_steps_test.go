@@ -14,6 +14,26 @@ import (
 func registrarPasosComunesSprints(sc *godog.ScenarioContext, m *mundo) {
 	sc.Step(`^(?:que )?existe un sprint "([^"]*)" en "([^"]*)"$`, m.existeUnSprintEn)
 	sc.Step(`^(?:que )?existe un sprint activo "([^"]*)" en "([^"]*)"$`, m.existeUnSprintActivoEn)
+	sc.Step(`^que la historia "([^"]*)" está asignada al sprint "([^"]*)"$`, m.queLaHistoriaEstaAsignadaAlSprint)
+}
+
+// queLaHistoriaEstaAsignadaAlSprint deja la historia en el sprint directamente en los repositorios ("Dado"). Es
+// preparación del escenario, no el caso de uso de HU-11: HU-08 lo usa con historias sin estimar ni criterios.
+func (m *mundo) queLaHistoriaEstaAsignadaAlSprint(historia, nombreSprint string) error {
+	sp, err := m.repoSprints.Buscar(domain.SprintID(m.id("sprint", nombreSprint)))
+	if err != nil {
+		return fmt.Errorf("sprint %q: %w", nombreSprint, err)
+	}
+	h, err := m.historias.Buscar(domain.HistoriaID(m.id("historia", historia)))
+	if err != nil {
+		return fmt.Errorf("historia %q: %w", historia, err)
+	}
+	sp.Historias = append(sp.Historias, h.ID)
+	h.SprintID = sp.ID
+	if err := m.repoSprints.Actualizar(sp); err != nil {
+		return err
+	}
+	return m.historias.Guardar(h)
 }
 
 func (m *mundo) existeUnSprintEn(nombre, proyecto string) error {

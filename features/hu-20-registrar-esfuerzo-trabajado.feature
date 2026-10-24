@@ -1,6 +1,5 @@
 # language: es
-# @pendiente: se quita al implementar los pasos (commit RED).
-@HU-20 @pendiente
+@HU-20
 Característica: Registrar esfuerzo trabajado
   Como integrante del equipo
   Quiero registrar las horas que trabajé en una historia

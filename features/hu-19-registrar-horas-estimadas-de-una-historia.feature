@@ -1,6 +1,5 @@
 # language: es
-# @pendiente: se quita al implementar los pasos (commit RED).
-@HU-19 @pendiente
+@HU-19
 Característica: Registrar horas estimadas de una historia
   Como integrante del equipo
   Quiero registrar las horas estimadas de una historia
