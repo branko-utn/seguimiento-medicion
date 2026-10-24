@@ -75,3 +75,13 @@ func (m *mundo) buscarHistoria(nombre string) (backlog.Historia, error) {
 		return backlog.Historia{}, fmt.Errorf("la historia %q está en más de un proyecto, indicá el proyecto en el paso", nombre)
 	}
 }
+
+type filaHistoria struct {
+	historia, titulo       string
+	storyPoints, criterios int
+}
+
+func (m *mundo) cargarHistorias(filas []filaHistoria) error                  { return nil }
+func (m *mundo) queLaHistoriaEstaEnEstado(historia, estado string) error     { return nil }
+func (m *mundo) queLaHistoriaTieneStoryPoints(historia string, sp int) error { return nil }
+func (m *mundo) laHistoriaTieneStoryPoints(historia string, sp int) error    { return nil }
