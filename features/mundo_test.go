@@ -27,6 +27,7 @@ type mundo struct {
 	proyectos   *service.Proyectos
 	integrantes *service.Integrantes
 	backlog     *service.Backlog
+	historias   *memory.Historias // repositorio, para preparar escenarios (pasos "Dado" de backlog)
 	sprints     *service.Sprints
 }
 
@@ -43,6 +44,7 @@ func nuevoMundo() *mundo {
 		proyectos:   service.NuevoProyectos(repoProyectos),
 		integrantes: service.NuevoIntegrantes(repoIntegrantes, repoProyectos),
 		backlog:     service.NuevoBacklog(repoHistorias, repoProyectos),
+		historias:   repoHistorias,
 		sprints:     service.NuevoSprints(repoSprints, repoProyectos),
 	}
 }
