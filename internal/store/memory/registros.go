@@ -1,6 +1,8 @@
 package memory
 
 import (
+	"strconv"
+
 	"github.com/branko-utn/seguimiento-medicion/internal/domain"
 	"github.com/branko-utn/seguimiento-medicion/internal/domain/effort"
 )
@@ -19,14 +21,37 @@ func NuevoRegistros(ruta string) (*Registros, error) {
 	return &Registros{store: s}, nil
 }
 
+// Agregar guarda un registro nuevo con el siguiente ID (E1, E2, …).
 func (r *Registros) Agregar(reg effort.Registro) (effort.Registro, error) {
-	return effort.Registro{}, nil
+	err := r.store.Update(func(lista *[]effort.Registro) error {
+		reg.ID = domain.RegistroID("E" + strconv.Itoa(len(*lista)+1))
+		*lista = append(*lista, reg)
+		return nil
+	})
+	if err != nil {
+		return effort.Registro{}, err
+	}
+	return reg, nil
 }
 
+// DelIntegrante devuelve una copia de los registros de un integrante, en el orden en que se registraron.
 func (r *Registros) DelIntegrante(id domain.IntegranteID) []effort.Registro {
-	return nil
+	return r.filtrar(func(reg effort.Registro) bool { return reg.IntegranteID == id })
 }
 
+// DeHistoria devuelve una copia de los registros de una historia, en el orden en que se registraron.
 func (r *Registros) DeHistoria(id domain.HistoriaID) []effort.Registro {
-	return nil
+	return r.filtrar(func(reg effort.Registro) bool { return reg.HistoriaID == id })
+}
+
+func (r *Registros) filtrar(incluir func(effort.Registro) bool) []effort.Registro {
+	var filtrados []effort.Registro
+	r.store.View(func(lista []effort.Registro) {
+		for _, reg := range lista {
+			if incluir(reg) {
+				filtrados = append(filtrados, reg)
+			}
+		}
+	})
+	return filtrados
 }
