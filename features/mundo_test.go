@@ -26,18 +26,21 @@ type mundo struct {
 	// por ejemplo: proyectos *service.Proyectos
 	proyectos   *service.Proyectos
 	integrantes *service.Integrantes
+	backlog     *service.Backlog
 }
 
 func nuevoMundo() *mundo {
 	// Con ruta "" los repositorios funcionan solo en memoria y Open no puede fallar.
 	repoProyectos, _ := memory.NuevoProyectos("")
 	repoIntegrantes, _ := memory.NuevoIntegrantes("")
+	repoHistorias, _ := memory.NuevoHistorias("")
 
 	return &mundo{
 		hoy:         time.Now().Truncate(24 * time.Hour),
 		alias:       map[string]string{},
 		proyectos:   service.NuevoProyectos(repoProyectos),
 		integrantes: service.NuevoIntegrantes(repoIntegrantes, repoProyectos),
+		backlog:     service.NuevoBacklog(repoHistorias, repoProyectos),
 	}
 }
 
