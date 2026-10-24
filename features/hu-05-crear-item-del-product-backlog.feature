@@ -22,11 +22,11 @@ Característica: Crear ítem del Product Backlog
     Entonces el backlog de "Demo" tiene la historia "HU-2" "Crear sprint"
 
   @CA-05.1 @limite
-  Escenario: cada proyecto numera desde HU-1
+  Escenario: los identificadores no se repiten entre proyectos
     Dado que existe un proyecto "Otro"
     Y que el backlog de "Demo" tiene 3 historias
     Cuando agrego al proyecto "Otro" la historia "Login" con prioridad "Baja"
-    Entonces el backlog de "Otro" tiene la historia "HU-1" "Login"
+    Entonces el backlog de "Otro" tiene la historia "HU-4" "Login"
 
   @CA-05.2 @alternativo
   Escenario: crear una historia sin descripción
