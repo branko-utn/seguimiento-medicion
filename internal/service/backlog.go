@@ -78,7 +78,15 @@ func (s *Backlog) QuitarCriterio(id domain.HistoriaID, numero int) error {
 	return s.historias.Guardar(h)
 }
 
-// Estimar asigna Story Points a la historia (HU-15).
+// Estimar asigna Story Points a la historia (HU-15). Busca la historia, aplica la regla del dominio
+// (RN-15.1 a RN-15.3) y guarda el resultado.
 func (s *Backlog) Estimar(id domain.HistoriaID, sp int) error {
-	return nil // stub RED
+	h, err := s.historias.Buscar(id)
+	if err != nil {
+		return err
+	}
+	if err := h.Estimar(sp); err != nil {
+		return err
+	}
+	return s.historias.Guardar(h)
 }
