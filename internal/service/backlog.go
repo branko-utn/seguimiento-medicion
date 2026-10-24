@@ -77,3 +77,8 @@ func (s *Backlog) QuitarCriterio(id domain.HistoriaID, numero int) error {
 	}
 	return s.historias.Guardar(h)
 }
+
+// Estimar asigna Story Points a la historia (HU-15).
+func (s *Backlog) Estimar(id domain.HistoriaID, sp int) error {
+	return nil // stub RED
+}
