@@ -38,6 +38,8 @@ func inicializarEscenario(sc *godog.ScenarioContext) {
 	registrarPasosComunesBacklog(sc, m)
 	registrarPasosHU01(sc, m)
 	registrarPasosHU03(sc, m)
+	registrarPasosComunesSprints(sc, m)
+	registrarPasosHU10(sc, m)
 	registrarPasosHU05(sc, m)
 	registrarPasosHU24(sc, m)
 	// Cada historia registra acá sus pasos, por ejemplo: registrarPasosHU01(sc, m)

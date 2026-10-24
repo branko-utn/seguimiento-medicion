@@ -1,6 +1,5 @@
 # language: es
-# @pendiente: se quita al implementar los pasos (commit RED).
-@HU-10 @pendiente
+@HU-10
 Característica: Crear sprint con Sprint Goal
   Como líder del proyecto
   Quiero crear un sprint con fechas y un Sprint Goal

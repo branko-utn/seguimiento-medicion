@@ -27,6 +27,7 @@ type mundo struct {
 	proyectos   *service.Proyectos
 	integrantes *service.Integrantes
 	backlog     *service.Backlog
+	sprints     *service.Sprints
 }
 
 func nuevoMundo() *mundo {
@@ -34,6 +35,7 @@ func nuevoMundo() *mundo {
 	repoProyectos, _ := memory.NuevoProyectos("")
 	repoIntegrantes, _ := memory.NuevoIntegrantes("")
 	repoHistorias, _ := memory.NuevoHistorias("")
+	repoSprints, _ := memory.NuevoSprints("")
 
 	return &mundo{
 		hoy:         time.Now().Truncate(24 * time.Hour),
@@ -41,6 +43,7 @@ func nuevoMundo() *mundo {
 		proyectos:   service.NuevoProyectos(repoProyectos),
 		integrantes: service.NuevoIntegrantes(repoIntegrantes, repoProyectos),
 		backlog:     service.NuevoBacklog(repoHistorias, repoProyectos),
+		sprints:     service.NuevoSprints(repoSprints, repoProyectos),
 	}
 }
 
