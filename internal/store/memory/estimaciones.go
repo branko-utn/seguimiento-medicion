@@ -21,10 +21,35 @@ func NuevoEstimaciones(ruta string) (*Estimaciones, error) {
 
 // Guardar guarda o reemplaza la estimacion de una historia (RN-19.2).
 func (r *Estimaciones) Guardar(e effort.EstimacionHoras) error {
-	return nil
+	return r.store.Update(func(lista *[]effort.EstimacionHoras) error {
+		for i := range *lista {
+			if (*lista)[i].HistoriaID == e.HistoriaID {
+				(*lista)[i] = e
+				return nil
+			}
+		}
+		*lista = append(*lista, e)
+		return nil
+	})
 }
 
 // Buscar devuelve la estimacion de una historia. Si no existe, devuelve (cero, false).
 func (r *Estimaciones) Buscar(id domain.HistoriaID) (effort.EstimacionHoras, bool) {
-	return effort.EstimacionHoras{}, false
+	var (
+		encontrada effort.EstimacionHoras
+		existe     bool
+	)
+	r.store.View(func(lista []effort.EstimacionHoras) {
+		for _, e := range lista {
+			if e.HistoriaID == id {
+				encontrada = e
+				existe = true
+				return
+			}
+		}
+	})
+	if !existe {
+		return effort.EstimacionHoras{}, false
+	}
+	return encontrada, true
 }
