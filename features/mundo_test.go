@@ -20,7 +20,6 @@ import (
 type mundo struct {
 	hoy   time.Time
 	err   error             // error de la última acción ("Cuando")
-	dato  any               // datos extra de la última acción ("Cuando")
 	alias map[string]string // "tipo:nombre en el escenario" → ID real
 
 	// Cada épica agrega acá su servicio y lo crea en nuevoMundo con repositorios en memoria (ruta ""),
@@ -66,12 +65,8 @@ func (m *mundo) id(tipo, nombre string) string {
 }
 
 // resultado guarda el error de una acción ("Cuando") para que lo verifique un paso "Entonces".
-// Puede guardar también datos adicionales de la acción.
-func (m *mundo) resultado(err error, datos ...any) error {
+func (m *mundo) resultado(err error) error {
 	m.err = err
-	if len(datos) > 0 {
-		m.dato = datos[0]
-	}
 	return nil
 }
 
