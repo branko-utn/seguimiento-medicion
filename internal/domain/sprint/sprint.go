@@ -110,7 +110,26 @@ func (s *Sprint) Iniciar() error {
 	return nil
 }
 
-// Asignar agrega la historia al Sprint Backlog (HU-11). Todavía sin implementar (RED).
+// Asignar agrega la historia al Sprint Backlog (HU-11). Valida primero el sprint y después la historia: que el
+// sprint no esté cerrado (RN-11.4), que la historia sea del mismo proyecto (RN-11.6), que no esté completada
+// (RN-11.5), que esté estimada (RN-11.1) y que tenga criterios (RN-11.2). Que la historia no esté ya en otro sprint
+// (RN-11.3) lo valida Historia.AsignarASprint; el servicio coordina las dos.
 func (s *Sprint) Asignar(h backlog.Historia) error {
+	if s.Estado == Cerrado {
+		return ErrSprintCerrado
+	}
+	if h.ProyectoID != s.ProyectoID {
+		return ErrOtroProyecto
+	}
+	if h.Estado == backlog.Completada {
+		return ErrHistoriaCompletada
+	}
+	if h.StoryPoints <= 0 {
+		return ErrHistoriaSinEstimar
+	}
+	if !h.TieneCriterios() {
+		return ErrHistoriaSinCriterios
+	}
+	s.Historias = append(s.Historias, h.ID)
 	return nil
 }
