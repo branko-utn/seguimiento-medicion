@@ -17,6 +17,13 @@ type EstimacionHoras struct {
 }
 
 // NuevaEstimacion crea una estimacion de horas valida para una historia.
+// Las horas deben ser mayores que cero (RN-19.1).
 func NuevaEstimacion(historiaID domain.HistoriaID, horas float64) (EstimacionHoras, error) {
-	return EstimacionHoras{}, ErrHorasInvalidas
+	if horas <= 0 {
+		return EstimacionHoras{}, ErrHorasInvalidas
+	}
+	return EstimacionHoras{
+		HistoriaID: historiaID,
+		Horas:      horas,
+	}, nil
 }
