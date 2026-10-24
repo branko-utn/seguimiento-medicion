@@ -2,6 +2,7 @@ package defect
 
 import (
 	"errors"
+	"strings"
 
 	"github.com/branko-utn/seguimiento-medicion/internal/domain"
 )
@@ -16,7 +17,18 @@ const (
 	Baja
 )
 
+// String devuelve el texto que usan las specs y los escenarios BDD.
 func (s Severidad) String() string {
+	switch s {
+	case Critica:
+		return "Crítica"
+	case Alta:
+		return "Alta"
+	case Media:
+		return "Media"
+	case Baja:
+		return "Baja"
+	}
 	return ""
 }
 
@@ -29,7 +41,16 @@ const (
 	Resuelto
 )
 
+// String devuelve el texto que usan las specs y los escenarios BDD.
 func (e Estado) String() string {
+	switch e {
+	case Abierto:
+		return "Abierto"
+	case EnProgreso:
+		return "En progreso"
+	case Resuelto:
+		return "Resuelto"
+	}
 	return ""
 }
 
@@ -50,6 +71,22 @@ var (
 	ErrSprintDeOtroProyecto = errors.New("el sprint de detección no pertenece al proyecto de la historia")
 )
 
+// Nuevo crea un defecto válido: descripción no vacía (RN-22.1) y severidad de la lista (RN-22.2). Queda Abierto y sin
+// sprint de resolución (RN-22.3). Que la historia y el sprint existan y sean del mismo proyecto (RN-22.4) lo controla
+// el servicio.
 func Nuevo(descripcion string, severidad Severidad, historiaID domain.HistoriaID, sprintDeteccion domain.SprintID) (Defecto, error) {
-	return Defecto{}, nil
+	descripcion = strings.TrimSpace(descripcion)
+	if descripcion == "" {
+		return Defecto{}, ErrDescripcionVacia
+	}
+	if severidad.String() == "" {
+		return Defecto{}, ErrSeveridadInvalida
+	}
+	return Defecto{
+		Descripcion:     descripcion,
+		Severidad:       severidad,
+		Estado:          Abierto,
+		HistoriaID:      historiaID,
+		SprintDeteccion: sprintDeteccion,
+	}, nil
 }
