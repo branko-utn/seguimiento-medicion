@@ -39,8 +39,8 @@ implementás vos en ese archivo, pero no en el tuyo.
 | `el proyecto tiene las historias:` (tabla; `criterios` opcional, vale 1) | Bianchi | `comun_backlog_steps_test.go` ✅ | HU-11, HU-12 |
 | `la historia "…" está en estado "…"` (Dado y Entonces) | Bianchi | `comun_backlog_steps_test.go` ✅ | HU-05, HU-08, HU-12 |
 | `la historia "…" tiene N Story Points` (Dado y Entonces) | Bianchi | `comun_backlog_steps_test.go` ✅ | HU-15 |
-| `que la historia "…" ya está completada en el sprint "…"` | Branko | `comun_sprints_steps_test.go` | HU-08, HU-12 |
-| `que la historia "…" está completada` | Branko | `comun_sprints_steps_test.go` | HU-15, HU-22 |
+| `que la historia "…" ya está completada en el sprint "…"` | Branko | `comun_sprints_cierre_steps_test.go` ✅ | HU-08, HU-12 |
+| `que la historia "…" está completada` | Branko | `comun_sprints_cierre_steps_test.go` ✅ | HU-15, HU-22 |
 | `que el sprint "…" está cerrado` | Branko | `comun_sprints_cierre_steps_test.go` ✅ | HU-11, HU-12 |
 
 Valores por defecto de los pasos de proyectos y sprints (cuando el escenario no los indica):
