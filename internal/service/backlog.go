@@ -11,6 +11,10 @@ type RepoHistorias interface {
 	Agregar(h backlog.Historia) (backlog.Historia, error)
 	// Listar devuelve todas las historias, en el orden en que se crearon.
 	Listar() []backlog.Historia
+	// Buscar devuelve una copia de la historia, o backlog.ErrNoExiste.
+	Buscar(id domain.HistoriaID) (backlog.Historia, error)
+	// Guardar reemplaza una historia ya guardada, o devuelve backlog.ErrNoExiste.
+	Guardar(h backlog.Historia) error
 }
 
 // Backlog son los casos de uso del Product Backlog (épica E2).
@@ -19,6 +23,7 @@ type Backlog struct {
 	proyectos RepoProyectos
 }
 
+// NuevoBacklog arma el servicio del Product Backlog.
 func NuevoBacklog(historias RepoHistorias, proyectos RepoProyectos) *Backlog {
 	return &Backlog{historias: historias, proyectos: proyectos}
 }
@@ -42,7 +47,7 @@ func (s *Backlog) Listar() ([]backlog.Historia, error) {
 	return s.historias.Listar(), nil
 }
 
-// Buscar devuelve la historia con ese ID.
+// Buscar devuelve la historia con ese ID, o backlog.ErrNoExiste ("la historia no existe").
 func (s *Backlog) Buscar(id domain.HistoriaID) (backlog.Historia, error) {
-	return backlog.Historia{}, nil
+	return s.historias.Buscar(id)
 }

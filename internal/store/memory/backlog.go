@@ -21,11 +21,11 @@ func NuevoHistorias(ruta string) (*Historias, error) {
 	return &Historias{store: s}, nil
 }
 
-// Agregar guarda una historia nueva con el siguiente ID de su proyecto (RN-05.1: HU-1, HU-2, …; cada proyecto
-// numera su backlog desde HU-1).
+// Agregar guarda una historia nueva con el siguiente ID (RN-05.1: HU-1, HU-2, … únicos en todo el sistema).
 func (r *Historias) Agregar(h backlog.Historia) (backlog.Historia, error) {
+	h.Criterios = clonarCriterios(h.Criterios)
 	err := r.store.Update(func(lista *[]backlog.Historia) error {
-		h.ID = domain.HistoriaID("HU-" + strconv.Itoa(cantidadDe(*lista, h.ProyectoID)+1))
+		h.ID = domain.HistoriaID("HU-" + strconv.Itoa(len(*lista)+1))
 		*lista = append(*lista, h)
 		return nil
 	})
@@ -39,26 +39,55 @@ func (r *Historias) Agregar(h backlog.Historia) (backlog.Historia, error) {
 func (r *Historias) Listar() []backlog.Historia {
 	var copia []backlog.Historia
 	r.store.View(func(lista []backlog.Historia) {
-		copia = append(copia, lista...)
+		for _, h := range lista {
+			h.Criterios = clonarCriterios(h.Criterios)
+			copia = append(copia, h)
+		}
 	})
 	return copia
 }
 
-// cantidadDe cuenta las historias de un proyecto: cada proyecto numera su backlog desde HU-1 (RN-05.1).
-func cantidadDe(historias []backlog.Historia, proyectoID domain.ProyectoID) int {
-	cantidad := 0
-	for _, h := range historias {
-		if h.ProyectoID == proyectoID {
-			cantidad++
-		}
-	}
-	return cantidad
-}
-
-// Buscar devuelve la historia con ese ID.
+// Buscar devuelve una copia de la historia con ese ID, o backlog.ErrNoExiste. Los cambios a la copia no afectan lo
+// guardado hasta llamar a Guardar.
 func (r *Historias) Buscar(id domain.HistoriaID) (backlog.Historia, error) {
-	return backlog.Historia{}, nil
+	var (
+		encontrada backlog.Historia
+		ok         bool
+	)
+	r.store.View(func(lista []backlog.Historia) {
+		for _, h := range lista {
+			if h.ID == id {
+				encontrada, ok = h, true
+				encontrada.Criterios = clonarCriterios(h.Criterios)
+				return
+			}
+		}
+	})
+	if !ok {
+		return backlog.Historia{}, backlog.ErrNoExiste
+	}
+	return encontrada, nil
 }
 
-// Guardar reemplaza una historia ya guardada.
-func (r *Historias) Guardar(h backlog.Historia) error { return nil }
+// Guardar reemplaza una historia ya guardada (por su ID), o devuelve backlog.ErrNoExiste. Lo usan los servicios que
+// modifican historias: criterios (HU-07), estado (HU-08), asignación a sprint (HU-11), estimación (HU-15).
+func (r *Historias) Guardar(h backlog.Historia) error {
+	h.Criterios = clonarCriterios(h.Criterios)
+	return r.store.Update(func(lista *[]backlog.Historia) error {
+		for i := range *lista {
+			if (*lista)[i].ID == h.ID {
+				(*lista)[i] = h
+				return nil
+			}
+		}
+		return backlog.ErrNoExiste
+	})
+}
+
+// clonarCriterios copia la lista para que la historia guardada no comparta memoria con la que se devuelve.
+func clonarCriterios(c []backlog.Criterio) []backlog.Criterio {
+	if c == nil {
+		return nil
+	}
+	return append([]backlog.Criterio(nil), c...)
+}
