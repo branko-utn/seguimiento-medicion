@@ -60,9 +60,25 @@ func (s *Backlog) Buscar(id domain.HistoriaID) (backlog.Historia, error) {
 	return s.historias.Buscar(id)
 }
 
-// CambiarEstado deja la historia en el estado nuevo (HU-08).
+// CambiarEstado deja la historia en el estado nuevo (HU-08). Para Completada delega en HU-12 antes de tocar
+// nada: así las reglas del sprint hablan primero (RN-12.1 a RN-12.3, convención de HU-11) y el sprint también
+// registra la historia completada. Si la historia no tiene sprint, devuelve ErrSinSprint de HU-08: no hay
+// sprint al cual delegar.
 func (s *Backlog) CambiarEstado(id domain.HistoriaID, nuevo backlog.Estado) error {
-	return nil // stub RED
+	h, err := s.historias.Buscar(id)
+	if err != nil {
+		return err
+	}
+	if nuevo == backlog.Completada {
+		if h.SprintID == "" {
+			return backlog.ErrSinSprint
+		}
+		return s.completar.CompletarHistoria(h.SprintID, id)
+	}
+	if err := h.CambiarEstado(nuevo); err != nil {
+		return err
+	}
+	return s.historias.Guardar(h)
 }
 
 // AgregarCriterio agrega un criterio de aceptación a la historia (HU-07). Busca la historia, aplica la regla del
