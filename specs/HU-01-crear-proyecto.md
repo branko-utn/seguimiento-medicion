@@ -3,7 +3,7 @@
 - **Issue:** #8 · **Épica:** E1 Proyectos · **Responsable:** Federico Sosa · **Story Points:** 3
 - **Escenarios BDD:** [`features/hu-01-crear-proyecto.feature`](../features/hu-01-crear-proyecto.feature)
 - **Redactada por:** Branko Almeira (Agile Enabler) · **Validada por:** Federico Sosa (al aprobar el PR)
-- **Estado:** revisada
+- **Estado:** implementada (Sprint 1)
 
 ## Historia
 

@@ -3,7 +3,7 @@
 - **Issue:** #19 · **Épica:** E3 Sprints · **Responsable:** Branko Almeira · **Story Points:** 2
 - **Escenarios BDD:** [`features/hu-12-registrar-historias-completadas.feature`](../features/hu-12-registrar-historias-completadas.feature)
 - **Depende de:** HU-05 (`Historia`, Bianchi), HU-10 (`Sprint`, Sosa), HU-11 (asignar historias, Sosa)
-- **Estado:** implementada
+- **Estado:** implementada (Sprint 1)
 
 ## Historia
 

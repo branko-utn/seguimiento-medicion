@@ -4,7 +4,7 @@
 - **Escenarios BDD:** [`features/hu-22-registrar-defecto.feature`](../features/hu-22-registrar-defecto.feature)
 - **Redactada por:** Branko Almeira (Agile Enabler) · **Validada por:** Agustín Lara (al aprobar el PR)
 - **Depende de:** solo `HistoriaID` y `SprintID` (ADR 0002)
-- **Estado:** revisada
+- **Estado:** implementada (Sprint 1)
 
 ## Historia
 
