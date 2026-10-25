@@ -4,7 +4,7 @@
 - **Escenarios BDD:** [`features/hu-24-story-points-planificados-completados-y-velocidad.feature`](../features/hu-24-story-points-planificados-completados-y-velocidad.feature)
 - **Redactada por:** Branko Almeira (Agile Enabler) · **Validada por:** Agustín Giorlando (al aprobar el PR)
 - **Depende de:** nada: funciones puras con tipos de entrada propios (ADR 0002, sección 3)
-- **Estado:** revisada
+- **Estado:** implementada (Sprint 1)
 
 ## Historia
 

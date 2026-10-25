@@ -4,7 +4,7 @@
 - **Escenarios BDD:** [`features/hu-20-registrar-esfuerzo-trabajado.feature`](../features/hu-20-registrar-esfuerzo-trabajado.feature)
 - **Redactada por:** Branko Almeira (Agile Enabler) · **Validada por:** Agustín Lara (al aprobar el PR)
 - **Depende de:** solo `HistoriaID` e `IntegranteID` (ADR 0002)
-- **Estado:** revisada
+- **Estado:** implementada (Sprint 1)
 
 ## Historia
 
