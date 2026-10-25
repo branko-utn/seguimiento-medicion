@@ -105,7 +105,26 @@ func (s *Sprints) DelProyecto(proyectoID domain.ProyectoID) ([]sprint.Sprint, er
 	return s.sprints.DelProyecto(proyectoID), nil
 }
 
-// CompletarHistoria registra una historia del sprint como completada (HU-12).
+// CompletarHistoria registra una historia del sprint como completada (HU-12). Busca el sprint y la historia, y valida
+// en orden: primero Sprint.Completar (RN-12.1 a RN-12.3) y después Historia.Completar (RN-12.4, la regla de HU-08).
+// Guarda los dos solo si ambas validaciones pasan; los SP completados (RN-12.5) se calculan con las métricas (HU-24).
 func (s *Sprints) CompletarHistoria(sprintID domain.SprintID, historiaID domain.HistoriaID) error {
-	return nil
+	sp, err := s.sprints.Buscar(sprintID)
+	if err != nil {
+		return err
+	}
+	h, err := s.historias.Buscar(historiaID)
+	if err != nil {
+		return err
+	}
+	if err := sp.Completar(h.ID); err != nil {
+		return err
+	}
+	if err := h.Completar(); err != nil {
+		return err
+	}
+	if err := s.sprints.Actualizar(sp); err != nil {
+		return err
+	}
+	return s.historias.Guardar(h)
 }
