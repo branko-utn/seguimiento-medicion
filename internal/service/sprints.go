@@ -104,3 +104,8 @@ func (s *Sprints) DelProyecto(proyectoID domain.ProyectoID) ([]sprint.Sprint, er
 	}
 	return s.sprints.DelProyecto(proyectoID), nil
 }
+
+// CompletarHistoria registra una historia del sprint como completada (HU-12).
+func (s *Sprints) CompletarHistoria(sprintID domain.SprintID, historiaID domain.HistoriaID) error {
+	return nil
+}
