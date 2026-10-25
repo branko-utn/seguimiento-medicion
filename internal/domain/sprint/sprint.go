@@ -61,6 +61,9 @@ var (
 	ErrSprintCerrado        = errors.New("el sprint está cerrado y no se puede modificar")
 	ErrHistoriaCompletada   = errors.New("la historia ya está completada")
 	ErrOtroProyecto         = errors.New("la historia pertenece a otro proyecto")
+
+	// Errores de HU-12 (completar historias).
+	ErrHistoriaNoAsignada = errors.New("")
 )
 
 // Nuevo crea un sprint válido en estado Planificado y sin historias (RN-10.1, RN-10.2 y RN-10.5).
@@ -133,3 +136,6 @@ func (s *Sprint) Asignar(h backlog.Historia) error {
 	s.Historias = append(s.Historias, h.ID)
 	return nil
 }
+
+// Completar registra la historia como completada en el sprint (HU-12).
+func (s *Sprint) Completar(id domain.HistoriaID) error { return nil }
