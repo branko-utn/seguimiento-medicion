@@ -1,6 +1,5 @@
 # language: es
-# @pendiente: se quita al implementar los pasos (commit RED).
-@HU-22 @pendiente
+@HU-22
 Característica: Registrar defecto
   Como integrante del equipo
   Quiero registrar un defecto
