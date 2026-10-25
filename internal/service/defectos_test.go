@@ -33,8 +33,8 @@ func nuevoServicioDefectos(t *testing.T) (*Defectos, *memory.Historias, *memory.
 		t.Fatal(err)
 	}
 	proy := NuevoProyectos(repoProy)
-	hist := NuevoBacklog(repoHist, repoProy)
 	sprints := NuevoSprints(repoSpr, repoProy, repoHist)
+	hist := NuevoBacklog(repoHist, repoProy, sprints)
 	for _, nombre := range []string{"Demo", "Otro"} {
 		if _, err := proy.Crear(nombre, "", inicio, fin); err != nil {
 			t.Fatal(err)
