@@ -41,11 +41,10 @@ func (m *mundo) queElBacklogTieneLaHistoria(proyecto, historia, titulo string) e
 	return nil
 }
 
-// laHistoriaEstaEnEstado verifica el estado de la historia ("Entonces").
+// laHistoriaEstaEnEstado verifica el estado de la historia ("Entonces"). No llama a sinError(): este paso también
+// se usa después de un "veo el error" esperado (por ejemplo, para verificar que el estado no cambió), que ya
+// verificó el error de la acción; igual que "el sprint … no tiene historias" en HU-11.
 func (m *mundo) laHistoriaEstaEnEstado(historia, estado string) error {
-	if err := m.sinError(); err != nil {
-		return err
-	}
 	h, err := m.buscarHistoria(historia)
 	if err != nil {
 		return err
@@ -166,11 +165,10 @@ func (m *mundo) queLaHistoriaTieneStoryPoints(historia string, sp int) error {
 	return m.historias.Guardar(h)
 }
 
-// laHistoriaTieneStoryPoints verifica los Story Points de la historia ("Entonces").
+// laHistoriaTieneStoryPoints verifica los Story Points de la historia ("Entonces"). No llama a sinError(): este
+// paso se usa después de un "veo el error" esperado (por ejemplo, que la re-estimación falló y los SP no
+// cambiaron), que ya verificó el error de la acción; igual que "el sprint … no tiene historias" en HU-11.
 func (m *mundo) laHistoriaTieneStoryPoints(historia string, sp int) error {
-	if err := m.sinError(); err != nil {
-		return err
-	}
 	h, err := m.buscarHistoria(historia)
 	if err != nil {
 		return err
