@@ -16,7 +16,8 @@ import (
 // Convención de los pasos:
 //   - "Dado": prepara datos. Si falla, el escenario falla (devuelve el error).
 //   - "Cuando": ejecuta la acción y guarda su error con m.resultado(err), sin fallar: puede ser el error esperado.
-//   - "Entonces": verifica. "veo el error" compara el error guardado; los demás llaman primero a m.sinError().
+//   - "Entonces": verifica. "veo el error" compara el error guardado y lo consume; los demás llaman primero a
+//     m.sinError(), así que también sirven después de un error esperado.
 type mundo struct {
 	hoy   time.Time
 	err   error             // error de la última acción ("Cuando")
@@ -96,6 +97,9 @@ func (m *mundo) veoElError(mensaje string) error {
 	if m.err.Error() != mensaje {
 		return fmt.Errorf("se esperaba el error %q, pero fue %q", mensaje, m.err.Error())
 	}
+	// El error esperado ya se verificó: los pasos "Entonces" siguientes (por ejemplo, que el estado no cambió) no
+	// deben volver a verlo con sinError().
+	m.err = nil
 	return nil
 }
 
