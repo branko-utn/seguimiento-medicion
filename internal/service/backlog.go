@@ -17,15 +17,23 @@ type RepoHistorias interface {
 	Guardar(h backlog.Historia) error
 }
 
+// CompletadorHistorias es lo que el servicio de backlog necesita de HU-12: registrar el paso de una historia a
+// Completada también en el sprint. El servicio de HU-08 delega acá cuando el estado nuevo es Completada
+// (spec HU-08, restricciones).
+type CompletadorHistorias interface {
+	CompletarHistoria(sprintID domain.SprintID, historiaID domain.HistoriaID) error
+}
+
 // Backlog son los casos de uso del Product Backlog (épica E2).
 type Backlog struct {
 	historias RepoHistorias
 	proyectos RepoProyectos
+	completar CompletadorHistorias // HU-12: registra el paso a Completada en el sprint
 }
 
-// NuevoBacklog arma el servicio del Product Backlog.
-func NuevoBacklog(historias RepoHistorias, proyectos RepoProyectos) *Backlog {
-	return &Backlog{historias: historias, proyectos: proyectos}
+// NuevoBacklog arma el servicio del Product Backlog. El completador es el servicio de sprints (HU-12).
+func NuevoBacklog(historias RepoHistorias, proyectos RepoProyectos, completar CompletadorHistorias) *Backlog {
+	return &Backlog{historias: historias, proyectos: proyectos, completar: completar}
 }
 
 // Crear agrega una historia al Product Backlog de un proyecto (HU-05). Primero verifica que el proyecto exista;
@@ -50,6 +58,11 @@ func (s *Backlog) Listar() ([]backlog.Historia, error) {
 // Buscar devuelve la historia con ese ID, o backlog.ErrNoExiste ("la historia no existe").
 func (s *Backlog) Buscar(id domain.HistoriaID) (backlog.Historia, error) {
 	return s.historias.Buscar(id)
+}
+
+// CambiarEstado deja la historia en el estado nuevo (HU-08).
+func (s *Backlog) CambiarEstado(id domain.HistoriaID, nuevo backlog.Estado) error {
+	return nil // stub RED
 }
 
 // AgregarCriterio agrega un criterio de aceptación a la historia (HU-07). Busca la historia, aplica la regla del

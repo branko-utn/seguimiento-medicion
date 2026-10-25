@@ -46,14 +46,16 @@ func nuevoMundo() *mundo {
 	repoRegistros, _ := memory.NuevoRegistros("")
 	repoDefectos, _ := memory.NuevoDefectos("")
 
+	sprintsSvc := service.NuevoSprints(repoSprints, repoProyectos, repoHistorias)
+
 	return &mundo{
 		hoy:          time.Now().Truncate(24 * time.Hour),
 		alias:        map[string]string{},
 		proyectos:    service.NuevoProyectos(repoProyectos),
 		integrantes:  service.NuevoIntegrantes(repoIntegrantes, repoProyectos),
-		backlog:      service.NuevoBacklog(repoHistorias, repoProyectos),
+		backlog:      service.NuevoBacklog(repoHistorias, repoProyectos, sprintsSvc),
 		historias:    repoHistorias,
-		sprints:      service.NuevoSprints(repoSprints, repoProyectos, repoHistorias),
+		sprints:      sprintsSvc,
 		repoSprints:  repoSprints,
 		estimaciones: service.NuevoEstimaciones(repoEstimaciones, repoHistorias),
 		registros:    service.NuevoRegistros(repoRegistros, repoIntegrantes, repoHistorias),
