@@ -2,6 +2,7 @@ package sprint
 
 import (
 	"errors"
+	"slices"
 	"strings"
 	"time"
 
@@ -61,6 +62,9 @@ var (
 	ErrSprintCerrado        = errors.New("el sprint está cerrado y no se puede modificar")
 	ErrHistoriaCompletada   = errors.New("la historia ya está completada")
 	ErrOtroProyecto         = errors.New("la historia pertenece a otro proyecto")
+
+	// Errores de HU-12 (completar historias).
+	ErrHistoriaNoAsignada = errors.New("la historia no está asignada a este sprint")
 )
 
 // Nuevo crea un sprint válido en estado Planificado y sin historias (RN-10.1, RN-10.2 y RN-10.5).
@@ -131,5 +135,22 @@ func (s *Sprint) Asignar(h backlog.Historia) error {
 		return ErrHistoriaSinCriterios
 	}
 	s.Historias = append(s.Historias, h.ID)
+	return nil
+}
+
+// Completar registra la historia como completada en el sprint (HU-12). Valida primero el sprint y después la
+// historia: que el sprint no esté cerrado (RN-12.2), que la historia esté asignada (RN-12.1) y que no esté ya
+// completada (RN-12.3). Que la historia pase a estado Completada lo hace Historia.Completar; el servicio coordina las dos.
+func (s *Sprint) Completar(id domain.HistoriaID) error {
+	if s.Estado == Cerrado {
+		return ErrSprintCerrado
+	}
+	if !slices.Contains(s.Historias, id) {
+		return ErrHistoriaNoAsignada
+	}
+	if slices.Contains(s.Completadas, id) {
+		return ErrHistoriaCompletada
+	}
+	s.Completadas = append(s.Completadas, id)
 	return nil
 }

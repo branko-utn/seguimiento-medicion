@@ -14,10 +14,8 @@ Los `.feature` describen el comportamiento de cada historia (Dado / Cuando / Ent
 4. Seguir la convención del mundo:
    - **Dado**: prepara datos; si falla, devuelve el error y el escenario falla.
    - **Cuando**: ejecuta la acción y guarda su error con `m.resultado(err)`, sin fallar (puede ser el error esperado).
-   - **Entonces**: verifica. Los pasos de resultado exitoso llaman primero a `m.sinError()`.
-   - Si el escenario **ya verificó el error** con `veo el error`, los "Entonces" siguientes **no llaman a
-     `sinError()`** (el error esperado ya fue verificado): por ejemplo `la historia … está en estado …`,
-     `la historia … tiene N Story Points` o `el sprint … no tiene historias`.
+   - **Entonces**: verifica. Los pasos de resultado exitoso llaman primero a `m.sinError()`. `veo el error` **consume**
+     el error después de verificarlo, así que los "Entonces" que siguen (por ejemplo, que el estado no cambió) pasan.
 5. **Nombres del escenario e IDs reales:** los escenarios usan nombres ("Demo", "S9", "HU-1"), pero los IDs los genera el
    repositorio. Al crear algo, guardar la relación con `m.recordar("sprint", "S9", string(sp.ID))`; al usarlo,
    traducir con `m.id("sprint", "S9")`. Un nombre sin alias se usa tal cual (sirve para "HU-99", que no existe).
