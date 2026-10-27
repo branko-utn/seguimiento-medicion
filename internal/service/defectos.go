@@ -12,7 +12,9 @@ type RepoDefectos interface {
 	Agregar(d defect.Defecto) (defect.Defecto, error)
 	// Buscar devuelve (defecto, encontrado).
 	Buscar(id domain.DefectoID) (defect.Defecto, bool)
+	// Actualizar reemplaza un defecto ya guardado, o devuelve defect.ErrNoExiste.
 	Actualizar(d defect.Defecto) error
+	// Listar devuelve todos los defectos, en el orden en que se registraron.
 	Listar() []defect.Defecto
 }
 
@@ -56,19 +58,57 @@ func (s *Defectos) Registrar(descripcion string, severidad defect.Severidad, his
 	return s.defectos.Agregar(d)
 }
 
+// Buscar devuelve el defecto, o defect.ErrNoExiste (HU-23).
 func (s *Defectos) Buscar(id domain.DefectoID) (defect.Defecto, error) {
-	d, _ := s.defectos.Buscar(id)
+	d, ok := s.defectos.Buscar(id)
+	if !ok {
+		return defect.Defecto{}, defect.ErrNoExiste
+	}
 	return d, nil
 }
 
+// CambiarEstado pasa el defecto a Abierto o En progreso (HU-23). Las transiciones las valida el dominio (RN-23.1 y
+// RN-23.2); para resolverlo se usa Resolver.
 func (s *Defectos) CambiarEstado(id domain.DefectoID, nuevo defect.Estado) error {
-	return nil
+	d, err := s.Buscar(id)
+	if err != nil {
+		return err
+	}
+	if err := d.CambiarEstado(nuevo); err != nil {
+		return err
+	}
+	return s.defectos.Actualizar(d)
 }
 
+// Resolver deja el defecto Resuelto en el sprint indicado (HU-23). El dominio valida que no esté resuelto y que haya
+// sprint (RN-23.1 a RN-23.3); el servicio, con los dos sprints, que el de resolución exista, sea del mismo proyecto
+// que el de detección (RN-23.3) y no empiece antes que él (RN-23.4). Puede ser el mismo sprint.
 func (s *Defectos) Resolver(id domain.DefectoID, sprintID domain.SprintID) error {
-	return nil
+	d, err := s.Buscar(id)
+	if err != nil {
+		return err
+	}
+	if err := d.Resolver(sprintID); err != nil {
+		return err
+	}
+	resolucion, err := s.sprints.Buscar(sprintID)
+	if err != nil {
+		return err
+	}
+	deteccion, err := s.sprints.Buscar(d.SprintDeteccion)
+	if err != nil {
+		return err
+	}
+	if resolucion.ProyectoID != deteccion.ProyectoID {
+		return defect.ErrResolucionDeOtroProyecto
+	}
+	if resolucion.Inicio.Before(deteccion.Inicio) {
+		return defect.ErrResolucionAnterior
+	}
+	return s.defectos.Actualizar(d)
 }
 
+// Listar devuelve todos los defectos, en el orden en que se registraron.
 func (s *Defectos) Listar() []defect.Defecto {
-	return nil
+	return s.defectos.Listar()
 }

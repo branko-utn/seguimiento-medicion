@@ -52,10 +52,24 @@ func (r *Defectos) Buscar(id domain.DefectoID) (defect.Defecto, bool) {
 	return encontrado, existe
 }
 
+// Actualizar reemplaza un defecto ya guardado, o devuelve defect.ErrNoExiste.
 func (r *Defectos) Actualizar(d defect.Defecto) error {
-	return nil
+	return r.store.Update(func(lista *[]defect.Defecto) error {
+		for i := range *lista {
+			if (*lista)[i].ID == d.ID {
+				(*lista)[i] = d
+				return nil
+			}
+		}
+		return defect.ErrNoExiste
+	})
 }
 
+// Listar devuelve una copia de todos los defectos, en el orden en que se registraron.
 func (r *Defectos) Listar() []defect.Defecto {
-	return nil
+	var todos []defect.Defecto
+	r.store.View(func(lista []defect.Defecto) {
+		todos = append(todos, lista...)
+	})
+	return todos
 }
