@@ -37,8 +37,10 @@ type Voto struct {
 }
 
 // NuevaSesion crea una votación abierta en la ronda 1 y sin votos (spec HU-16, salidas esperadas).
-func NuevaSesion(historiaID domain.HistoriaID) (*Sesion, error) {
-	return &Sesion{
+// Devuelve la sesión por valor, como el resto del dominio (ADR 0002): el servicio la busca, la muta
+// con sus métodos y guarda la copia resultante.
+func NuevaSesion(historiaID domain.HistoriaID) (Sesion, error) {
+	return Sesion{
 		HistoriaID: historiaID,
 		Ronda:      1,
 	}, nil
