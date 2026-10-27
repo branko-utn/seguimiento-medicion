@@ -7,6 +7,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/branko-utn/seguimiento-medicion/internal/domain"
+	"github.com/branko-utn/seguimiento-medicion/internal/domain/backlog"
 	"github.com/branko-utn/seguimiento-medicion/internal/domain/sprint"
 	"github.com/branko-utn/seguimiento-medicion/internal/service"
 	"github.com/branko-utn/seguimiento-medicion/internal/store/memory"
@@ -59,6 +61,37 @@ func (e entornoSprints) crearPrimerMVP(t *testing.T) {
 	t.Helper()
 	if _, err := e.svc.Sprints.Crear("P1", "Primer MVP", fechaDeFormulario("2026-10-23"), fechaDeFormulario("2026-10-25")); err != nil {
 		t.Fatal(err)
+	}
+}
+
+// cargarHistorias crea el backlog del escenario de HU-11. En Demo: HU-1 "Crear proyecto" (3 SP, con criterio),
+// HU-2 "Crear sprint" (sin estimar) y HU-3 "Cerrar sprint" (5 SP, sin criterios). En Otro: HU-4 "Ver métricas"
+// (2 SP, con criterio). Story Points y criterios se cargan directo en el repositorio, como los pasos "Dado".
+func (e entornoSprints) cargarHistorias(t *testing.T) {
+	t.Helper()
+	historias := []struct {
+		proyecto domain.ProyectoID
+		titulo   string
+		sp       int
+		criterio bool
+	}{
+		{"P1", "Crear proyecto", 3, true},
+		{"P1", "Crear sprint", 0, true},
+		{"P1", "Cerrar sprint", 5, false},
+		{"P2", "Ver métricas", 2, true},
+	}
+	for _, d := range historias {
+		h, err := e.svc.Backlog.Crear(d.proyecto, d.titulo, "", backlog.PrioridadMedia)
+		if err != nil {
+			t.Fatal(err)
+		}
+		h.StoryPoints = d.sp
+		if d.criterio {
+			h.Criterios = []backlog.Criterio{{Texto: "Funciona"}}
+		}
+		if err := e.repoHistorias.Guardar(h); err != nil {
+			t.Fatal(err)
+		}
 	}
 }
 
@@ -256,4 +289,137 @@ func TestSprints_sprintInexistente(t *testing.T) {
 			contieneTodo(t, rec.Body.String(), "el sprint no existe")
 		})
 	}
+}
+
+func TestSprints_detalleConHistorias(t *testing.T) {
+	e := nuevoServidorSprints(t)
+	e.crearPrimerMVP(t)
+	e.cargarHistorias(t)
+	if err := e.svc.Sprints.Asignar("S1", "HU-1"); err != nil {
+		t.Fatal(err)
+	}
+
+	rec := servir(e.router, httptest.NewRequest(http.MethodGet, "/sprints/S1", nil))
+
+	cuerpo := rec.Body.String()
+	// Las historias del sprint con sus SP y el total planificado (HU-24).
+	contieneTodo(t, cuerpo, "<td>HU-1</td>", "<td>Crear proyecto</td>", "<td>3</td>", "3 Story Points planificados")
+	// El desplegable ofrece las historias de Demo sin sprint, también las que no están listas: las valida el dominio.
+	contieneTodo(t, cuerpo, `action="/sprints/S1/historias"`, `name="historia"`,
+		`<option value="HU-2">HU-2 · Crear sprint (0 SP)</option>`, `<option value="HU-3">HU-3 · Cerrar sprint (5 SP)</option>`)
+	for _, ajena := range []string{`<option value="HU-1"`, `<option value="HU-4"`} {
+		if strings.Contains(cuerpo, ajena) {
+			t.Errorf("el desplegable no debe ofrecer %s: ya está en un sprint o es de otro proyecto", ajena)
+		}
+	}
+}
+
+func TestSprints_detalleSinHistoriasDisponibles(t *testing.T) {
+	e := nuevoServidorSprints(t)
+	e.cargarHistorias(t)
+	if _, err := e.svc.Sprints.Crear("P2", "Métricas", fechaDeFormulario("2026-10-23"), fechaDeFormulario("2026-10-25")); err != nil {
+		t.Fatal(err)
+	}
+	if err := e.svc.Sprints.Asignar("S1", "HU-4"); err != nil {
+		t.Fatal(err)
+	}
+
+	rec := servir(e.router, httptest.NewRequest(http.MethodGet, "/sprints/S1", nil))
+
+	contieneTodo(t, rec.Body.String(), "<td>Ver métricas</td>", "2 Story Points planificados", "No hay historias del backlog sin sprint")
+}
+
+func TestSprints_asignar(t *testing.T) {
+	e := nuevoServidorSprints(t)
+	e.crearPrimerMVP(t)
+	e.cargarHistorias(t)
+
+	rec := servir(e.router, pedidoFormulario(http.MethodPost, "/sprints/S1/historias", url.Values{"historia": {"HU-1"}}))
+
+	if rec.Code != http.StatusSeeOther {
+		t.Fatalf("código = %d, se esperaba 303", rec.Code)
+	}
+	if lugar := rec.Header().Get("Location"); lugar != "/sprints/S1" {
+		t.Errorf("redirige a %q, se esperaba /sprints/S1", lugar)
+	}
+	sp, _ := e.svc.Sprints.Buscar("S1")
+	h, _ := e.svc.Backlog.Buscar("HU-1")
+	if len(sp.Historias) != 1 || sp.Historias[0] != "HU-1" || h.SprintID != "S1" {
+		t.Errorf("sprint %v e historia con sprint %q, se esperaba HU-1 asignada a S1", sp.Historias, h.SprintID)
+	}
+}
+
+func TestSprints_asignar_errores(t *testing.T) {
+	casos := []struct {
+		titulo, historia, quiereMensaje string
+	}{
+		{"historia sin estimar", "HU-2", "la historia no está estimada"},
+		{"historia sin criterios", "HU-3", "la historia no tiene criterios de aceptación"},
+		{"historia de otro proyecto", "HU-4", "la historia pertenece a otro proyecto"},
+		{"historia inexistente", "HU-9", "la historia no existe"},
+	}
+
+	for _, caso := range casos {
+		t.Run(caso.titulo, func(t *testing.T) {
+			e := nuevoServidorSprints(t)
+			e.crearPrimerMVP(t)
+			e.cargarHistorias(t)
+
+			rec := servir(e.router, pedidoFormulario(http.MethodPost, "/sprints/S1/historias", url.Values{"historia": {caso.historia}}))
+
+			if rec.Code != http.StatusBadRequest {
+				t.Fatalf("código = %d, se esperaba 400", rec.Code)
+			}
+			// Vuelve el detalle del sprint con el mensaje de la spec.
+			contieneTodo(t, rec.Body.String(), caso.quiereMensaje, "<h1>Primer MVP</h1>", `action="/sprints/S1/historias"`)
+			if sp, _ := e.svc.Sprints.Buscar("S1"); len(sp.Historias) != 0 {
+				t.Errorf("el sprint quedó con %v, se esperaba sin historias: un error no debe cambiarlo", sp.Historias)
+			}
+		})
+	}
+}
+
+func TestSprints_asignar_conservaLaHistoriaElegida(t *testing.T) {
+	e := nuevoServidorSprints(t)
+	e.crearPrimerMVP(t)
+	e.cargarHistorias(t)
+
+	rec := servir(e.router, pedidoFormulario(http.MethodPost, "/sprints/S1/historias", url.Values{"historia": {"HU-3"}}))
+
+	contieneTodo(t, rec.Body.String(), `<option value="HU-3" selected>`)
+}
+
+func TestSprints_sprintCerrado(t *testing.T) {
+	e := nuevoServidorSprints(t)
+	e.crearPrimerMVP(t)
+	e.cargarHistorias(t)
+	// Cerrar un sprint de verdad es HU-13: acá se carga el estado directo en el repositorio.
+	sp, _ := e.repoSprints.Buscar("S1")
+	sp.Estado = sprint.Cerrado
+	if err := e.repoSprints.Actualizar(sp); err != nil {
+		t.Fatal(err)
+	}
+
+	rec := servir(e.router, httptest.NewRequest(http.MethodGet, "/sprints/S1", nil))
+	if strings.Contains(rec.Body.String(), `action="/sprints/S1/historias"`) {
+		t.Error("un sprint cerrado no debe ofrecer el formulario para asignar historias")
+	}
+
+	rec = servir(e.router, pedidoFormulario(http.MethodPost, "/sprints/S1/historias", url.Values{"historia": {"HU-1"}}))
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("código = %d, se esperaba 400", rec.Code)
+	}
+	contieneTodo(t, rec.Body.String(), "el sprint está cerrado y no se puede modificar")
+}
+
+func TestSprints_asignarEnSprintInexistente(t *testing.T) {
+	e := nuevoServidorSprints(t)
+	e.cargarHistorias(t)
+
+	rec := servir(e.router, pedidoFormulario(http.MethodPost, "/sprints/S9/historias", url.Values{"historia": {"HU-1"}}))
+
+	if rec.Code != http.StatusNotFound {
+		t.Fatalf("código = %d, se esperaba 404", rec.Code)
+	}
+	contieneTodo(t, rec.Body.String(), "el sprint no existe")
 }

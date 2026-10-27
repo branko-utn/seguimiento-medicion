@@ -17,7 +17,11 @@ func (a *app) rutasSprints(mux *http.ServeMux) {
 	mux.HandleFunc("POST /sprints", a.crearSprint)
 	mux.HandleFunc("GET /sprints/{sprint}", a.verSprint)
 	mux.HandleFunc("POST /sprints/{sprint}/iniciar", a.iniciarSprint)
+	mux.HandleFunc("POST /sprints/{sprint}/historias", a.asignarHistoria)
 }
+
+// asignarHistoria: asignación de historias al sprint (HU-11). Todavía sin implementar (RED).
+func (a *app) asignarHistoria(w http.ResponseWriter, r *http.Request) {}
 
 // datosSprint es lo que recibe sprint.html. Error es el mensaje de la última acción que falló, si hubo.
 // PuedeIniciar lo decide el handler con el enum (ADR 0003): la plantilla no compara textos de estado.
