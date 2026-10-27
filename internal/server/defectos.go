@@ -1,12 +1,10 @@
 package server
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/branko-utn/seguimiento-medicion/internal/domain"
 	"github.com/branko-utn/seguimiento-medicion/internal/domain/defect"
-	"github.com/branko-utn/seguimiento-medicion/internal/domain/sprint"
 )
 
 // rutasDefectos registra la pantalla de defectos (épica E6). HU-23: lista de defectos con las acciones para cambiar el
@@ -72,34 +70,13 @@ func (a *app) sprintsParaResolver(d defect.Defecto) ([]domain.SprintID, error) {
 func (a *app) cambiarEstadoDefecto(w http.ResponseWriter, r *http.Request) {
 	id := domain.DefectoID(r.PathValue("defecto"))
 	err := a.svc.Defectos.CambiarEstado(id, estadoDefectoDesdeTexto(r.FormValue("estado")))
-	a.responderAccionDefecto(w, r, err)
+	a.responderAccion(w, r, err, "/defectos")
 }
 
 func (a *app) resolverDefecto(w http.ResponseWriter, r *http.Request) {
 	id := domain.DefectoID(r.PathValue("defecto"))
 	err := a.svc.Defectos.Resolver(id, domain.SprintID(r.FormValue("sprint")))
-	a.responderAccionDefecto(w, r, err)
-}
-
-// responderAccionDefecto vuelve a la lista de defectos si la acción salió bien (redirección normal, o HX-Redirect si
-// el pedido viene de HTMX) y, si no, muestra el error con su mensaje: 404 si algo no existe, 400 si se rompió una
-// regla. Sigue el mismo criterio que las acciones del sprint (HU-13).
-func (a *app) responderAccionDefecto(w http.ResponseWriter, r *http.Request, err error) {
-	const destino = "/defectos"
-	if err != nil {
-		codigo := http.StatusBadRequest
-		if errors.Is(err, defect.ErrNoExiste) || errors.Is(err, sprint.ErrNoExiste) {
-			codigo = http.StatusNotFound
-		}
-		a.renderError(w, r, codigo, err.Error())
-		return
-	}
-	if r.Header.Get("HX-Request") == "true" {
-		w.Header().Set("HX-Redirect", destino)
-		w.WriteHeader(http.StatusNoContent)
-		return
-	}
-	http.Redirect(w, r, destino, http.StatusSeeOther)
+	a.responderAccion(w, r, err, "/defectos")
 }
 
 // estadoDefectoDesdeTexto convierte el texto del formulario en un Estado (ADR 0003: la conversión va en el borde).
