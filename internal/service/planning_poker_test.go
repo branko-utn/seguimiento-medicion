@@ -153,7 +153,8 @@ func TestPlanningPoker_Revelar(t *testing.T) {
 	}
 
 	// El estado revelado queda guardado: la ronda no acepta votos nuevos (RN-17.4)…
-	if err := s.Votar("HU-1", "I3", 13); !errors.Is(err, estimation.ErrYaRevelada) {
+	// (I1 ya votó: la ronda revelada se rechaza antes que el doble voto.)
+	if err := s.Votar("HU-1", "I1", 13); !errors.Is(err, estimation.ErrYaRevelada) {
 		t.Errorf("votar tras revelar = %v, se esperaba ErrYaRevelada", err)
 	}
 	// …y el resultado se puede volver a consultar sin repetir la revelada.

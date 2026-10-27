@@ -108,11 +108,27 @@ func (s *PlanningPoker) ConsultarVotos(historiaID domain.HistoriaID) ([]estimati
 // Revelar cierra la ronda mostrando todos los votos y las diferencias (HU-17). El estado revelado queda
 // guardado: la ronda no acepta votos nuevos (RN-17.4).
 func (s *PlanningPoker) Revelar(historiaID domain.HistoriaID) (estimation.Resultado, error) {
-	return estimation.Resultado{}, nil
+	sesion, ok := s.sesiones.Buscar(historiaID)
+	if !ok {
+		return estimation.Resultado{}, estimation.ErrSinVotacionAbierta
+	}
+	res, err := sesion.Revelar()
+	if err != nil {
+		return estimation.Resultado{}, err
+	}
+	// La copia revelada reemplaza la guardada (buscar → mutar → guardar, como Votar).
+	if err := s.sesiones.Guardar(sesion); err != nil {
+		return estimation.Resultado{}, err
+	}
+	return res, nil
 }
 
 // Resultado devuelve el resultado de la ronda revelada, sin repetir la revelada: lo consulta la pantalla
 // al recargar. Mientras la votación está abierta, los valores no se pueden ver (RN-16.4).
 func (s *PlanningPoker) Resultado(historiaID domain.HistoriaID) (estimation.Resultado, error) {
-	return estimation.Resultado{}, nil
+	sesion, ok := s.sesiones.Buscar(historiaID)
+	if !ok {
+		return estimation.Resultado{}, estimation.ErrSinVotacionAbierta
+	}
+	return sesion.Resultado()
 }
