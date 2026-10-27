@@ -1,5 +1,5 @@
 # language: es
-@HU-16 @pendiente
+@HU-16
 Característica: Votar en Planning Poker con votos ocultos
   Como integrante del equipo
   Quiero votar la estimación de una historia sin ver los votos de los demás
