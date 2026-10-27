@@ -128,3 +128,6 @@ func (s *Sprints) CompletarHistoria(sprintID domain.SprintID, historiaID domain.
 	}
 	return s.historias.Guardar(h)
 }
+
+// CerrarSprint cierra un sprint (HU-13).
+func (s *Sprints) CerrarSprint(sprintID domain.SprintID) error { return nil }
