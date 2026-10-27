@@ -12,7 +12,14 @@ func (a *app) rutasProyectos(mux *http.ServeMux) {
 	mux.HandleFunc("GET /proyectos", a.listarProyectos)
 	mux.HandleFunc("GET /proyectos/nuevo", a.nuevoProyecto)
 	mux.HandleFunc("POST /proyectos", a.crearProyecto)
+	mux.HandleFunc("GET /proyectos/{id}", a.verProyecto)
+	mux.HandleFunc("POST /proyectos/{id}/integrantes", a.registrarIntegrante)
 }
+
+// verProyecto y registrarIntegrante: detalle del proyecto e integrantes (HU-03). Todavía sin implementar (RED).
+func (a *app) verProyecto(w http.ResponseWriter, r *http.Request) {}
+
+func (a *app) registrarIntegrante(w http.ResponseWriter, r *http.Request) {}
 
 // formatoFecha es el formato de los campos <input type="date">.
 const formatoFecha = "2006-01-02"
