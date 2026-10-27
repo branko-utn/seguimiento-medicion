@@ -175,3 +175,19 @@ func TestProyectos_Modificar_errores(t *testing.T) {
 		})
 	}
 }
+
+func TestProyectos_Buscar(t *testing.T) {
+	s, _ := prepararModificacion(t)
+
+	p, err := s.Buscar("P2")
+	if err != nil {
+		t.Fatalf("error inesperado: %v", err)
+	}
+	if p.ID != "P2" || p.Nombre != "Otro" {
+		t.Errorf("Buscar(P2) = %+v, se esperaba el proyecto Otro", p)
+	}
+
+	if _, err := s.Buscar("P9"); !errors.Is(err, project.ErrNoExiste) {
+		t.Errorf("Buscar(P9): se esperaba %v, se obtuvo %v", project.ErrNoExiste, err)
+	}
+}

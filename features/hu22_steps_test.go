@@ -37,11 +37,11 @@ func (m *mundo) registroElDefecto(descripcion, severidad, historia, sprint strin
 	return m.resultado(err)
 }
 
-// buscarDefecto devuelve el defecto guardado con ese ID ("D1"), o un error si no existe.
+// buscarDefecto devuelve el defecto guardado con ese ID ("D1"), o defect.ErrNoExiste.
 func (m *mundo) buscarDefecto(defecto string) (defect.Defecto, error) {
-	d, ok := m.defectos.Buscar(domain.DefectoID(m.id("defecto", defecto)))
-	if !ok {
-		return defect.Defecto{}, fmt.Errorf("no existe el defecto %q", defecto)
+	d, err := m.defectos.Buscar(domain.DefectoID(m.id("defecto", defecto)))
+	if err != nil {
+		return defect.Defecto{}, fmt.Errorf("defecto %q: %w", defecto, err)
 	}
 	return d, nil
 }
