@@ -17,7 +17,14 @@ func (a *app) rutasProyectos(mux *http.ServeMux) {
 	mux.HandleFunc("POST /proyectos", a.crearProyecto)
 	mux.HandleFunc("GET /proyectos/{id}", a.verProyecto)
 	mux.HandleFunc("POST /proyectos/{id}/integrantes", a.registrarIntegrante)
+	mux.HandleFunc("GET /proyectos/{id}/editar", a.editarProyecto)
+	mux.HandleFunc("POST /proyectos/{id}", a.modificarProyecto)
 }
+
+// editarProyecto y modificarProyecto: edición del proyecto (HU-02). Todavía sin implementar (RED).
+func (a *app) editarProyecto(w http.ResponseWriter, r *http.Request) {}
+
+func (a *app) modificarProyecto(w http.ResponseWriter, r *http.Request) {}
 
 // formIntegrante es el formulario de alta de integrante del detalle, con el texto tal como se escribió.
 type formIntegrante struct {
