@@ -24,17 +24,21 @@ func (a *app) rutasSprints(mux *http.ServeMux) {
 }
 
 // datosSprint es lo que recibe sprint.html. Historias son las del Sprint Backlog y Disponibles las del proyecto que
-// todavía no tienen sprint (se ofrecen todas: las reglas de HU-11 las valida el dominio). PuedeIniciar y
-// PuedeAsignar los decide el handler con el enum (ADR 0003): la plantilla no compara textos de estado. Error es el
-// mensaje de la última acción que falló y Elegida la historia que se había elegido, para volver a seleccionarla.
+// todavía no tienen sprint (se ofrecen todas: las reglas de HU-11 las valida el dominio). PuedeIniciar,
+// PuedeAsignar y PuedeCerrar los decide el handler con el enum (ADR 0003): la plantilla no compara textos de estado.
+// Completadas marca las historias completadas en el sprint (HU-12). Error es el mensaje de la última acción que
+// falló y Elegida la historia que se había elegido, para volver a seleccionarla.
 type datosSprint struct {
 	Sprint         sprint.Sprint
 	Proyecto       project.Proyecto
 	Historias      []backlog.Historia
+	Completadas    map[domain.HistoriaID]bool
 	SPPlanificados int
+	SPCompletados  int
 	Disponibles    []backlog.Historia
 	PuedeIniciar   bool
 	PuedeAsignar   bool
+	PuedeCerrar    bool // también habilita completar historias (HU-12): las dos acciones son de un sprint activo
 	Error          string
 	Elegida        string
 }
@@ -102,8 +106,13 @@ func (a *app) mostrarSprint(w http.ResponseWriter, r *http.Request, codigo int, 
 		Proyecto:     p,
 		PuedeIniciar: sp.Estado == sprint.Planificado,
 		PuedeAsignar: sp.Estado != sprint.Cerrado,
+		PuedeCerrar:  sp.Estado == sprint.Activo,
+		Completadas:  make(map[domain.HistoriaID]bool, len(sp.Completadas)),
 		Error:        mensaje,
 		Elegida:      elegida,
+	}
+	for _, id := range sp.Completadas {
+		datos.Completadas[id] = true
 	}
 	delSprint := make(map[domain.HistoriaID]backlog.Historia, len(sp.Historias))
 	for _, h := range historias {
@@ -114,7 +123,7 @@ func (a *app) mostrarSprint(w http.ResponseWriter, r *http.Request, codigo int, 
 			datos.Disponibles = append(datos.Disponibles, h)
 		}
 	}
-	// Las historias se muestran en el orden en que se asignaron, y los SP planificados los calcula HU-24.
+	// Las historias se muestran en el orden en que se asignaron, y los SP planificados y completados los calcula HU-24.
 	entradas := make([]metrics.HistoriaSprint, 0, len(sp.Historias))
 	for _, id := range sp.Historias {
 		h := delSprint[id]
@@ -122,6 +131,7 @@ func (a *app) mostrarSprint(w http.ResponseWriter, r *http.Request, codigo int, 
 		entradas = append(entradas, metrics.HistoriaSprint{StoryPoints: h.StoryPoints, Completada: slices.Contains(sp.Completadas, id)})
 	}
 	datos.SPPlanificados = metrics.SPPlanificados(entradas)
+	datos.SPCompletados = metrics.SPCompletados(entradas)
 	a.renderConCodigo(w, r, codigo, "sprint.html", datos)
 }
 
