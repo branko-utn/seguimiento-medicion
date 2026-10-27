@@ -54,6 +54,11 @@ func (r *Proyectos) Buscar(id domain.ProyectoID) (project.Proyecto, error) {
 	return encontrado, nil
 }
 
+// Actualizar reemplaza un proyecto ya guardado (HU-02). Todavía sin implementar (RED).
+func (r *Proyectos) Actualizar(p project.Proyecto) error {
+	return nil
+}
+
 // Listar devuelve una copia de todos los proyectos.
 func (r *Proyectos) Listar() []project.Proyecto {
 	var copia []project.Proyecto

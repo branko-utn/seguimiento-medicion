@@ -13,8 +13,9 @@ type RepoProyectos interface {
 	// Agregar guarda un proyecto nuevo y lo devuelve con el ID generado.
 	Agregar(p project.Proyecto) (project.Proyecto, error)
 	Listar() []project.Proyecto
-	// Buscar devuelve project.ErrNoExiste si no hay un proyecto con ese ID.
+	// Buscar y Actualizar devuelven project.ErrNoExiste si no hay un proyecto con ese ID.
 	Buscar(id domain.ProyectoID) (project.Proyecto, error)
+	Actualizar(p project.Proyecto) error
 }
 
 // Proyectos son los casos de uso de la épica E1.
@@ -39,6 +40,11 @@ func (s *Proyectos) Crear(nombre, descripcion string, inicio, fin time.Time) (pr
 		}
 	}
 	return s.repo.Agregar(p)
+}
+
+// Modificar cambia nombre, descripción y fechas de un proyecto (HU-02). Todavía sin implementar (RED).
+func (s *Proyectos) Modificar(id domain.ProyectoID, nombre, descripcion string, inicio, fin time.Time) (project.Proyecto, error) {
+	return project.Proyecto{}, nil
 }
 
 // Listar devuelve todos los proyectos.
