@@ -13,7 +13,14 @@ func (a *app) rutasSprints(mux *http.ServeMux) {
 	mux.HandleFunc("GET /sprints", a.listarSprints)
 	mux.HandleFunc("GET /sprints/nuevo", a.nuevoSprint)
 	mux.HandleFunc("POST /sprints", a.crearSprint)
+	mux.HandleFunc("GET /sprints/{sprint}", a.verSprint)
+	mux.HandleFunc("POST /sprints/{sprint}/iniciar", a.iniciarSprint)
 }
+
+// verSprint e iniciarSprint: detalle del sprint e inicio (HU-10). Todavía sin implementar (RED).
+func (a *app) verSprint(w http.ResponseWriter, r *http.Request) {}
+
+func (a *app) iniciarSprint(w http.ResponseWriter, r *http.Request) {}
 
 // grupoSprints es un proyecto con sus sprints, en el orden en que se crearon.
 type grupoSprints struct {
