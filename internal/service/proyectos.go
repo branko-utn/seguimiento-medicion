@@ -34,10 +34,9 @@ func (s *Proyectos) Crear(nombre, descripcion string, inicio, fin time.Time) (pr
 	if err != nil {
 		return project.Proyecto{}, err
 	}
-	for _, otro := range s.repo.Listar() {
-		if strings.EqualFold(otro.Nombre, p.Nombre) {
-			return project.Proyecto{}, project.ErrNombreDuplicado
-		}
+	// Un proyecto nuevo todavía no tiene ID: con "" no se excluye a ninguno.
+	if s.nombreEnUso(p.Nombre, "") {
+		return project.Proyecto{}, project.ErrNombreDuplicado
 	}
 	return s.repo.Agregar(p)
 }
