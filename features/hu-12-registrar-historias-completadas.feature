@@ -1,6 +1,5 @@
 # language: es
-# @pendiente: se quita al implementar los pasos (commit RED).
-@HU-12 @pendiente
+@HU-12
 Característica: Registrar historias completadas
   Como integrante del equipo
   Quiero marcar historias del sprint como completadas

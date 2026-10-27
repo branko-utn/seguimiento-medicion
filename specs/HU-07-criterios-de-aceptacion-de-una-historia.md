@@ -4,7 +4,7 @@
 - **Escenarios BDD:** [`features/hu-07-criterios-de-aceptacion-de-una-historia.feature`](../features/hu-07-criterios-de-aceptacion-de-una-historia.feature)
 - **Redactada por:** Branko Almeira (Agile Enabler) · **Validada por:** Ignacio Bianchi (al aprobar el PR)
 - **Depende de:** HU-05 (`Historia`)
-- **Estado:** revisada
+- **Estado:** implementada (Sprint 1)
 
 ## Historia
 

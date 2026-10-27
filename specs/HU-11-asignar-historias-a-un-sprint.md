@@ -4,7 +4,7 @@
 - **Escenarios BDD:** [`features/hu-11-asignar-historias-a-un-sprint.feature`](../features/hu-11-asignar-historias-a-un-sprint.feature)
 - **Redactada por:** Branko Almeira (Agile Enabler) · **Validada por:** Federico Sosa (al aprobar el PR)
 - **Depende de:** HU-05 y HU-07 (`Historia`, Bianchi), HU-10 (`Sprint`), HU-15 (Story Points, Bianchi)
-- **Estado:** revisada
+- **Estado:** implementada (Sprint 1)
 
 ## Historia
 

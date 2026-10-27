@@ -4,7 +4,7 @@
 - **Escenarios BDD:** [`features/hu-03-registrar-integrantes.feature`](../features/hu-03-registrar-integrantes.feature)
 - **Redactada por:** Branko Almeira (Agile Enabler) · **Validada por:** Federico Sosa (al aprobar el PR)
 - **Depende de:** HU-01 (`Proyecto`)
-- **Estado:** revisada
+- **Estado:** implementada (Sprint 1)
 
 ## Historia
 

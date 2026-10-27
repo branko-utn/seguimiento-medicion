@@ -35,6 +35,11 @@ func TestMundo_veoElError(t *testing.T) {
 	if err := m.veoElError("el nombre es obligatorio"); err != nil {
 		t.Errorf("con el mismo mensaje, el paso debería pasar: %v", err)
 	}
+	if err := m.sinError(); err != nil {
+		t.Errorf("después de verificar el error esperado, los pasos siguientes no deberían verlo: %v", err)
+	}
+
+	_ = m.resultado(errors.New("el nombre es obligatorio"))
 	if err := m.veoElError("otro mensaje"); err == nil {
 		t.Error("con otro mensaje, el paso debería fallar")
 	}

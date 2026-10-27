@@ -4,7 +4,7 @@
 - **Escenarios BDD:** [`features/hu-19-registrar-horas-estimadas-de-una-historia.feature`](../features/hu-19-registrar-horas-estimadas-de-una-historia.feature)
 - **Redactada por:** Branko Almeira (Agile Enabler) · **Validada por:** Agustín Lara (al aprobar el PR)
 - **Depende de:** solo el `HistoriaID` (ADR 0002): se puede desarrollar sin esperar a HU-05
-- **Estado:** revisada
+- **Estado:** implementada (Sprint 1)
 
 ## Historia
 

@@ -1,5 +1,4 @@
 # language: es
-# @pendiente: se quita al implementar los pasos (commit RED).
 @HU-24
 Característica: Story Points planificados, completados y velocidad
   Como líder del proyecto

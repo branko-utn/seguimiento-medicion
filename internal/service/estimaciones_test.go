@@ -24,8 +24,13 @@ func nuevoServicioEstimaciones(t *testing.T) *Estimaciones {
 	if err != nil {
 		t.Fatal(err)
 	}
+	repoSpr, err := memory.NuevoSprints("")
+	if err != nil {
+		t.Fatal(err)
+	}
 	proy := NuevoProyectos(repoProy)
-	hist := NuevoBacklog(repoHist, repoProy)
+	sprints := NuevoSprints(repoSpr, repoProy, repoHist)
+	hist := NuevoBacklog(repoHist, repoProy, sprints)
 	if _, err := proy.Crear("Demo", "", inicio, fin); err != nil {
 		t.Fatal(err)
 	}

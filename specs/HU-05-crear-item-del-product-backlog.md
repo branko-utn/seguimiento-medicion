@@ -4,7 +4,7 @@
 - **Escenarios BDD:** [`features/hu-05-crear-item-del-product-backlog.feature`](../features/hu-05-crear-item-del-product-backlog.feature)
 - **Redactada por:** Branko Almeira (Agile Enabler) · **Validada por:** Ignacio Bianchi (al aprobar el PR)
 - **Depende de:** HU-01 (`Proyecto`)
-- **Estado:** revisada · **Cambio 24/10/2026:** IDs únicos en el sistema (antes, por proyecto), para que `Buscar(HistoriaID)` no sea ambiguo
+- **Estado:** implementada (Sprint 1) · **Cambio 24/10/2026:** IDs únicos en el sistema (antes, por proyecto), para que `Buscar(HistoriaID)` no sea ambiguo
 
 ## Historia
 

@@ -4,7 +4,7 @@
 - **Escenarios BDD:** [`features/hu-08-cambiar-el-estado-de-una-historia.feature`](../features/hu-08-cambiar-el-estado-de-una-historia.feature)
 - **Redactada por:** Branko Almeira (Agile Enabler) · **Validada por:** Ignacio Bianchi (al aprobar el PR)
 - **Relacionada con:** HU-11 (asignar, define `SprintID`) y HU-12 (completar en el sprint)
-- **Estado:** revisada
+- **Estado:** implementada (Sprint 1)
 
 ## Historia
 

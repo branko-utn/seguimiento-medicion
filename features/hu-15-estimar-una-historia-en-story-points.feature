@@ -1,6 +1,5 @@
 # language: es
-# @pendiente: se quita al implementar los pasos (commit RED).
-@HU-15 @pendiente
+@HU-15
 Característica: Estimar una historia en Story Points
   Como integrante del equipo
   Quiero asignar Story Points a una historia

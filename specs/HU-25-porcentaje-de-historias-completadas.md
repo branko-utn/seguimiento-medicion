@@ -4,7 +4,7 @@
 - **Escenarios BDD:** [`features/hu-25-porcentaje-de-historias-completadas.feature`](../features/hu-25-porcentaje-de-historias-completadas.feature)
 - **Redactada por:** Branko Almeira (Agile Enabler) · **Validada por:** Agustín Giorlando (al aprobar el PR)
 - **Depende de:** nada: función pura (ADR 0002, sección 3)
-- **Estado:** revisada
+- **Estado:** implementada (Sprint 1)
 
 ## Historia
 

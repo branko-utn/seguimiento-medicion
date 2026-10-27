@@ -1,5 +1,4 @@
 # language: es
-# @pendiente: se quita al implementar los pasos (commit RED).
 @HU-25
 Característica: Porcentaje de historias completadas
   Como líder del proyecto

@@ -1,6 +1,5 @@
 # language: es
-# @pendiente: se quita al implementar los pasos (commit RED).
-@HU-08 @pendiente
+@HU-08
 Característica: Cambiar el estado de una historia
   Como integrante del equipo
   Quiero cambiar el estado de una historia
