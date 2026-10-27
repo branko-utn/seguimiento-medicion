@@ -1,10 +1,13 @@
 package service
 
 import (
+	"slices"
 	"time"
 
 	"github.com/branko-utn/seguimiento-medicion/internal/domain"
+	"github.com/branko-utn/seguimiento-medicion/internal/domain/backlog"
 	"github.com/branko-utn/seguimiento-medicion/internal/domain/sprint"
+	"github.com/branko-utn/seguimiento-medicion/internal/metrics"
 )
 
 // RepoSprints es lo que el servicio de sprints necesita del almacenamiento.
@@ -129,5 +132,38 @@ func (s *Sprints) CompletarHistoria(sprintID domain.SprintID, historiaID domain.
 	return s.historias.Guardar(h)
 }
 
-// CerrarSprint cierra un sprint (HU-13).
-func (s *Sprints) CerrarSprint(sprintID domain.SprintID) error { return nil }
+// CerrarSprint cierra un sprint (HU-13): fija los SP planificados y completados, calculados con las métricas de HU-24
+// (RN-13.2), y devuelve al backlog las historias que no se completaron (RN-13.3). Valida el cierre antes de tocar
+// las historias: si el sprint no se puede cerrar, no cambia nada.
+func (s *Sprints) CerrarSprint(sprintID domain.SprintID) error {
+	sp, err := s.sprints.Buscar(sprintID)
+	if err != nil {
+		return err
+	}
+	historias := make([]backlog.Historia, 0, len(sp.Historias))
+	entradas := make([]metrics.HistoriaSprint, 0, len(sp.Historias))
+	for _, id := range sp.Historias {
+		h, err := s.historias.Buscar(id)
+		if err != nil {
+			return err
+		}
+		historias = append(historias, h)
+		entradas = append(entradas, metrics.HistoriaSprint{StoryPoints: h.StoryPoints, Completada: slices.Contains(sp.Completadas, id)})
+	}
+	if err := sp.Cerrar(metrics.SPPlanificados(entradas), metrics.SPCompletados(entradas)); err != nil {
+		return err
+	}
+	if err := s.sprints.Actualizar(sp); err != nil {
+		return err
+	}
+	for _, h := range historias {
+		if slices.Contains(sp.Completadas, h.ID) {
+			continue
+		}
+		h.VolverAlBacklog()
+		if err := s.historias.Guardar(h); err != nil {
+			return err
+		}
+	}
+	return nil
+}
