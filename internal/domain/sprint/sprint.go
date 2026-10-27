@@ -67,7 +67,7 @@ var (
 	ErrHistoriaNoAsignada = errors.New("la historia no está asignada a este sprint")
 
 	// Errores de HU-13 (cerrar sprint).
-	ErrNoActivo = errors.New("")
+	ErrNoActivo = errors.New("solo se puede cerrar un sprint activo")
 )
 
 // Nuevo crea un sprint válido en estado Planificado y sin historias (RN-10.1, RN-10.2 y RN-10.5).
@@ -158,5 +158,18 @@ func (s *Sprint) Completar(id domain.HistoriaID) error {
 	return nil
 }
 
-// Cerrar cierra el sprint (HU-13).
-func (s *Sprint) Cerrar(spPlanificados, spCompletados int) error { return nil }
+// Cerrar cierra el sprint y deja fijos sus Story Points planificados y completados (HU-13). Solo se cierra un sprint
+// activo (RN-13.1); uno cerrado no se modifica (RN-13.4). Los SP los calcula el servicio con las métricas (RN-13.2).
+func (s *Sprint) Cerrar(spPlanificados, spCompletados int) error {
+	switch s.Estado {
+	case Cerrado:
+		return ErrSprintCerrado
+	case Activo:
+	default:
+		return ErrNoActivo
+	}
+	s.Estado = Cerrado
+	s.SPPlanificados = spPlanificados
+	s.SPCompletados = spCompletados
+	return nil
+}
