@@ -1,0 +1,65 @@
+{{define "titulo"}}{{.Datos.Sprint.Goal}}{{end}}
+
+{{define "contenido"}}
+{{- with .Datos.Sprint}}
+<hgroup>
+  <h1>{{.Goal}}</h1>
+  <p><a href="/proyectos/{{$.Datos.Proyecto.ID}}">{{$.Datos.Proyecto.Nombre}}</a> · {{.Estado}} · del {{.Inicio.Format "02/01/2006"}} al {{.Fin.Format "02/01/2006"}}</p>
+</hgroup>
+{{- end}}
+
+{{- with .Datos.Error}}
+<p class="error-formulario" role="alert">{{.}}</p>
+{{- end}}
+
+{{- if .Datos.PuedeIniciar}}
+<form method="post" action="/sprints/{{.Datos.Sprint.ID}}/iniciar">
+  <button type="submit">Iniciar sprint</button>
+</form>
+{{- end}}
+
+<section>
+  <h2>Historias del sprint</h2>
+  {{- if .Datos.Historias}}
+  <div class="overflow-auto">
+    <table>
+      <thead>
+        <tr><th>ID</th><th>Historia</th><th>Story Points</th></tr>
+      </thead>
+      <tbody>
+        {{- range .Datos.Historias}}
+        <tr>
+          <td>{{.ID}}</td>
+          <td>{{.Titulo}}</td>
+          <td>{{.StoryPoints}}</td>
+        </tr>
+        {{- end}}
+      </tbody>
+    </table>
+  </div>
+  {{- else}}
+  <p>Todavía no hay historias en este sprint.</p>
+  {{- end}}
+  <p><strong>{{.Datos.SPPlanificados}} Story Points planificados</strong></p>
+
+  {{- if .Datos.PuedeAsignar}}
+  {{- if .Datos.Disponibles}}
+  <form method="post" action="/sprints/{{.Datos.Sprint.ID}}/historias">
+    <label>
+      Asignar una historia del backlog
+      <select name="historia" required>
+        {{- range .Datos.Disponibles}}
+        <option value="{{.ID}}"{{if eq .ID $.Datos.Elegida}} selected{{end}}>{{.ID}} · {{.Titulo}} ({{.StoryPoints}} SP)</option>
+        {{- end}}
+      </select>
+    </label>
+    <button type="submit">Asignar al sprint</button>
+  </form>
+  {{- else}}
+  <p>No hay historias del backlog sin sprint en este proyecto.</p>
+  {{- end}}
+  {{- end}}
+</section>
+
+<p><a href="/sprints">Volver a la lista de sprints</a></p>
+{{end}}
