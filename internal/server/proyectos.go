@@ -23,17 +23,11 @@ func (a *app) rutasProyectos(mux *http.ServeMux) {
 
 // editarProyecto muestra el formulario del alta cargado con los datos actuales del proyecto (HU-02).
 func (a *app) editarProyecto(w http.ResponseWriter, r *http.Request) {
-	id := domain.ProyectoID(r.PathValue("id"))
-	p, err := a.svc.Proyectos.Buscar(id)
-	if errors.Is(err, project.ErrNoExiste) {
-		a.renderError(w, r, http.StatusNotFound, err.Error())
+	p, ok := a.proyectoDeLaRuta(w, r)
+	if !ok {
 		return
 	}
-	if err != nil {
-		a.renderError(w, r, http.StatusInternalServerError, "No se pudo cargar el proyecto.")
-		return
-	}
-	form := formEdicion(id)
+	form := formEdicion(p.ID)
 	form.Nombre = p.Nombre
 	form.Descripcion = p.Descripcion
 	form.Inicio = p.Inicio.Format(formatoFecha)
@@ -104,17 +98,11 @@ func (a *app) registrarIntegrante(w http.ResponseWriter, r *http.Request) {
 
 // mostrarDetalle muestra el proyecto de la ruta con sus integrantes y el formulario de alta de integrante.
 func (a *app) mostrarDetalle(w http.ResponseWriter, r *http.Request, codigo int, form formIntegrante) {
-	id := domain.ProyectoID(r.PathValue("id"))
-	p, err := a.svc.Proyectos.Buscar(id)
-	if errors.Is(err, project.ErrNoExiste) {
-		a.renderError(w, r, http.StatusNotFound, err.Error())
+	p, ok := a.proyectoDeLaRuta(w, r)
+	if !ok {
 		return
 	}
-	if err != nil {
-		a.renderError(w, r, http.StatusInternalServerError, "No se pudo cargar el proyecto.")
-		return
-	}
-	integrantes, err := a.svc.Integrantes.DelProyecto(id)
+	integrantes, err := a.svc.Integrantes.DelProyecto(p.ID)
 	if err != nil {
 		a.renderError(w, r, http.StatusInternalServerError, "No se pudieron cargar los integrantes.")
 		return
@@ -124,6 +112,21 @@ func (a *app) mostrarDetalle(w http.ResponseWriter, r *http.Request, codigo int,
 		roles = append(roles, rol.String())
 	}
 	a.renderConCodigo(w, r, codigo, "proyecto.html", datosDetalle{Proyecto: p, Integrantes: integrantes, Roles: roles, Form: form})
+}
+
+// proyectoDeLaRuta busca el proyecto del {id} de la ruta. Si no existe muestra el error 404 ("el proyecto no
+// existe"), si falla muestra un 500, y en los dos casos devuelve false: el handler no tiene que hacer nada más.
+func (a *app) proyectoDeLaRuta(w http.ResponseWriter, r *http.Request) (project.Proyecto, bool) {
+	p, err := a.svc.Proyectos.Buscar(domain.ProyectoID(r.PathValue("id")))
+	if errors.Is(err, project.ErrNoExiste) {
+		a.renderError(w, r, http.StatusNotFound, err.Error())
+		return project.Proyecto{}, false
+	}
+	if err != nil {
+		a.renderError(w, r, http.StatusInternalServerError, "No se pudo cargar el proyecto.")
+		return project.Proyecto{}, false
+	}
+	return p, true
 }
 
 // rolDesdeTexto convierte el rol elegido en el formulario (ADR 0003: la conversión va en el borde). Si el texto no
