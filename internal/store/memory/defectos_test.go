@@ -1,6 +1,7 @@
 package memory
 
 import (
+	"errors"
 	"path/filepath"
 	"testing"
 
@@ -68,5 +69,36 @@ func TestDefectos_persisteYRecupera(t *testing.T) {
 	d, ok := otra.Buscar("D1")
 	if !ok || d.Descripcion != "Acepta fechas invertidas" || d.Severidad != defect.Alta || d.Estado != defect.Abierto {
 		t.Errorf("al reabrir: %+v (encontrado %v), se esperaba el defecto D1 Alta y Abierto", d, ok)
+	}
+}
+
+func TestDefectos_ActualizarYListar(t *testing.T) {
+	r, err := NuevoDefectos("")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, desc := range []string{"Uno", "Dos"} {
+		if _, err := r.Agregar(defecto(desc)); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	d, _ := r.Buscar("D2")
+	d.Estado = defect.Resuelto
+	d.SprintResolucion = "S2"
+	if err := r.Actualizar(d); err != nil {
+		t.Fatalf("Actualizar(D2): %v", err)
+	}
+	if got, _ := r.Buscar("D2"); got != d {
+		t.Errorf("Buscar(D2) = %+v, se esperaba %+v", got, d)
+	}
+
+	lista := r.Listar()
+	if len(lista) != 2 || lista[0].ID != "D1" || lista[1].ID != "D2" || lista[1].Estado != defect.Resuelto {
+		t.Errorf("Listar() = %+v, se esperaba [D1 D2] en ese orden, con D2 resuelto", lista)
+	}
+
+	if err := r.Actualizar(defect.Defecto{ID: "D99"}); !errors.Is(err, defect.ErrNoExiste) {
+		t.Errorf("Actualizar(D99): error = %v, se esperaba defect.ErrNoExiste", err)
 	}
 }

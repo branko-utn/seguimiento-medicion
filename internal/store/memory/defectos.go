@@ -51,3 +51,11 @@ func (r *Defectos) Buscar(id domain.DefectoID) (defect.Defecto, bool) {
 	})
 	return encontrado, existe
 }
+
+func (r *Defectos) Actualizar(d defect.Defecto) error {
+	return nil
+}
+
+func (r *Defectos) Listar() []defect.Defecto {
+	return nil
+}

@@ -12,6 +12,8 @@ type RepoDefectos interface {
 	Agregar(d defect.Defecto) (defect.Defecto, error)
 	// Buscar devuelve (defecto, encontrado).
 	Buscar(id domain.DefectoID) (defect.Defecto, bool)
+	Actualizar(d defect.Defecto) error
+	Listar() []defect.Defecto
 }
 
 // BuscadorSprints es lo que el servicio de defectos necesita del repositorio de sprints (épica E3).
@@ -54,7 +56,19 @@ func (s *Defectos) Registrar(descripcion string, severidad defect.Severidad, his
 	return s.defectos.Agregar(d)
 }
 
-// Buscar devuelve el defecto y si se encontró.
-func (s *Defectos) Buscar(id domain.DefectoID) (defect.Defecto, bool) {
-	return s.defectos.Buscar(id)
+func (s *Defectos) Buscar(id domain.DefectoID) (defect.Defecto, error) {
+	d, _ := s.defectos.Buscar(id)
+	return d, nil
+}
+
+func (s *Defectos) CambiarEstado(id domain.DefectoID, nuevo defect.Estado) error {
+	return nil
+}
+
+func (s *Defectos) Resolver(id domain.DefectoID, sprintID domain.SprintID) error {
+	return nil
+}
+
+func (s *Defectos) Listar() []defect.Defecto {
+	return nil
 }
