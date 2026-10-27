@@ -35,6 +35,7 @@ type mundo struct {
 	estimaciones  *service.Estimaciones
 	registros     *service.Registros
 	defectos      *service.Defectos
+	poker         *service.PlanningPoker
 }
 
 func nuevoMundo() *mundo {
@@ -46,6 +47,7 @@ func nuevoMundo() *mundo {
 	repoEstimaciones, _ := memory.NuevoEstimaciones("")
 	repoRegistros, _ := memory.NuevoRegistros("")
 	repoDefectos, _ := memory.NuevoDefectos("")
+	repoSesiones, _ := memory.NuevoSesiones("")
 
 	sprintsSvc := service.NuevoSprints(repoSprints, repoProyectos, repoHistorias)
 
@@ -62,6 +64,7 @@ func nuevoMundo() *mundo {
 		estimaciones:  service.NuevoEstimaciones(repoEstimaciones, repoHistorias),
 		registros:     service.NuevoRegistros(repoRegistros, repoIntegrantes, repoHistorias),
 		defectos:      service.NuevoDefectos(repoDefectos, repoHistorias, repoSprints),
+		poker:         service.NuevoPlanningPoker(repoSesiones, repoHistorias, repoIntegrantes),
 	}
 }
 

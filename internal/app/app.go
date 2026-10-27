@@ -48,6 +48,10 @@ func NuevosServicios(dir string) (server.Servicios, error) {
 	if err != nil {
 		return server.Servicios{}, abrir("defectos", err)
 	}
+	sesiones, err := memory.NuevoSesiones(ruta("sesiones"))
+	if err != nil {
+		return server.Servicios{}, abrir("sesiones", err)
+	}
 
 	// Backlog delega en Sprints para completar historias (HU-08 → HU-12).
 	sprintsSvc := service.NuevoSprints(sprints, proyectos, historias)
@@ -59,6 +63,7 @@ func NuevosServicios(dir string) (server.Servicios, error) {
 		Estimaciones: service.NuevoEstimaciones(estimaciones, historias),
 		Registros:    service.NuevoRegistros(registros, integrantes, historias),
 		Defectos:     service.NuevoDefectos(defectos, historias, sprints),
+		Poker:        service.NuevoPlanningPoker(sesiones, historias, integrantes),
 	}, nil
 }
 
