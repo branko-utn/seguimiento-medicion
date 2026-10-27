@@ -65,6 +65,9 @@ var (
 
 	// Errores de HU-12 (completar historias).
 	ErrHistoriaNoAsignada = errors.New("la historia no está asignada a este sprint")
+
+	// Errores de HU-13 (cerrar sprint).
+	ErrNoActivo = errors.New("")
 )
 
 // Nuevo crea un sprint válido en estado Planificado y sin historias (RN-10.1, RN-10.2 y RN-10.5).
@@ -154,3 +157,6 @@ func (s *Sprint) Completar(id domain.HistoriaID) error {
 	s.Completadas = append(s.Completadas, id)
 	return nil
 }
+
+// Cerrar cierra el sprint (HU-13).
+func (s *Sprint) Cerrar(spPlanificados, spCompletados int) error { return nil }
