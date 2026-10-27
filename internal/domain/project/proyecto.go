@@ -46,6 +46,9 @@ var (
 	ErrFechasInvalidas = errors.New("la fecha de fin no puede ser anterior a la de inicio")
 	ErrNombreDuplicado = errors.New("ya existe un proyecto con ese nombre")
 	ErrNoExiste        = errors.New("el proyecto no existe")
+
+	// ErrProyectoFinalizado: RN-02.3 (HU-02).
+	ErrProyectoFinalizado = errors.New("un proyecto finalizado no se puede modificar")
 )
 
 // Nuevo crea un proyecto válido en estado Planificado (RN-01.1, RN-01.2 y RN-01.4).
@@ -65,4 +68,23 @@ func Nuevo(nombre, descripcion string, inicio, fin time.Time) (Proyecto, error) 
 		Fin:         fin,
 		Estado:      Planificado,
 	}, nil
+}
+
+// Modificar cambia nombre, descripción y fechas del proyecto (HU-02). Primero controla que no esté finalizado
+// (RN-02.3) y después aplica las validaciones del alta reutilizando Nuevo (RN-02.1). El ID y el estado no cambian
+// (RN-02.4). Si hay un error, el proyecto queda como estaba. Que el nombre no sea de otro proyecto (RN-02.2) lo
+// controla el servicio.
+func (p *Proyecto) Modificar(nombre, descripcion string, inicio, fin time.Time) error {
+	if p.Estado == Finalizado {
+		return ErrProyectoFinalizado
+	}
+	datos, err := Nuevo(nombre, descripcion, inicio, fin)
+	if err != nil {
+		return err
+	}
+	p.Nombre = datos.Nombre
+	p.Descripcion = datos.Descripcion
+	p.Inicio = datos.Inicio
+	p.Fin = datos.Fin
+	return nil
 }

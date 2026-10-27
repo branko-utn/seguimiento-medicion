@@ -25,15 +25,16 @@ type mundo struct {
 
 	// Cada épica agrega acá su servicio y lo crea en nuevoMundo con repositorios en memoria (ruta ""),
 	// por ejemplo: proyectos *service.Proyectos
-	proyectos    *service.Proyectos
-	integrantes  *service.Integrantes
-	backlog      *service.Backlog
-	historias    *memory.Historias // repositorio, para preparar escenarios (pasos "Dado" de backlog)
-	sprints      *service.Sprints
-	repoSprints  *memory.Sprints // repositorio, para preparar escenarios (paso "que el sprint … está cerrado")
-	estimaciones *service.Estimaciones
-	registros    *service.Registros
-	defectos     *service.Defectos
+	proyectos     *service.Proyectos
+	repoProyectos *memory.Proyectos // repositorio, para preparar escenarios (paso "que el proyecto … está finalizado")
+	integrantes   *service.Integrantes
+	backlog       *service.Backlog
+	historias     *memory.Historias // repositorio, para preparar escenarios (pasos "Dado" de backlog)
+	sprints       *service.Sprints
+	repoSprints   *memory.Sprints // repositorio, para preparar escenarios (paso "que el sprint … está cerrado")
+	estimaciones  *service.Estimaciones
+	registros     *service.Registros
+	defectos      *service.Defectos
 }
 
 func nuevoMundo() *mundo {
@@ -49,17 +50,18 @@ func nuevoMundo() *mundo {
 	sprintsSvc := service.NuevoSprints(repoSprints, repoProyectos, repoHistorias)
 
 	return &mundo{
-		hoy:          time.Now().Truncate(24 * time.Hour),
-		alias:        map[string]string{},
-		proyectos:    service.NuevoProyectos(repoProyectos),
-		integrantes:  service.NuevoIntegrantes(repoIntegrantes, repoProyectos),
-		backlog:      service.NuevoBacklog(repoHistorias, repoProyectos, sprintsSvc),
-		historias:    repoHistorias,
-		sprints:      sprintsSvc,
-		repoSprints:  repoSprints,
-		estimaciones: service.NuevoEstimaciones(repoEstimaciones, repoHistorias),
-		registros:    service.NuevoRegistros(repoRegistros, repoIntegrantes, repoHistorias),
-		defectos:     service.NuevoDefectos(repoDefectos, repoHistorias, repoSprints),
+		hoy:           time.Now().Truncate(24 * time.Hour),
+		alias:         map[string]string{},
+		proyectos:     service.NuevoProyectos(repoProyectos),
+		repoProyectos: repoProyectos,
+		integrantes:   service.NuevoIntegrantes(repoIntegrantes, repoProyectos),
+		backlog:       service.NuevoBacklog(repoHistorias, repoProyectos, sprintsSvc),
+		historias:     repoHistorias,
+		sprints:       sprintsSvc,
+		repoSprints:   repoSprints,
+		estimaciones:  service.NuevoEstimaciones(repoEstimaciones, repoHistorias),
+		registros:     service.NuevoRegistros(repoRegistros, repoIntegrantes, repoHistorias),
+		defectos:      service.NuevoDefectos(repoDefectos, repoHistorias, repoSprints),
 	}
 }
 
