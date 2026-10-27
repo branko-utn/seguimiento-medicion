@@ -1,0 +1,40 @@
+{{define "titulo"}}Planning Poker{{end}}
+
+{{define "contenido"}}
+<h1>Planning Poker</h1>
+<p>Las cartas se muestran al revelar los votos: mientras la votación está abierta, solo se ve quién votó.</p>
+{{range .Datos.Filas}}
+<article>
+  <header><h2>{{.Historia.Titulo}}</h2></header>
+  <p>Estado: {{.Historia.Estado}}</p>
+  {{if .Abierta}}
+  <p>Votaron: {{.Votaron}}</p>
+  <form method="post" action="/planning-poker/votar">
+    <input type="hidden" name="historia" value="{{.Historia.ID}}">
+    <label>
+      Votás como
+      <select name="integrante" required>
+        {{range .Integrantes}}<option value="{{.ID}}">{{.Nombre}}</option>{{end}}
+      </select>
+    </label>
+    <label>
+      Carta
+      <select name="carta">
+        {{range $.Datos.Escala}}<option>{{.}}</option>{{end}}
+      </select>
+    </label>
+    <button type="submit">Votar</button>
+  </form>
+  {{else if .Completada}}
+  <p>La historia está completada: no se vota.</p>
+  {{else}}
+  <form method="post" action="/planning-poker/abrir">
+    <input type="hidden" name="historia" value="{{.Historia.ID}}">
+    <button type="submit">Abrir votación</button>
+  </form>
+  {{end}}
+</article>
+{{else}}
+<p>No hay historias en el backlog.</p>
+{{end}}
+{{end}}
