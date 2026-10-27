@@ -1,0 +1,38 @@
+{{define "titulo"}}Sprints{{end}}
+
+{{define "contenido"}}
+<hgroup>
+  <h1>Sprints</h1>
+  <p>Sprint Goal, asignación de historias, cierre e historial.</p>
+</hgroup>
+
+{{range .Datos}}
+<section>
+  <h2>{{.Proyecto.Nombre}}</h2>
+  {{- if .Sprints}}
+  <div class="overflow-auto">
+    <table>
+      <thead>
+        <tr><th>Sprint Goal</th><th>Inicio</th><th>Fin</th><th>Estado</th></tr>
+      </thead>
+      <tbody>
+        {{- range .Sprints}}
+        <tr>
+          <td><a href="/sprints/{{.ID}}">{{.Goal}}</a></td>
+          <td>{{.Inicio.Format "02/01/2006"}}</td>
+          <td>{{.Fin.Format "02/01/2006"}}</td>
+          <td>{{.Estado}}</td>
+        </tr>
+        {{- end}}
+      </tbody>
+    </table>
+  </div>
+  {{- else}}
+  <p>Todavía no hay sprints.</p>
+  {{- end}}
+  <p><a href="/sprints/nuevo?proyecto={{.Proyecto.ID}}" role="button">Nuevo sprint</a></p>
+</section>
+{{else}}
+<p>Todavía no hay proyectos. Para planificar un sprint, <a href="/proyectos/nuevo">creá un proyecto</a>.</p>
+{{end}}
+{{end}}

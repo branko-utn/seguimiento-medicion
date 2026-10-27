@@ -1,5 +1,5 @@
 # language: es
-@HU-27 @pendiente
+@HU-27
 Característica: Defectos detectados y resueltos
   Como líder del proyecto
   Quiero ver la cantidad de defectos detectados y resueltos
