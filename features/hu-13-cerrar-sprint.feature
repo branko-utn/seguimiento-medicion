@@ -1,5 +1,5 @@
 # language: es
-@HU-13 @pendiente
+@HU-13
 Característica: Cerrar sprint
   Como líder del proyecto
   Quiero cerrar un sprint
