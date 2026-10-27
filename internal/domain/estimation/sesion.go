@@ -20,8 +20,10 @@ var (
 // Sesion representa una votación de Planning Poker para una historia.
 type Sesion struct {
 	HistoriaID domain.HistoriaID
-	votos      []Voto
-	votantes   map[string]bool
+	// Ronda es la ronda actual de la votación; una votación nueva abre en la ronda 1 (spec HU-16).
+	Ronda    int
+	votos    []Voto
+	votantes map[string]bool
 }
 
 // Voto representa el voto de un integrante en la ronda.
