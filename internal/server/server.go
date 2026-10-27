@@ -41,6 +41,9 @@ func NewRouter(svc Servicios) (http.Handler, error) {
 	a.rutasProyectos(mux)
 	a.rutasSprints(mux)
 	a.rutasPlanningPoker(mux)
+	a.rutasAccionesSprint(mux) // HU-12 y HU-13: completar historias y cerrar el sprint
+	a.rutasDefectos(mux)       // HU-22 y HU-23: lista y alta de defectos, cambiar estado y resolver
+	a.rutasEsfuerzo(mux)       // HU-19 y HU-20: horas estimadas y registro de esfuerzo
 
 	return mux, nil
 }
