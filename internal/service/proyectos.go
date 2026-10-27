@@ -76,7 +76,7 @@ func (s *Proyectos) Listar() ([]project.Proyecto, error) {
 	return s.repo.Listar(), nil
 }
 
-// Buscar devuelve un proyecto (TEC-13: detalle y edición). Todavía sin implementar (RED).
+// Buscar devuelve un proyecto, o project.ErrNoExiste (TEC-13: detalle y edición).
 func (s *Proyectos) Buscar(id domain.ProyectoID) (project.Proyecto, error) {
-	return project.Proyecto{}, nil
+	return s.repo.Buscar(id)
 }
