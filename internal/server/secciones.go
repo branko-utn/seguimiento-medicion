@@ -14,7 +14,7 @@ type seccion struct {
 
 // secciones define la navegación principal, en el orden en que se muestra.
 var secciones = []seccion{
-	{Ruta: "/proyectos", Nombre: "Proyectos", Descripcion: "Alta y modificación de proyectos, integrantes, fechas y estado.", Epica: "E1", Sprint: 1, EnConstruccion: true},
+	{Ruta: "/proyectos", Nombre: "Proyectos", Descripcion: "Alta y modificación de proyectos, integrantes, fechas y estado.", Epica: "E1", Sprint: 1},
 	{Ruta: "/backlog", Nombre: "Backlog", Descripcion: "Historias con prioridad, estado, Story Points y criterios de aceptación.", Epica: "E2", Sprint: 1, EnConstruccion: true},
 	{Ruta: "/sprints", Nombre: "Sprints", Descripcion: "Sprint Goal, asignación de historias, cierre e historial.", Epica: "E3", Sprint: 1, EnConstruccion: true},
 	{Ruta: "/planning-poker", Nombre: "Planning Poker", Descripcion: "Estimación con votos ocultos, rondas y estimación acordada.", Epica: "E4", Sprint: 2, EnConstruccion: false},
