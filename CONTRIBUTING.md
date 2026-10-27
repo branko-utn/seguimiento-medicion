@@ -121,8 +121,9 @@ Ejemplo para la sección Proyectos (E1). Las otras secciones siguen el mismo pat
    }
    ```
 
-3. **Servicio**: agregar el campo `Proyectos *service.Proyectos` en `Servicios` (`internal/server/server.go`)
-   y crearlo en `cmd/server/main.go`.
+3. **Servicio**: todos los servicios ya están en `Servicios` (`internal/server/server.go`), creados y conectados por
+   `internal/app` (TEC-18). Usá el que necesites desde el handler (`a.svc.Proyectos`, `a.svc.Backlog`, …). Si tu
+   historia necesita un servicio nuevo, agregalo en `Servicios` y crealo en `internal/app/app.go`.
 4. **Registrar** `a.rutasProyectos(mux)` en `NewRouter` y poner `EnConstruccion: false` en la sección de
    `internal/server/secciones.go`. Si no se cambia, la ruta queda registrada dos veces y el servidor no arranca.
 5. **Errores de validación**: mostrarlos con `a.renderError(w, r, http.StatusBadRequest, err.Error())`,
@@ -136,7 +137,7 @@ sin clases. Los ajustes propios van en `web/static/app.css`.
 
 | Quiero… | Comando |
 |---|---|
-| Correr la aplicación | `make run` → http://localhost:8080 |
+| Correr la aplicación | `make run` → http://localhost:8080 (los datos quedan en `data/`; `DATA_DIR` cambia la carpeta) |
 | Correr todos los tests (unitarios + BDD) | `make test` |
 | Solo los escenarios BDD | `make bdd` |
 | Ver la cobertura | `make cover` |
