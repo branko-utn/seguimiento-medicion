@@ -37,6 +37,7 @@ func inicializarEscenario(sc *godog.ScenarioContext) {
 	registrarPasosComunesProyectos(sc, m)
 	registrarPasosComunesBacklog(sc, m)
 	registrarPasosHU01(sc, m)
+	registrarPasosHU02(sc, m)
 	registrarPasosHU03(sc, m)
 	registrarPasosComunesSprints(sc, m)
 	registrarPasosCierreSprints(sc, m)

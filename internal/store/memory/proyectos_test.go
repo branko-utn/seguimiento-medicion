@@ -91,3 +91,35 @@ func TestProyectos_Buscar(t *testing.T) {
 		t.Errorf("Buscar(P9): se esperaba %v, se obtuvo %v", project.ErrNoExiste, err)
 	}
 }
+
+func TestProyectos_Actualizar(t *testing.T) {
+	ruta := filepath.Join(t.TempDir(), "proyectos.json")
+	r, _ := NuevoProyectos(ruta)
+	for _, nombre := range []string{"Demo", "Otro"} {
+		if _, err := r.Agregar(project.Proyecto{Nombre: nombre, Estado: project.Planificado}); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	p, _ := r.Buscar("P1")
+	p.Nombre = "Software Metrics"
+	if err := r.Actualizar(p); err != nil {
+		t.Fatalf("Actualizar(P1): error inesperado: %v", err)
+	}
+
+	reabierto, err := NuevoProyectos(ruta)
+	if err != nil {
+		t.Fatal(err)
+	}
+	lista := reabierto.Listar()
+	if len(lista) != 2 || lista[0].ID != "P1" || lista[0].Nombre != "Software Metrics" || lista[1].Nombre != "Otro" {
+		t.Errorf("después de Actualizar y reabrir = %+v, se esperaba [P1 Software Metrics, P2 Otro]", lista)
+	}
+
+	if err := r.Actualizar(project.Proyecto{ID: "P9", Nombre: "Nadie"}); !errors.Is(err, project.ErrNoExiste) {
+		t.Errorf("Actualizar(P9): se esperaba %v, se obtuvo %v", project.ErrNoExiste, err)
+	}
+	if n := len(r.Listar()); n != 2 {
+		t.Errorf("Actualizar(P9) dejó %d proyectos, se esperaban 2: no debe agregar", n)
+	}
+}
