@@ -29,8 +29,8 @@ var (
 	ErrIntegranteDeOtroProyecto = errors.New("el integrante no pertenece al proyecto de la historia")
 )
 
-// NuevoRegistro crea un registro de esfuerzo válido: actividad no vacía (RN-20.1), horas mayores que cero (RN-20.2) y
-// fecha no posterior a hoy (RN-20.4). La fecha de hoy se recibe como parámetro para no depender del reloj.
+// NuevoRegistro crea un registro de esfuerzo válido: actividad y fecha obligatorias (RN-20.1), horas mayores que cero
+// (RN-20.2) y fecha no posterior a hoy (RN-20.4). La fecha de hoy se recibe como parámetro para no depender del reloj.
 // Que el integrante y la historia existan, que sean del mismo proyecto y el tope diario los controla el servicio.
 func NuevoRegistro(integranteID domain.IntegranteID, historiaID domain.HistoriaID, fecha time.Time, actividad string, horas float64, hoy time.Time) (Registro, error) {
 	actividad = strings.TrimSpace(actividad)
@@ -39,6 +39,9 @@ func NuevoRegistro(integranteID domain.IntegranteID, historiaID domain.HistoriaI
 	}
 	if horas <= 0 {
 		return Registro{}, ErrHorasInvalidas
+	}
+	if fecha.IsZero() {
+		return Registro{}, ErrFechaVacia
 	}
 	fecha = soloDia(fecha)
 	if fecha.After(soloDia(hoy)) {
