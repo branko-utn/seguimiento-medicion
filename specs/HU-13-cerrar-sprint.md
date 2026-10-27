@@ -2,9 +2,9 @@
 
 - **Issue:** #20 · **Épica:** E3 Sprints · **Responsable:** Branko Almeira · **Story Points:** 5
 - **Escenarios BDD:** [`features/hu-13-cerrar-sprint.feature`](../features/hu-13-cerrar-sprint.feature)
-- **Redactada por:** Branko Almeira (Agile Enabler) · **Validada por:** el equipo en la planning del Sprint 2
+- **Redactada por:** Branko Almeira (Agile Enabler) · **Validada por:** el equipo en la planning del Sprint 2 (aprobada)
 - **Depende de:** HU-10 y HU-11 (`Sprint`), HU-12 (`Sprint.Completadas`), HU-08 (estados de la historia), HU-24 (SP)
-- **Estado:** borrador para la planning del Sprint 2
+- **Estado:** aprobada en la planning del Sprint 2
 
 ## Historia
 
@@ -67,6 +67,6 @@ se terminó para que se pueda planificar en otro sprint. Es la base de la veloci
 | CA-13.2 | Quedan registrados los SP planificados y completados del sprint | `Escenario: cerrar un sprint con historias sin terminar`, `Escenario: cerrar un sprint sin historias` |
 | CA-13.3 | Un sprint cerrado no se puede modificar | `Escenario: cerrar un sprint ya cerrado` |
 
-## Para decidir en la planning
+## Decisiones de la planning del Sprint 2
 
-- ¿Se puede cerrar un sprint **planificado** (que nunca se inició)? Este borrador dice que no (RN-13.1).
+- Un sprint **planificado** (que nunca se inició) no se puede cerrar: RN-13.1 queda como está.

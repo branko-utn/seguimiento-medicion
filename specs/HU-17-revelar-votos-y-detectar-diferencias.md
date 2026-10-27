@@ -2,9 +2,9 @@
 
 - **Issue:** #24 · **Épica:** E4 Estimación · **Responsable:** Ignacio Bianchi · **Story Points:** 3
 - **Escenarios BDD:** [`features/hu-17-revelar-votos-y-detectar-diferencias.feature`](../features/hu-17-revelar-votos-y-detectar-diferencias.feature)
-- **Redactada por:** Branko Almeira (Agile Enabler) · **Validada por:** el equipo en la planning del Sprint 2
+- **Redactada por:** Branko Almeira (Agile Enabler) · **Validada por:** el equipo en la planning del Sprint 2 (aprobada)
 - **Depende de:** HU-16 (`estimation.Sesion`)
-- **Estado:** borrador para la planning del Sprint 2
+- **Estado:** aprobada en la planning del Sprint 2
 
 ## Historia
 

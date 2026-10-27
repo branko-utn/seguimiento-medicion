@@ -2,9 +2,9 @@
 
 - **Issue:** #23 · **Épica:** E4 Estimación · **Responsable:** Ignacio Bianchi · **Story Points:** 5
 - **Escenarios BDD:** [`features/hu-16-votar-en-planning-poker.feature`](../features/hu-16-votar-en-planning-poker.feature)
-- **Redactada por:** Branko Almeira (Agile Enabler) · **Validada por:** el equipo en la planning del Sprint 2
+- **Redactada por:** Branko Almeira (Agile Enabler) · **Validada por:** el equipo en la planning del Sprint 2 (aprobada)
 - **Depende de:** HU-03 (`Integrante`), HU-05 (`Historia`), HU-15 (`estimation.Escala`)
-- **Estado:** borrador para la planning del Sprint 2
+- **Estado:** aprobada en la planning del Sprint 2
 
 ## Historia
 
@@ -32,7 +32,7 @@ estimación acordada.
 
 ## Reglas de negocio
 
-- **RN-16.1:** solo votan los integrantes del proyecto de la historia.
+- **RN-16.1:** solo votan los integrantes del proyecto de la historia. En la pantalla, quien vota se elige de esa lista (ADR 0004).
 - **RN-16.2:** cada integrante vota una vez por ronda.
 - **RN-16.3:** la carta tiene que ser un valor de la escala de Story Points (1, 2, 3, 5, 8, 13, 21; `estimation.Escala`).
 - **RN-16.4:** mientras la votación está abierta, los valores de los votos no se pueden consultar: solo quién votó.
@@ -70,8 +70,9 @@ estimación acordada.
 | CA-16.1 | Solo votan los integrantes del proyecto, una vez por ronda | `Escenario: votar`, `Escenario: votar dos veces en la misma ronda`, `Escenario: votar sin ser del proyecto` |
 | CA-16.2 | Mientras la votación está abierta, los votos no se muestran (solo quién ya votó) | `Escenario: los votos quedan ocultos` |
 
-## Para decidir en la planning
+## Decisiones de la planning del Sprint 2
 
-- **Cartas "?" y "☕":** la mesa de práctica las tenía. Este borrador las deja **fuera** (solo números de la escala) para
-  que el resultado siempre se pueda calcular. Si el equipo las quiere, se agregan como cartas especiales.
-- **Cambiar el voto antes de revelar:** este borrador no lo permite (RN-16.2). La alternativa es reemplazar el voto anterior.
+- **Identidad sin login (ADR 0004):** quien vota se elige de la lista de integrantes del proyecto ("Votás como: …").
+  No hay autenticación: cualquiera puede elegir otro nombre, y es una limitación aceptada para una herramienta interna.
+- **Sin cartas "?" ni "☕":** solo se vota con la escala 1, 2, 3, 5, 8, 13, 21 (RN-16.3).
+- **No se cambia el voto antes de revelar:** cada integrante vota una vez por ronda (RN-16.2).
