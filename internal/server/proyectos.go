@@ -9,8 +9,8 @@ import (
 	"github.com/branko-utn/seguimiento-medicion/internal/domain/project"
 )
 
-// rutasProyectos registra las rutas de la sección Proyectos (épica E1, TEC-13): la lista y el alta (HU-01), y el
-// detalle con sus integrantes (HU-03).
+// rutasProyectos registra las rutas de la sección Proyectos (épica E1, TEC-13): la lista y el alta (HU-01), el
+// detalle con sus integrantes (HU-03) y la edición (HU-02).
 func (a *app) rutasProyectos(mux *http.ServeMux) {
 	mux.HandleFunc("GET /proyectos", a.listarProyectos)
 	mux.HandleFunc("GET /proyectos/nuevo", a.nuevoProyecto)
@@ -21,10 +21,48 @@ func (a *app) rutasProyectos(mux *http.ServeMux) {
 	mux.HandleFunc("POST /proyectos/{id}", a.modificarProyecto)
 }
 
-// editarProyecto y modificarProyecto: edición del proyecto (HU-02). Todavía sin implementar (RED).
-func (a *app) editarProyecto(w http.ResponseWriter, r *http.Request) {}
+// editarProyecto muestra el formulario del alta cargado con los datos actuales del proyecto (HU-02).
+func (a *app) editarProyecto(w http.ResponseWriter, r *http.Request) {
+	id := domain.ProyectoID(r.PathValue("id"))
+	p, err := a.svc.Proyectos.Buscar(id)
+	if errors.Is(err, project.ErrNoExiste) {
+		a.renderError(w, r, http.StatusNotFound, err.Error())
+		return
+	}
+	if err != nil {
+		a.renderError(w, r, http.StatusInternalServerError, "No se pudo cargar el proyecto.")
+		return
+	}
+	form := formEdicion(id)
+	form.Nombre = p.Nombre
+	form.Descripcion = p.Descripcion
+	form.Inicio = p.Inicio.Format(formatoFecha)
+	form.Fin = p.Fin.Format(formatoFecha)
+	a.render(w, r, "proyecto_form.html", form)
+}
 
-func (a *app) modificarProyecto(w http.ResponseWriter, r *http.Request) {}
+// modificarProyecto guarda los cambios del proyecto (HU-02) y redirige a su detalle. Si el servicio los rechaza,
+// vuelve a mostrar el formulario de edición con el mensaje de la spec y con lo que se escribió.
+func (a *app) modificarProyecto(w http.ResponseWriter, r *http.Request) {
+	id := domain.ProyectoID(r.PathValue("id"))
+	form := formEdicion(id)
+	form.leer(r)
+
+	_, err := a.svc.Proyectos.Modificar(id, form.Nombre, form.Descripcion, fechaDeFormulario(form.Inicio), fechaDeFormulario(form.Fin))
+	switch {
+	case errors.Is(err, project.ErrNoExiste):
+		a.renderError(w, r, http.StatusNotFound, err.Error())
+	case err != nil:
+		form.Error = err.Error()
+		a.renderConCodigo(w, r, http.StatusBadRequest, "proyecto_form.html", form)
+	default:
+		http.Redirect(w, r, rutaProyecto(id), http.StatusSeeOther)
+	}
+}
+
+func formEdicion(id domain.ProyectoID) formProyecto {
+	return formProyecto{Titulo: "Editar proyecto", Accion: rutaProyecto(id), Boton: "Guardar cambios"}
+}
 
 // formIntegrante es el formulario de alta de integrante del detalle, con el texto tal como se escribió.
 type formIntegrante struct {
