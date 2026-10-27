@@ -1,0 +1,56 @@
+{{define "titulo"}}Defectos{{end}}
+
+{{define "contenido"}}
+<h1>Defectos</h1>
+{{if .Datos}}
+<div class="overflow-auto">
+  <table>
+    <thead>
+      <tr>
+        <th scope="col">ID</th>
+        <th scope="col">Descripción</th>
+        <th scope="col">Severidad</th>
+        <th scope="col">Historia</th>
+        <th scope="col">Estado</th>
+        <th scope="col">Detectado en</th>
+        <th scope="col">Resuelto en</th>
+        <th scope="col">Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{- range .Datos}}
+      <tr>
+        <td>{{.ID}}</td>
+        <td>{{.Descripcion}}</td>
+        <td>{{.Severidad}}</td>
+        <td>{{.HistoriaID}}</td>
+        <td>{{.Estado}}</td>
+        <td>{{.SprintDeteccion}}</td>
+        <td>{{if .SprintResolucion}}{{.SprintResolucion}}{{else}}—{{end}}</td>
+        <td>
+          {{- if .Siguiente}}
+          <form method="post" action="/defectos/{{.ID}}/estado">
+            <input type="hidden" name="estado" value="{{.Siguiente}}">
+            <button type="submit" class="secondary">Pasar a {{.Siguiente}}</button>
+          </form>
+          <form method="post" action="/defectos/{{.ID}}/resolver">
+            <fieldset role="group">
+              <select name="sprint" aria-label="Sprint de resolución de {{.ID}}" required>
+                {{- range .Sprints}}
+                <option value="{{.}}">{{.}}</option>
+                {{- end}}
+              </select>
+              <button type="submit">Resolver</button>
+            </fieldset>
+          </form>
+          {{- end}}
+        </td>
+      </tr>
+      {{- end}}
+    </tbody>
+  </table>
+</div>
+{{else}}
+<p>Todavía no hay defectos registrados.</p>
+{{end}}
+{{end}}

@@ -37,6 +37,7 @@ func NewRouter(svc Servicios) (http.Handler, error) {
 		}
 	}
 	// Cada épica registra acá sus rutas, por ejemplo: a.rutasProyectos(mux)
+	a.rutasDefectos(mux) // HU-23: lista de defectos, cambiar estado y resolver
 
 	return mux, nil
 }
