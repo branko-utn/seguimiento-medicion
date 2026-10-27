@@ -33,7 +33,8 @@ La desviación en porcentaje, sin redondear (la pantalla la muestra con un decim
 - **RN-26.1:** horas reales = suma de las horas registradas.
 - **RN-26.2:** desviación (%) = (reales − estimadas) / estimadas × 100. Positiva si se trabajó de más, negativa si de menos.
 - **RN-26.3:** sin horas estimadas (0), la desviación **no es calculable**: se informa con un error y la pantalla muestra "no calculable".
-- **RN-26.4:** las horas no pueden ser negativas.
+- **RN-26.4:** las horas no pueden ser negativas. `HorasReales` recibe horas ya validadas por el dominio (HU-20 solo
+  acepta horas mayores que cero) y las suma todas, sin filtrar.
 
 ## Restricciones
 
@@ -50,7 +51,7 @@ La desviación en porcentaje, sin redondear (la pantalla la muestra con un decim
 | Situación | Error esperado |
 |---|---|
 | Horas estimadas en 0 | `metrics.ErrDesviacionNoCalculable`: "la desviación no es calculable sin horas estimadas" |
-| Horas negativas | `metrics.ErrDatosInconsistentes` |
+| Horas estimadas o reales negativas | `metrics.ErrHorasNegativas`: "las horas no pueden ser negativas" |
 
 ## Criterios de aceptación
 
