@@ -46,6 +46,9 @@ var (
 	ErrFechasInvalidas = errors.New("la fecha de fin no puede ser anterior a la de inicio")
 	ErrNombreDuplicado = errors.New("ya existe un proyecto con ese nombre")
 	ErrNoExiste        = errors.New("el proyecto no existe")
+
+	// ErrProyectoFinalizado: RN-02.3 (HU-02).
+	ErrProyectoFinalizado = errors.New("un proyecto finalizado no se puede modificar")
 )
 
 // Nuevo crea un proyecto válido en estado Planificado (RN-01.1, RN-01.2 y RN-01.4).
@@ -65,4 +68,9 @@ func Nuevo(nombre, descripcion string, inicio, fin time.Time) (Proyecto, error) 
 		Fin:         fin,
 		Estado:      Planificado,
 	}, nil
+}
+
+// Modificar cambia nombre, descripción y fechas del proyecto (HU-02). Todavía sin implementar (RED).
+func (p *Proyecto) Modificar(nombre, descripcion string, inicio, fin time.Time) error {
+	return nil
 }
