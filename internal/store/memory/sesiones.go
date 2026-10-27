@@ -22,11 +22,35 @@ func NuevoSesiones(ruta string) (*Sesiones, error) {
 // Guardar crea o reemplaza la votación de la historia de la sesión (RN-16.5: una historia tiene como
 // máximo una votación abierta, así que guarda una sola por historia).
 func (r *Sesiones) Guardar(s estimation.Sesion) error {
-	return nil
+	return r.store.Update(func(lista *[]estimation.Sesion) error {
+		for i := range *lista {
+			if (*lista)[i].HistoriaID == s.HistoriaID {
+				(*lista)[i] = s
+				return nil
+			}
+		}
+		*lista = append(*lista, s)
+		return nil
+	})
 }
 
 // Buscar devuelve la votación de una historia y si existe. A diferencia de otros repositorios, no devuelve
 // ErrNoExiste: que una historia todavía no tenga una votación abierta no es un error, sino un estado válido.
 func (r *Sesiones) Buscar(id domain.HistoriaID) (estimation.Sesion, bool) {
-	return estimation.Sesion{}, false
+	var (
+		encontrada estimation.Sesion
+		existe     bool
+	)
+	r.store.View(func(lista []estimation.Sesion) {
+		for _, s := range lista {
+			if s.HistoriaID == id {
+				encontrada, existe = s, true
+				return
+			}
+		}
+	})
+	if !existe {
+		return estimation.Sesion{}, false
+	}
+	return encontrada, true
 }
