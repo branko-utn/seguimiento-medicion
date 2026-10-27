@@ -1,5 +1,5 @@
 # language: es
-@HU-23 @pendiente
+@HU-23
 Característica: Cambiar estado de un defecto y registrar su resolución
   Como integrante del equipo
   Quiero cambiar el estado de un defecto
