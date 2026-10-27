@@ -16,6 +16,10 @@ var (
 	ErrVotosOcultos       = errors.New("los votos se muestran recién al revelar las cartas")
 	ErrYaRevelada         = errors.New("la ronda ya fue revelada")
 	ErrSinVotos           = errors.New("no hay votos para revelar")
+	// ErrSinVotacionAbierta: votar o consultar los votos de una historia sin una votación abierta. No está
+	// en la tabla de errores de la spec HU-16: lo acordó el equipo en la planning del Sprint 2 y se
+	// documenta como aclaración en el PR.
+	ErrSinVotacionAbierta = errors.New("la historia no tiene una votación abierta")
 )
 
 // Sesion representa una votación de Planning Poker para una historia.
