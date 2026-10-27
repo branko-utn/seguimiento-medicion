@@ -113,8 +113,8 @@ func TestDefectos_listaConAcciones(t *testing.T) {
 		`action="/defectos/D1/estado"`, `value="En progreso"`,
 		`action="/defectos/D1/resolver"`, `<option value="S2">`, `<option value="S3">`,
 	)
-	// RN-23.4: no se ofrece un sprint anterior al de detección.
-	if strings.Contains(cuerpo, `<option value="S1">`) {
+	// RN-23.4: no se ofrece un sprint anterior al de detección (en el formulario de registro sí aparece S1).
+	if strings.Contains(formularioDe(t, cuerpo, "/defectos/D1/resolver"), `<option value="S1">`) {
 		t.Error("se ofrece resolver en S1, que es anterior al sprint de detección")
 	}
 }
@@ -207,4 +207,92 @@ func TestDefectos_accionesConError(t *testing.T) {
 			}
 		})
 	}
+}
+
+// formularioDe devuelve el HTML del formulario cuya acción es accion, para revisar solo sus opciones.
+func formularioDe(t *testing.T, cuerpo, accion string) string {
+	t.Helper()
+	inicio := strings.Index(cuerpo, `action="`+accion+`"`)
+	if inicio < 0 {
+		t.Fatalf("la página no tiene el formulario %s", accion)
+	}
+	fin := strings.Index(cuerpo[inicio:], "</form>")
+	if fin < 0 {
+		t.Fatalf("el formulario %s no se cierra", accion)
+	}
+	return cuerpo[inicio : inicio+fin]
+}
+
+func TestDefectos_formularioDeRegistro(t *testing.T) {
+	router, _ := escenarioDefectos(t, false)
+
+	cuerpo := ver(router, "/defectos").Body.String()
+
+	form := formularioDe(t, cuerpo, "/defectos")
+	contiene(t, form,
+		`name="descripcion"`,
+		"<option>Crítica</option>", "<option>Alta</option>", "<option>Media</option>", "<option>Baja</option>",
+		`<option value="HU-1">HU-1 · Crear proyecto</option>`,
+		`<option value="S1">S1 · Demo</option>`, `<option value="S2">S2 · Demo</option>`, `<option value="S3">S3 · Demo</option>`,
+	)
+}
+
+func TestDefectos_registrar(t *testing.T) {
+	router, svc := escenarioDefectos(t, false)
+	campos := url.Values{"descripcion": {"Acepta fechas invertidas"}, "severidad": {"Crítica"}, "historia": {"HU-1"}, "sprint": {"S2"}}
+
+	rec := enviarFormulario(router, "/defectos", campos, false)
+
+	if rec.Code != http.StatusSeeOther || rec.Header().Get("Location") != "/defectos" {
+		t.Fatalf("respuesta = %d (Location %q), se esperaba 303 a /defectos", rec.Code, rec.Header().Get("Location"))
+	}
+	d, err := svc.Defectos.Buscar("D1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if d.Descripcion != "Acepta fechas invertidas" || d.Severidad != defect.Critica || d.HistoriaID != "HU-1" || d.SprintDeteccion != "S2" || d.Estado != defect.Abierto {
+		t.Errorf("defecto registrado = %+v", d)
+	}
+}
+
+func TestDefectos_registrarConError(t *testing.T) {
+	casos := []struct {
+		nombre  string
+		campos  url.Values
+		mensaje string
+	}{
+		{"descripción vacía", url.Values{"descripcion": {"  "}, "severidad": {"Alta"}, "historia": {"HU-1"}, "sprint": {"S2"}}, "la descripción es obligatoria"},
+		{"severidad inválida", url.Values{"descripcion": {"Se cae"}, "severidad": {"Urgente"}, "historia": {"HU-1"}, "sprint": {"S2"}}, "la severidad debe ser Crítica, Alta, Media o Baja"},
+		{"historia inexistente", url.Values{"descripcion": {"Se cae"}, "severidad": {"Alta"}, "historia": {"HU-99"}, "sprint": {"S2"}}, "la historia no existe"},
+		{"sprint inexistente", url.Values{"descripcion": {"Se cae"}, "severidad": {"Alta"}, "historia": {"HU-1"}, "sprint": {"S99"}}, "el sprint no existe"},
+	}
+	for _, c := range casos {
+		t.Run(c.nombre, func(t *testing.T) {
+			router, svc := escenarioDefectos(t, false)
+
+			rec := enviarFormulario(router, "/defectos", c.campos, false)
+
+			if rec.Code != http.StatusBadRequest {
+				t.Fatalf("código = %d, se esperaba 400", rec.Code)
+			}
+			form := formularioDe(t, rec.Body.String(), "/defectos")
+			contiene(t, form, c.mensaje)
+			// Vuelve a mostrar lo que se escribió.
+			if d := c.campos.Get("descripcion"); strings.TrimSpace(d) != "" {
+				contiene(t, form, `value="`+d+`"`)
+			}
+			if len(svc.Defectos.Listar()) != 0 {
+				t.Error("el defecto rechazado no debe guardarse")
+			}
+		})
+	}
+}
+
+func TestDefectos_registrarConErrorConservaLaSeveridad(t *testing.T) {
+	router, _ := escenarioDefectos(t, false)
+	campos := url.Values{"descripcion": {""}, "severidad": {"Baja"}, "historia": {"HU-1"}, "sprint": {"S3"}}
+
+	form := formularioDe(t, enviarFormulario(router, "/defectos", campos, false).Body.String(), "/defectos")
+
+	contiene(t, form, "<option selected>Baja</option>", `<option value="S3" selected>S3 · Demo</option>`)
 }

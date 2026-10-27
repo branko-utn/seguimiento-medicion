@@ -15,6 +15,9 @@ func (a *app) rutasDefectos(mux *http.ServeMux) {
 	mux.HandleFunc("POST /defectos/{defecto}/resolver", a.resolverDefecto)
 }
 
+func (a *app) registrarDefecto(w http.ResponseWriter, r *http.Request) {
+}
+
 // filaDefecto es un defecto de la lista con lo que la pantalla puede ofrecer para él.
 type filaDefecto struct {
 	defect.Defecto
