@@ -1,0 +1,60 @@
+{{define "titulo"}}{{.Datos.Proyecto.Nombre}}{{end}}
+
+{{define "contenido"}}
+{{- with .Datos.Proyecto}}
+<hgroup>
+  <h1>{{.Nombre}}</h1>
+  <p>{{.Estado}} · del {{.Inicio.Format "02/01/2006"}} al {{.Fin.Format "02/01/2006"}}</p>
+</hgroup>
+{{- if .Descripcion}}
+<p>{{.Descripcion}}</p>
+{{- end}}
+<p><a href="/proyectos/{{.ID}}/editar" role="button" class="secondary">Editar proyecto</a></p>
+{{- end}}
+
+<section>
+  <h2>Integrantes</h2>
+  {{- if .Datos.Integrantes}}
+  <div class="overflow-auto">
+    <table>
+      <thead>
+        <tr><th>Nombre</th><th>Rol</th></tr>
+      </thead>
+      <tbody>
+        {{- range .Datos.Integrantes}}
+        <tr>
+          <td>{{.Nombre}}</td>
+          <td>{{.Rol}}</td>
+        </tr>
+        {{- end}}
+      </tbody>
+    </table>
+  </div>
+  {{- else}}
+  <p>Todavía no hay integrantes.</p>
+  {{- end}}
+
+  <form method="post" action="/proyectos/{{.Datos.Proyecto.ID}}/integrantes">
+    {{- with .Datos.Form.Error}}
+    <p class="error-formulario" role="alert">{{.}}</p>
+    {{- end}}
+    <div class="grid">
+      <label>
+        Nombre
+        <input name="nombre" value="{{.Datos.Form.Nombre}}" required>
+      </label>
+      <label>
+        Rol
+        <select name="rol" required>
+          {{- range .Datos.Roles}}
+          <option{{if eq . $.Datos.Form.Rol}} selected{{end}}>{{.}}</option>
+          {{- end}}
+        </select>
+      </label>
+    </div>
+    <button type="submit">Registrar integrante</button>
+  </form>
+</section>
+
+<p><a href="/proyectos">Volver a la lista de proyectos</a></p>
+{{end}}

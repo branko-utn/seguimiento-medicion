@@ -15,7 +15,7 @@ func TestNuevosServicios_todosConectados(t *testing.T) {
 		t.Fatal(err)
 	}
 	if svc.Proyectos == nil || svc.Integrantes == nil || svc.Backlog == nil || svc.Sprints == nil ||
-		svc.Estimaciones == nil || svc.Registros == nil || svc.Defectos == nil {
+		svc.Estimaciones == nil || svc.Registros == nil || svc.Defectos == nil || svc.Poker == nil {
 		t.Fatalf("hay servicios sin crear: %+v", svc)
 	}
 

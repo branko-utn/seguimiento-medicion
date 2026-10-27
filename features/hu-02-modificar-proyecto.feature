@@ -1,5 +1,5 @@
 # language: es
-@HU-02 @pendiente
+@HU-02
 Característica: Modificar proyecto
   Como líder del proyecto
   Quiero modificar los datos de un proyecto

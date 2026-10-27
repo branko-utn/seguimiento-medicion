@@ -1,0 +1,32 @@
+{{define "titulo"}}Proyectos{{end}}
+
+{{define "contenido"}}
+<hgroup>
+  <h1>Proyectos</h1>
+  <p>Alta y modificación de proyectos, integrantes, fechas y estado.</p>
+</hgroup>
+
+{{if .Datos}}
+<div class="overflow-auto">
+  <table>
+    <thead>
+      <tr><th>Nombre</th><th>Inicio</th><th>Fin</th><th>Estado</th></tr>
+    </thead>
+    <tbody>
+      {{- range .Datos}}
+      <tr>
+        <td><a href="/proyectos/{{.ID}}">{{.Nombre}}</a></td>
+        <td>{{.Inicio.Format "02/01/2006"}}</td>
+        <td>{{.Fin.Format "02/01/2006"}}</td>
+        <td>{{.Estado}}</td>
+      </tr>
+      {{- end}}
+    </tbody>
+  </table>
+</div>
+{{else}}
+<p>Todavía no hay proyectos.</p>
+{{end}}
+
+<p><a href="/proyectos/nuevo" role="button">Nuevo proyecto</a></p>
+{{end}}
