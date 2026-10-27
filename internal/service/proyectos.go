@@ -75,3 +75,8 @@ func (s *Proyectos) nombreEnUso(nombre string, excepto domain.ProyectoID) bool {
 func (s *Proyectos) Listar() ([]project.Proyecto, error) {
 	return s.repo.Listar(), nil
 }
+
+// Buscar devuelve un proyecto (TEC-13: detalle y edición). Todavía sin implementar (RED).
+func (s *Proyectos) Buscar(id domain.ProyectoID) (project.Proyecto, error) {
+	return project.Proyecto{}, nil
+}
