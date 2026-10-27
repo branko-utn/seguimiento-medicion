@@ -38,6 +38,7 @@ func NewRouter(svc Servicios) (http.Handler, error) {
 		}
 	}
 	// Cada épica registra acá sus rutas, por ejemplo: a.rutasProyectos(mux)
+	a.rutasProyectos(mux)
 	a.rutasPlanningPoker(mux)
 	a.rutasAccionesSprint(mux) // HU-12 y HU-13: completar historias y cerrar el sprint
 

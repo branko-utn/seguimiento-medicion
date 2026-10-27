@@ -5,4 +5,5 @@ header.container nav { flex-wrap: wrap; }
 .grilla { display: grid; grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr)); gap: 1rem; }
 .grilla article { margin: 0; }
 article.error header h1 { color: var(--pico-del-color); margin: 0; }
+.error-formulario { color: var(--pico-del-color); font-weight: bold; }
 footer.container { margin-top: 2rem; color: var(--pico-muted-color); }
