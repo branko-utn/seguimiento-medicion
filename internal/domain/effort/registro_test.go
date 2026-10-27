@@ -39,6 +39,7 @@ func TestNuevoRegistro(t *testing.T) {
 		{titulo: "horas en cero", fecha: hoy, actividad: "Desarrollo", horas: 0, quiereError: ErrHorasInvalidas},
 		{titulo: "horas negativas", fecha: hoy, actividad: "Desarrollo", horas: -1, quiereError: ErrHorasInvalidas},
 		{titulo: "fecha de mañana", fecha: dia("2026-10-25"), actividad: "Desarrollo", horas: 2, quiereError: ErrFechaFutura},
+		{titulo: "fecha vacía (RN-20.1: es obligatoria)", fecha: time.Time{}, actividad: "Desarrollo", horas: 2, quiereError: ErrFechaVacia},
 	}
 
 	for _, c := range casos {
@@ -104,6 +105,7 @@ func TestMensajesDeError(t *testing.T) {
 	casos := map[error]string{
 		ErrActividadVacia:           "la actividad es obligatoria",
 		ErrFechaFutura:              "la fecha no puede ser futura",
+		ErrFechaVacia:               "la fecha es obligatoria",
 		ErrSuperaHorasDiarias:       "el integrante superaría las 24 horas en ese día",
 		ErrIntegranteDeOtroProyecto: "el integrante no pertenece al proyecto de la historia",
 		ErrHorasInvalidas:           "las horas deben ser mayores que cero",

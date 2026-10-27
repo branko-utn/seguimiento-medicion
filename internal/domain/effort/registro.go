@@ -24,6 +24,7 @@ type Registro struct {
 var (
 	ErrActividadVacia           = errors.New("la actividad es obligatoria")
 	ErrFechaFutura              = errors.New("la fecha no puede ser futura")
+	ErrFechaVacia               = errors.New("la fecha es obligatoria")
 	ErrSuperaHorasDiarias       = errors.New("el integrante superaría las 24 horas en ese día")
 	ErrIntegranteDeOtroProyecto = errors.New("el integrante no pertenece al proyecto de la historia")
 )
