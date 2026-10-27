@@ -1,5 +1,5 @@
 # language: es
-@HU-17 @pendiente
+@HU-17
 Característica: Revelar votos y detectar diferencias
   Como líder del proyecto
   Quiero revelar los votos y ver si hay diferencias
