@@ -1,6 +1,7 @@
 package server
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/branko-utn/seguimiento-medicion/internal/domain"
@@ -8,7 +9,8 @@ import (
 	"github.com/branko-utn/seguimiento-medicion/internal/domain/sprint"
 )
 
-// rutasSprints registra las rutas de la sección Sprints (épica E3, TEC-14): la lista por proyecto y el alta (HU-10).
+// rutasSprints registra las rutas de la sección Sprints (épica E3, TEC-14): la lista por proyecto, el alta, el detalle
+// y el inicio (HU-10).
 func (a *app) rutasSprints(mux *http.ServeMux) {
 	mux.HandleFunc("GET /sprints", a.listarSprints)
 	mux.HandleFunc("GET /sprints/nuevo", a.nuevoSprint)
@@ -17,10 +19,58 @@ func (a *app) rutasSprints(mux *http.ServeMux) {
 	mux.HandleFunc("POST /sprints/{sprint}/iniciar", a.iniciarSprint)
 }
 
-// verSprint e iniciarSprint: detalle del sprint e inicio (HU-10). Todavía sin implementar (RED).
-func (a *app) verSprint(w http.ResponseWriter, r *http.Request) {}
+// datosSprint es lo que recibe sprint.html. Error es el mensaje de la última acción que falló, si hubo.
+// PuedeIniciar lo decide el handler con el enum (ADR 0003): la plantilla no compara textos de estado.
+type datosSprint struct {
+	Sprint       sprint.Sprint
+	Proyecto     project.Proyecto
+	PuedeIniciar bool
+	Error        string
+}
 
-func (a *app) iniciarSprint(w http.ResponseWriter, r *http.Request) {}
+func (a *app) verSprint(w http.ResponseWriter, r *http.Request) {
+	a.mostrarSprint(w, r, http.StatusOK, "")
+}
+
+// iniciarSprint pasa el sprint a Activo (HU-10) y vuelve a su detalle. Si el servicio lo rechaza, vuelve a mostrar
+// el detalle con el mensaje de la spec.
+func (a *app) iniciarSprint(w http.ResponseWriter, r *http.Request) {
+	id := domain.SprintID(r.PathValue("sprint"))
+	err := a.svc.Sprints.Iniciar(id)
+	switch {
+	case errors.Is(err, sprint.ErrNoExiste):
+		a.renderError(w, r, http.StatusNotFound, err.Error())
+	case err != nil:
+		a.mostrarSprint(w, r, http.StatusBadRequest, err.Error())
+	default:
+		http.Redirect(w, r, rutaSprint(id), http.StatusSeeOther)
+	}
+}
+
+// mostrarSprint muestra el sprint de la ruta con el nombre de su proyecto, con el código y el mensaje de error que se
+// le pidan. Si el sprint no existe, muestra el error 404.
+func (a *app) mostrarSprint(w http.ResponseWriter, r *http.Request, codigo int, mensaje string) {
+	sp, err := a.svc.Sprints.Buscar(domain.SprintID(r.PathValue("sprint")))
+	if errors.Is(err, sprint.ErrNoExiste) {
+		a.renderError(w, r, http.StatusNotFound, err.Error())
+		return
+	}
+	if err != nil {
+		a.renderError(w, r, http.StatusInternalServerError, "No se pudo cargar el sprint.")
+		return
+	}
+	p, err := a.svc.Proyectos.Buscar(sp.ProyectoID)
+	if err != nil {
+		a.renderError(w, r, http.StatusInternalServerError, "No se pudo cargar el proyecto del sprint.")
+		return
+	}
+	a.renderConCodigo(w, r, codigo, "sprint.html", datosSprint{
+		Sprint:       sp,
+		Proyecto:     p,
+		PuedeIniciar: sp.Estado == sprint.Planificado,
+		Error:        mensaje,
+	})
+}
 
 // grupoSprints es un proyecto con sus sprints, en el orden en que se crearon.
 type grupoSprints struct {

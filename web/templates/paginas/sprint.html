@@ -1,0 +1,29 @@
+{{define "titulo"}}{{.Datos.Sprint.Goal}}{{end}}
+
+{{define "contenido"}}
+{{- with .Datos.Sprint}}
+<hgroup>
+  <h1>{{.Goal}}</h1>
+  <p><a href="/proyectos/{{$.Datos.Proyecto.ID}}">{{$.Datos.Proyecto.Nombre}}</a> · {{.Estado}} · del {{.Inicio.Format "02/01/2006"}} al {{.Fin.Format "02/01/2006"}}</p>
+</hgroup>
+{{- end}}
+
+{{- with .Datos.Error}}
+<p class="error-formulario" role="alert">{{.}}</p>
+{{- end}}
+
+{{- if .Datos.PuedeIniciar}}
+<form method="post" action="/sprints/{{.Datos.Sprint.ID}}/iniciar">
+  <button type="submit">Iniciar sprint</button>
+</form>
+{{- end}}
+
+<section>
+  <h2>Historias del sprint</h2>
+  {{- if not .Datos.Sprint.Historias}}
+  <p>Todavía no hay historias en este sprint.</p>
+  {{- end}}
+</section>
+
+<p><a href="/sprints">Volver a la lista de sprints</a></p>
+{{end}}
