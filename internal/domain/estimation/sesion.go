@@ -40,6 +40,17 @@ type Voto struct {
 	Carta        int
 }
 
+// Resultado es el resultado de revelar una ronda (spec HU-17): todos los votos, si hay consenso y,
+// si no lo hay, el valor más alto y el más bajo con todos los integrantes que votaron cada uno.
+type Resultado struct {
+	Votos         []Voto
+	Consenso      bool
+	Maximo        int
+	Minimo        int
+	VotaronMaximo []domain.IntegranteID
+	VotaronMinimo []domain.IntegranteID
+}
+
 // NuevaSesion crea una votación abierta en la ronda 1 y sin votos (spec HU-16, salidas esperadas).
 // Devuelve la sesión por valor, como el resto del dominio (ADR 0002): el servicio la busca, la muta
 // con sus métodos y guarda la copia resultante.
@@ -87,6 +98,17 @@ func (s *Sesion) QuienesVotaron() []domain.IntegranteID {
 // consultar (RN-16.4); HU-17 los expone al revelar.
 func (s *Sesion) Votos() ([]Voto, error) {
 	return nil, ErrVotosOcultos
+}
+
+// Revelar muestra todos los votos de la ronda y detecta las diferencias (HU-17).
+func (s *Sesion) Revelar() (Resultado, error) {
+	return Resultado{}, nil
+}
+
+// Resultado devuelve el resultado de una ronda revelada, sin repetir la revelada (la pantalla lo consulta
+// al recargar). Mientras la votación está abierta, los valores no se pueden consultar (RN-16.4).
+func (s *Sesion) Resultado() (Resultado, error) {
+	return Resultado{}, ErrVotosOcultos
 }
 
 // sesionJSON es la forma serializable de Sesion: la usa Store para guardar data/sesiones.json. No es
