@@ -3,14 +3,17 @@ package server
 import (
 	"errors"
 	"net/http"
+	"slices"
 
 	"github.com/branko-utn/seguimiento-medicion/internal/domain"
+	"github.com/branko-utn/seguimiento-medicion/internal/domain/backlog"
 	"github.com/branko-utn/seguimiento-medicion/internal/domain/project"
 	"github.com/branko-utn/seguimiento-medicion/internal/domain/sprint"
+	"github.com/branko-utn/seguimiento-medicion/internal/metrics"
 )
 
 // rutasSprints registra las rutas de la sección Sprints (épica E3, TEC-14): la lista por proyecto, el alta, el detalle
-// y el inicio (HU-10).
+// y el inicio (HU-10), y la asignación de historias (HU-11).
 func (a *app) rutasSprints(mux *http.ServeMux) {
 	mux.HandleFunc("GET /sprints", a.listarSprints)
 	mux.HandleFunc("GET /sprints/nuevo", a.nuevoSprint)
@@ -20,20 +23,40 @@ func (a *app) rutasSprints(mux *http.ServeMux) {
 	mux.HandleFunc("POST /sprints/{sprint}/historias", a.asignarHistoria)
 }
 
-// asignarHistoria: asignación de historias al sprint (HU-11). Todavía sin implementar (RED).
-func (a *app) asignarHistoria(w http.ResponseWriter, r *http.Request) {}
-
-// datosSprint es lo que recibe sprint.html. Error es el mensaje de la última acción que falló, si hubo.
-// PuedeIniciar lo decide el handler con el enum (ADR 0003): la plantilla no compara textos de estado.
+// datosSprint es lo que recibe sprint.html. Historias son las del Sprint Backlog y Disponibles las del proyecto que
+// todavía no tienen sprint (se ofrecen todas: las reglas de HU-11 las valida el dominio). PuedeIniciar y
+// PuedeAsignar los decide el handler con el enum (ADR 0003): la plantilla no compara textos de estado. Error es el
+// mensaje de la última acción que falló y Elegida la historia que se había elegido, para volver a seleccionarla.
 type datosSprint struct {
-	Sprint       sprint.Sprint
-	Proyecto     project.Proyecto
-	PuedeIniciar bool
-	Error        string
+	Sprint         sprint.Sprint
+	Proyecto       project.Proyecto
+	Historias      []backlog.Historia
+	SPPlanificados int
+	Disponibles    []backlog.Historia
+	PuedeIniciar   bool
+	PuedeAsignar   bool
+	Error          string
+	Elegida        string
 }
 
 func (a *app) verSprint(w http.ResponseWriter, r *http.Request) {
-	a.mostrarSprint(w, r, http.StatusOK, "")
+	a.mostrarSprint(w, r, http.StatusOK, "", "")
+}
+
+// asignarHistoria agrega la historia elegida al Sprint Backlog (HU-11) y vuelve al detalle. Si el servicio la
+// rechaza, vuelve a mostrar el detalle con el mensaje de la spec y la historia elegida.
+func (a *app) asignarHistoria(w http.ResponseWriter, r *http.Request) {
+	id := domain.SprintID(r.PathValue("sprint"))
+	historia := r.FormValue("historia")
+	err := a.svc.Sprints.Asignar(id, domain.HistoriaID(historia))
+	switch {
+	case errors.Is(err, sprint.ErrNoExiste):
+		a.renderError(w, r, http.StatusNotFound, err.Error())
+	case err != nil:
+		a.mostrarSprint(w, r, http.StatusBadRequest, err.Error(), historia)
+	default:
+		http.Redirect(w, r, rutaSprint(id), http.StatusSeeOther)
+	}
 }
 
 // iniciarSprint pasa el sprint a Activo (HU-10) y vuelve a su detalle. Si el servicio lo rechaza, vuelve a mostrar
@@ -45,15 +68,15 @@ func (a *app) iniciarSprint(w http.ResponseWriter, r *http.Request) {
 	case errors.Is(err, sprint.ErrNoExiste):
 		a.renderError(w, r, http.StatusNotFound, err.Error())
 	case err != nil:
-		a.mostrarSprint(w, r, http.StatusBadRequest, err.Error())
+		a.mostrarSprint(w, r, http.StatusBadRequest, err.Error(), "")
 	default:
 		http.Redirect(w, r, rutaSprint(id), http.StatusSeeOther)
 	}
 }
 
-// mostrarSprint muestra el sprint de la ruta con el nombre de su proyecto, con el código y el mensaje de error que se
-// le pidan. Si el sprint no existe, muestra el error 404.
-func (a *app) mostrarSprint(w http.ResponseWriter, r *http.Request, codigo int, mensaje string) {
+// mostrarSprint muestra el sprint de la ruta con su proyecto, sus historias y las que se le pueden asignar, con el
+// código, el mensaje de error y la historia elegida que se le pidan. Si el sprint no existe, muestra el error 404.
+func (a *app) mostrarSprint(w http.ResponseWriter, r *http.Request, codigo int, mensaje, elegida string) {
 	sp, err := a.svc.Sprints.Buscar(domain.SprintID(r.PathValue("sprint")))
 	if errors.Is(err, sprint.ErrNoExiste) {
 		a.renderError(w, r, http.StatusNotFound, err.Error())
@@ -68,12 +91,38 @@ func (a *app) mostrarSprint(w http.ResponseWriter, r *http.Request, codigo int, 
 		a.renderError(w, r, http.StatusInternalServerError, "No se pudo cargar el proyecto del sprint.")
 		return
 	}
-	a.renderConCodigo(w, r, codigo, "sprint.html", datosSprint{
+	historias, err := a.svc.Backlog.Listar()
+	if err != nil {
+		a.renderError(w, r, http.StatusInternalServerError, "No se pudieron cargar las historias.")
+		return
+	}
+
+	datos := datosSprint{
 		Sprint:       sp,
 		Proyecto:     p,
 		PuedeIniciar: sp.Estado == sprint.Planificado,
+		PuedeAsignar: sp.Estado != sprint.Cerrado,
 		Error:        mensaje,
-	})
+		Elegida:      elegida,
+	}
+	delSprint := make(map[domain.HistoriaID]backlog.Historia, len(sp.Historias))
+	for _, h := range historias {
+		switch {
+		case slices.Contains(sp.Historias, h.ID):
+			delSprint[h.ID] = h
+		case h.ProyectoID == sp.ProyectoID && h.SprintID == "":
+			datos.Disponibles = append(datos.Disponibles, h)
+		}
+	}
+	// Las historias se muestran en el orden en que se asignaron, y los SP planificados los calcula HU-24.
+	entradas := make([]metrics.HistoriaSprint, 0, len(sp.Historias))
+	for _, id := range sp.Historias {
+		h := delSprint[id]
+		datos.Historias = append(datos.Historias, h)
+		entradas = append(entradas, metrics.HistoriaSprint{StoryPoints: h.StoryPoints, Completada: slices.Contains(sp.Completadas, id)})
+	}
+	datos.SPPlanificados = metrics.SPPlanificados(entradas)
+	a.renderConCodigo(w, r, codigo, "sprint.html", datos)
 }
 
 // grupoSprints es un proyecto con sus sprints, en el orden en que se crearon.

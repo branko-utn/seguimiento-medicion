@@ -20,8 +20,44 @@
 
 <section>
   <h2>Historias del sprint</h2>
-  {{- if not .Datos.Sprint.Historias}}
+  {{- if .Datos.Historias}}
+  <div class="overflow-auto">
+    <table>
+      <thead>
+        <tr><th>ID</th><th>Historia</th><th>Story Points</th></tr>
+      </thead>
+      <tbody>
+        {{- range .Datos.Historias}}
+        <tr>
+          <td>{{.ID}}</td>
+          <td>{{.Titulo}}</td>
+          <td>{{.StoryPoints}}</td>
+        </tr>
+        {{- end}}
+      </tbody>
+    </table>
+  </div>
+  {{- else}}
   <p>Todavía no hay historias en este sprint.</p>
+  {{- end}}
+  <p><strong>{{.Datos.SPPlanificados}} Story Points planificados</strong></p>
+
+  {{- if .Datos.PuedeAsignar}}
+  {{- if .Datos.Disponibles}}
+  <form method="post" action="/sprints/{{.Datos.Sprint.ID}}/historias">
+    <label>
+      Asignar una historia del backlog
+      <select name="historia" required>
+        {{- range .Datos.Disponibles}}
+        <option value="{{.ID}}"{{if eq .ID $.Datos.Elegida}} selected{{end}}>{{.ID}} · {{.Titulo}} ({{.StoryPoints}} SP)</option>
+        {{- end}}
+      </select>
+    </label>
+    <button type="submit">Asignar al sprint</button>
+  </form>
+  {{- else}}
+  <p>No hay historias del backlog sin sprint en este proyecto.</p>
+  {{- end}}
   {{- end}}
 </section>
 
