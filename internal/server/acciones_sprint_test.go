@@ -3,6 +3,7 @@ package server
 import (
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strings"
 	"testing"
 	"time"
@@ -139,4 +140,57 @@ func TestCerrarSprint_yaCerrado(t *testing.T) {
 	if rec.Code != http.StatusBadRequest || !strings.Contains(rec.Body.String(), "el sprint está cerrado y no se puede modificar") {
 		t.Errorf("respuesta = %d, se esperaba 400 con el mensaje de sprint cerrado", rec.Code)
 	}
+}
+
+// La pantalla del sprint (TEC-14) ofrece las acciones de HU-12 y HU-13 solo mientras el sprint está activo.
+func TestSprints_botonesDeCompletarYCerrar(t *testing.T) {
+	e := nuevoServidorSprints(t)
+	e.crearPrimerMVP(t)
+	e.cargarHistorias(t)
+	if err := e.svc.Sprints.Asignar("S1", "HU-1"); err != nil {
+		t.Fatal(err)
+	}
+	completar := `action="/sprints/S1/historias/HU-1/completar"`
+	cerrar := `action="/sprints/S1/cerrar"`
+
+	t.Run("planificado: sin acciones", func(t *testing.T) {
+		cuerpo := servir(e.router, httptest.NewRequest(http.MethodGet, "/sprints/S1", nil)).Body.String()
+		for _, accion := range []string{completar, cerrar} {
+			if strings.Contains(cuerpo, accion) {
+				t.Errorf("un sprint planificado no debe ofrecer %s", accion)
+			}
+		}
+	})
+
+	if err := e.svc.Sprints.Iniciar("S1"); err != nil {
+		t.Fatal(err)
+	}
+	t.Run("activo: completar cada historia y cerrar", func(t *testing.T) {
+		cuerpo := servir(e.router, httptest.NewRequest(http.MethodGet, "/sprints/S1", nil)).Body.String()
+		contieneTodo(t, cuerpo, completar, cerrar, "0 Story Points completados")
+	})
+
+	if rec := servir(e.router, pedidoFormulario(http.MethodPost, "/sprints/S1/historias/HU-1/completar", url.Values{})); rec.Code != http.StatusSeeOther {
+		t.Fatalf("completar: código = %d, se esperaba 303", rec.Code)
+	}
+	t.Run("activo con la historia completada", func(t *testing.T) {
+		cuerpo := servir(e.router, httptest.NewRequest(http.MethodGet, "/sprints/S1", nil)).Body.String()
+		contieneTodo(t, cuerpo, "✔ Completada", cerrar, "3 Story Points completados")
+		if strings.Contains(cuerpo, completar) {
+			t.Error("una historia completada no debe ofrecer el botón para completarla")
+		}
+	})
+
+	if rec := servir(e.router, pedidoFormulario(http.MethodPost, "/sprints/S1/cerrar", url.Values{})); rec.Code != http.StatusSeeOther {
+		t.Fatalf("cerrar: código = %d, se esperaba 303", rec.Code)
+	}
+	t.Run("cerrado: sin acciones y con el resultado", func(t *testing.T) {
+		cuerpo := servir(e.router, httptest.NewRequest(http.MethodGet, "/sprints/S1", nil)).Body.String()
+		contieneTodo(t, cuerpo, "Cerrado", "3 Story Points planificados", "3 Story Points completados")
+		for _, accion := range []string{completar, cerrar} {
+			if strings.Contains(cuerpo, accion) {
+				t.Errorf("un sprint cerrado no debe ofrecer %s", accion)
+			}
+		}
+	})
 }
