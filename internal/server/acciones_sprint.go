@@ -6,6 +6,7 @@ import (
 
 	"github.com/branko-utn/seguimiento-medicion/internal/domain"
 	"github.com/branko-utn/seguimiento-medicion/internal/domain/backlog"
+	"github.com/branko-utn/seguimiento-medicion/internal/domain/defect"
 	"github.com/branko-utn/seguimiento-medicion/internal/domain/sprint"
 )
 
@@ -28,12 +29,13 @@ func (a *app) cerrarSprint(w http.ResponseWriter, r *http.Request) {
 	a.responderAccion(w, r, err, "/sprints/"+string(sprintID))
 }
 
-// responderAccion vuelve a la pantalla del sprint si la acción salió bien (redirección normal, o HX-Redirect si el
+// responderAccion vuelve a la pantalla de destino si la acción salió bien (redirección normal, o HX-Redirect si el
 // pedido viene de HTMX) y, si no, muestra el error con su mensaje: 404 si algo no existe, 400 si se rompió una regla.
+// La usan las acciones del sprint (HU-12, HU-13) y las de los defectos (HU-23).
 func (a *app) responderAccion(w http.ResponseWriter, r *http.Request, err error, destino string) {
 	if err != nil {
 		codigo := http.StatusBadRequest
-		if errors.Is(err, sprint.ErrNoExiste) || errors.Is(err, backlog.ErrNoExiste) {
+		if errors.Is(err, sprint.ErrNoExiste) || errors.Is(err, backlog.ErrNoExiste) || errors.Is(err, defect.ErrNoExiste) {
 			codigo = http.StatusNotFound
 		}
 		a.renderError(w, r, codigo, err.Error())
