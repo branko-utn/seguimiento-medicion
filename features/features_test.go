@@ -33,7 +33,7 @@ func TestFeatures(t *testing.T) {
 func inicializarEscenario(sc *godog.ScenarioContext) {
 	m := nuevoMundo()
 	registrarPasosComunes(sc, m)
-	registrarPasosHTTP(sc)
+	registrarPasosHTTP(sc, m)
 	registrarPasosComunesProyectos(sc, m)
 	registrarPasosComunesBacklog(sc, m)
 	registrarPasosHU01(sc, m)

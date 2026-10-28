@@ -1,0 +1,41 @@
+{{define "titulo"}}Backlog{{end}}
+
+{{define "contenido"}}
+<hgroup>
+  <h1>Backlog</h1>
+  <p>Historias con prioridad, estado, Story Points y criterios de aceptación.</p>
+</hgroup>
+
+{{if .Datos.Historias}}
+<div class="overflow-auto">
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Título</th>
+        <th>Proyecto</th>
+        <th>Prioridad</th>
+        <th>Estado</th>
+        <th>Story Points</th>
+        <th>Criterios</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{- range .Datos.Historias}}
+      <tr>
+        <td>{{.ID}}</td>
+        <td>{{.Titulo}}</td>
+        <td>{{index $.Datos.Proyectos (printf "%s" .ProyectoID)}}</td>
+        <td>{{.Prioridad}}</td>
+        <td>{{.Estado}}</td>
+        <td>{{if .StoryPoints}}{{.StoryPoints}}{{else}}—{{end}}</td>
+        <td>{{len .Criterios}}</td>
+      </tr>
+      {{- end}}
+    </tbody>
+  </table>
+</div>
+{{else}}
+<p>No hay historias en el backlog.</p>
+{{end}}
+{{end}}
