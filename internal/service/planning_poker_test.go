@@ -123,6 +123,135 @@ func TestPlanningPoker_IniciarVotacion_historiaCompletada(t *testing.T) {
 	}
 }
 
+// TestPlanningPoker_Revelar: la revelada devuelve el resultado con las diferencias y queda persistida:
+// la ronda no acepta votos nuevos (RN-17.4) y el resultado se puede volver a consultar.
+func TestPlanningPoker_Revelar(t *testing.T) {
+	s, _ := nuevoServicioPoker(t)
+	if _, err := s.IniciarVotacion("HU-1"); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.Votar("HU-1", "I1", 5); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.Votar("HU-1", "I2", 8); err != nil {
+		t.Fatal(err)
+	}
+
+	res, err := s.Revelar("HU-1")
+	if err != nil {
+		t.Fatalf("error inesperado: %v", err)
+	}
+	// RN-17.1 y RN-17.3: todos los votos y las diferencias.
+	if res.Consenso || res.Maximo != 8 || res.Minimo != 5 {
+		t.Errorf("resultado = %+v, se esperaba sin consenso, máximo 8, mínimo 5", res)
+	}
+	if len(res.VotaronMaximo) != 1 || res.VotaronMaximo[0] != "I2" {
+		t.Errorf("votaron el máximo %v, se esperaba [I2]", res.VotaronMaximo)
+	}
+	if len(res.VotaronMinimo) != 1 || res.VotaronMinimo[0] != "I1" {
+		t.Errorf("votaron el mínimo %v, se esperaba [I1]", res.VotaronMinimo)
+	}
+
+	// El estado revelado queda guardado: la ronda no acepta votos nuevos (RN-17.4)…
+	// (I1 ya votó: la ronda revelada se rechaza antes que el doble voto.)
+	if err := s.Votar("HU-1", "I1", 13); !errors.Is(err, estimation.ErrYaRevelada) {
+		t.Errorf("votar tras revelar = %v, se esperaba ErrYaRevelada", err)
+	}
+	// …y el resultado se puede volver a consultar sin repetir la revelada.
+	otra, err := s.Resultado("HU-1")
+	if err != nil {
+		t.Fatalf("consultar el resultado: %v", err)
+	}
+	if otra.Consenso != res.Consenso || otra.Maximo != res.Maximo || otra.Minimo != res.Minimo {
+		t.Errorf("Resultado() = %+v, se esperaba el mismo que Revelar(): %+v", otra, res)
+	}
+}
+
+// TestPlanningPoker_Revelar_errores: los tres casos de error de la spec HU-17.
+func TestPlanningPoker_Revelar_errores(t *testing.T) {
+	t.Run("sin votación abierta", func(t *testing.T) {
+		s, _ := nuevoServicioPoker(t)
+		if _, err := s.Revelar("HU-1"); !errors.Is(err, estimation.ErrSinVotacionAbierta) {
+			t.Fatalf("se esperaba ErrSinVotacionAbierta, se obtuvo %v", err)
+		}
+	})
+
+	t.Run("sin votos", func(t *testing.T) {
+		// RN-17.4: solo se revela una ronda con al menos un voto.
+		s, _ := nuevoServicioPoker(t)
+		if _, err := s.IniciarVotacion("HU-1"); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := s.Revelar("HU-1"); !errors.Is(err, estimation.ErrSinVotos) {
+			t.Fatalf("se esperaba ErrSinVotos, se obtuvo %v", err)
+		}
+	})
+
+	t.Run("ya revelada", func(t *testing.T) {
+		s, _ := nuevoServicioPoker(t)
+		if _, err := s.IniciarVotacion("HU-1"); err != nil {
+			t.Fatal(err)
+		}
+		if err := s.Votar("HU-1", "I1", 3); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := s.Revelar("HU-1"); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := s.Revelar("HU-1"); !errors.Is(err, estimation.ErrYaRevelada) {
+			t.Fatalf("se esperaba ErrYaRevelada, se obtuvo %v", err)
+		}
+	})
+}
+
+// TestPlanningPoker_Resultado: la pantalla consulta el resultado sin repetir la revelada; mientras la
+// votación está abierta los valores siguen ocultos (RN-16.4).
+func TestPlanningPoker_Resultado(t *testing.T) {
+	t.Run("sin votación abierta", func(t *testing.T) {
+		s, _ := nuevoServicioPoker(t)
+		if _, err := s.Resultado("HU-1"); !errors.Is(err, estimation.ErrSinVotacionAbierta) {
+			t.Fatalf("se esperaba ErrSinVotacionAbierta, se obtuvo %v", err)
+		}
+	})
+
+	t.Run("abierta, los valores ocultos", func(t *testing.T) {
+		s, _ := nuevoServicioPoker(t)
+		if _, err := s.IniciarVotacion("HU-1"); err != nil {
+			t.Fatal(err)
+		}
+		if err := s.Votar("HU-1", "I1", 5); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := s.Resultado("HU-1"); !errors.Is(err, estimation.ErrVotosOcultos) {
+			t.Fatalf("se esperaba ErrVotosOcultos, se obtuvo %v", err)
+		}
+	})
+
+	t.Run("revelada, el resultado queda a la vista", func(t *testing.T) {
+		s, _ := nuevoServicioPoker(t)
+		if _, err := s.IniciarVotacion("HU-1"); err != nil {
+			t.Fatal(err)
+		}
+		if err := s.Votar("HU-1", "I1", 5); err != nil {
+			t.Fatal(err)
+		}
+		if err := s.Votar("HU-1", "I2", 5); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := s.Revelar("HU-1"); err != nil {
+			t.Fatal(err)
+		}
+
+		res, err := s.Resultado("HU-1")
+		if err != nil {
+			t.Fatalf("error inesperado: %v", err)
+		}
+		if !res.Consenso || res.Maximo != 5 {
+			t.Errorf("resultado = %+v, se esperaba consenso en 5", res)
+		}
+	})
+}
+
 func TestPlanningPoker_Votar(t *testing.T) {
 	s, _ := nuevoServicioPoker(t)
 	if _, err := s.IniciarVotacion("HU-1"); err != nil {
