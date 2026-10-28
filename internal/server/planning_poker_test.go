@@ -61,6 +61,10 @@ func nuevoServidorPoker(t *testing.T) (http.Handler, *memory.Historias) {
 			t.Fatal(err)
 		}
 	}
+	// El Agile Enabler del proyecto: solo él revela (regla de interfaz, ADR 0004).
+	if _, err := svc.Integrantes.Registrar("P1", "Branko Almeira", project.AgileEnabler); err != nil {
+		t.Fatal(err)
+	}
 	if _, err := svc.Backlog.Crear("P1", "Login", "", backlog.PrioridadAlta); err != nil {
 		t.Fatal(err)
 	}
@@ -122,6 +126,111 @@ func TestPlanningPoker_pantalla(t *testing.T) {
 	router.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/planning-poker", nil))
 	if cuerpo := rec.Body.String(); !strings.Contains(cuerpo, "Votaron: Ana Pérez") {
 		t.Error("la página no muestra quién votó")
+	}
+}
+
+// TestPlanningPoker_revelar: con votos aparece el formulario "Revelo como" (solo Agile Enablers) y al
+// revelar se ven todos los votos con sus valores y las diferencias (HU-17).
+func TestPlanningPoker_revelar(t *testing.T) {
+	router, _ := nuevoServidorPoker(t)
+	router.ServeHTTP(httptest.NewRecorder(), pedidoFormulario(http.MethodPost, "/planning-poker/abrir", url.Values{"historia": {"HU-1"}}))
+	router.ServeHTTP(httptest.NewRecorder(), pedidoFormulario(http.MethodPost, "/planning-poker/votar",
+		url.Values{"historia": {"HU-1"}, "integrante": {"I1"}, "carta": {"5"}}))
+	router.ServeHTTP(httptest.NewRecorder(), pedidoFormulario(http.MethodPost, "/planning-poker/votar",
+		url.Values{"historia": {"HU-1"}, "integrante": {"I2"}, "carta": {"8"}}))
+
+	// Con votos, la pantalla ofrece revelar eligiendo entre los Agile Enablers del proyecto.
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/planning-poker", nil))
+	cuerpo := rec.Body.String()
+	if !strings.Contains(cuerpo, "Revelar votos") || !strings.Contains(cuerpo, "Revelo como") {
+		t.Error("la página no ofrece revelar los votos")
+	}
+	if !strings.Contains(cuerpo, "Branko Almeira") {
+		t.Error("el selector de revelar no incluye al Agile Enabler")
+	}
+
+	// El Agile Enabler revela: se ven los valores, el máximo y el mínimo con quiénes votaron cada uno.
+	rec = httptest.NewRecorder()
+	router.ServeHTTP(rec, pedidoFormulario(http.MethodPost, "/planning-poker/revelar",
+		url.Values{"historia": {"HU-1"}, "revelo": {"I3"}}))
+	if rec.Code != http.StatusSeeOther {
+		t.Fatalf("código = %d, se esperaba 303 (redirección a la lista)", rec.Code)
+	}
+	rec = httptest.NewRecorder()
+	router.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/planning-poker", nil))
+	cuerpo = rec.Body.String()
+	if !strings.Contains(cuerpo, "No hay consenso") {
+		t.Error("la página no informa la falta de consenso")
+	}
+	if !strings.Contains(cuerpo, "el voto más alto es 8 (Beto Gómez)") {
+		t.Error("la página no muestra el voto más alto con quién lo votó")
+	}
+	if !strings.Contains(cuerpo, "el voto más bajo es 5 (Ana Pérez)") {
+		t.Error("la página no muestra el voto más bajo con quién lo votó")
+	}
+	if !strings.Contains(cuerpo, "<td>5</td>") || !strings.Contains(cuerpo, "<td>8</td>") {
+		t.Error("la página no muestra los votos revelados con sus valores")
+	}
+	// La ronda revelada está cerrada: ya no se vota ni se revela (RN-17.4).
+	if strings.Contains(cuerpo, "Votás como") || strings.Contains(cuerpo, "Revelar votos") {
+		t.Error("la ronda revelada sigue ofreciendo votar o revelar")
+	}
+}
+
+// TestPlanningPoker_revelarConsenso: con todos los votos iguales, la página anuncia el consenso.
+func TestPlanningPoker_revelarConsenso(t *testing.T) {
+	router, _ := nuevoServidorPoker(t)
+	router.ServeHTTP(httptest.NewRecorder(), pedidoFormulario(http.MethodPost, "/planning-poker/abrir", url.Values{"historia": {"HU-1"}}))
+	for _, voto := range []url.Values{
+		{"historia": {"HU-1"}, "integrante": {"I1"}, "carta": {"5"}},
+		{"historia": {"HU-1"}, "integrante": {"I2"}, "carta": {"5"}},
+	} {
+		router.ServeHTTP(httptest.NewRecorder(), pedidoFormulario(http.MethodPost, "/planning-poker/votar", voto))
+	}
+	router.ServeHTTP(httptest.NewRecorder(), pedidoFormulario(http.MethodPost, "/planning-poker/revelar",
+		url.Values{"historia": {"HU-1"}, "revelo": {"I3"}}))
+
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/planning-poker", nil))
+	if cuerpo := rec.Body.String(); !strings.Contains(cuerpo, "Hay consenso en 5.") {
+		t.Errorf("la página no anuncia el consenso: %q", cuerpo)
+	}
+}
+
+// TestPlanningPoker_revelar_noEsAgileEnabler: un Product Builder no puede revelar (regla de interfaz,
+// ADR 0004): el pedido se rechaza con un mensaje claro.
+func TestPlanningPoker_revelar_noEsAgileEnabler(t *testing.T) {
+	router, _ := nuevoServidorPoker(t)
+	router.ServeHTTP(httptest.NewRecorder(), pedidoFormulario(http.MethodPost, "/planning-poker/abrir", url.Values{"historia": {"HU-1"}}))
+	router.ServeHTTP(httptest.NewRecorder(), pedidoFormulario(http.MethodPost, "/planning-poker/votar",
+		url.Values{"historia": {"HU-1"}, "integrante": {"I1"}, "carta": {"5"}}))
+
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, pedidoFormulario(http.MethodPost, "/planning-poker/revelar",
+		url.Values{"historia": {"HU-1"}, "revelo": {"I1"}}))
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("código = %d, se esperaba 400", rec.Code)
+	}
+	if !strings.Contains(rec.Body.String(), "solo un Agile Enabler puede revelar los votos") {
+		t.Errorf("la página de error no muestra el mensaje de la regla: %q", rec.Body.String())
+	}
+}
+
+// TestPlanningPoker_revelar_sinVotos: revelar una ronda sin votos muestra el error de la spec (RN-17.4),
+// aunque la pantalla no ofrezca el botón hasta que haya votos.
+func TestPlanningPoker_revelar_sinVotos(t *testing.T) {
+	router, _ := nuevoServidorPoker(t)
+	router.ServeHTTP(httptest.NewRecorder(), pedidoFormulario(http.MethodPost, "/planning-poker/abrir", url.Values{"historia": {"HU-1"}}))
+
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, pedidoFormulario(http.MethodPost, "/planning-poker/revelar",
+		url.Values{"historia": {"HU-1"}, "revelo": {"I3"}}))
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("código = %d, se esperaba 400", rec.Code)
+	}
+	if !strings.Contains(rec.Body.String(), "no hay votos para revelar") {
+		t.Errorf("la página de error no muestra el mensaje de la spec: %q", rec.Body.String())
 	}
 }
 

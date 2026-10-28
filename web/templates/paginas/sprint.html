@@ -24,7 +24,7 @@
   <div class="overflow-auto">
     <table>
       <thead>
-        <tr><th>ID</th><th>Historia</th><th>Story Points</th></tr>
+        <tr><th>ID</th><th>Historia</th><th>Story Points</th><th></th></tr>
       </thead>
       <tbody>
         {{- range .Datos.Historias}}
@@ -32,6 +32,14 @@
           <td>{{.ID}}</td>
           <td>{{.Titulo}}</td>
           <td>{{.StoryPoints}}</td>
+          <td>
+            {{- if index $.Datos.Completadas .ID}}✔ Completada
+            {{- else if $.Datos.PuedeCerrar}}
+            <form method="post" action="/sprints/{{$.Datos.Sprint.ID}}/historias/{{.ID}}/completar">
+              <button type="submit" class="secondary">Completar</button>
+            </form>
+            {{- end}}
+          </td>
         </tr>
         {{- end}}
       </tbody>
@@ -40,7 +48,7 @@
   {{- else}}
   <p>Todavía no hay historias en este sprint.</p>
   {{- end}}
-  <p><strong>{{.Datos.SPPlanificados}} Story Points planificados</strong></p>
+  <p><strong>{{.Datos.SPPlanificados}} Story Points planificados · {{.Datos.SPCompletados}} Story Points completados</strong></p>
 
   {{- if .Datos.PuedeAsignar}}
   {{- if .Datos.Disponibles}}
@@ -60,6 +68,13 @@
   {{- end}}
   {{- end}}
 </section>
+
+{{- if .Datos.PuedeCerrar}}
+<form method="post" action="/sprints/{{.Datos.Sprint.ID}}/cerrar">
+  <p>Al cerrar el sprint, las historias que no se completaron vuelven al backlog.</p>
+  <button type="submit">Cerrar sprint</button>
+</form>
+{{- end}}
 
 <p><a href="/sprints">Volver a la lista de sprints</a></p>
 {{end}}

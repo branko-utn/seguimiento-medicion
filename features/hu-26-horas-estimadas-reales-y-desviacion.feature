@@ -1,5 +1,5 @@
 # language: es
-@HU-26 @pendiente
+@HU-26
 Característica: Horas estimadas, reales y desviación
   Como líder del proyecto
   Quiero comparar las horas estimadas con las reales

@@ -25,6 +25,35 @@
     </label>
     <button type="submit">Votar</button>
   </form>
+  {{if .ConVotos}}
+    {{if .Enablers}}
+  <form method="post" action="/planning-poker/revelar">
+    <input type="hidden" name="historia" value="{{.Historia.ID}}">
+    <label>
+      Revelo como
+      <select name="revelo" required>
+        {{range .Enablers}}<option value="{{.ID}}">{{.Nombre}}</option>{{end}}
+      </select>
+    </label>
+    <button type="submit">Revelar votos</button>
+  </form>
+    {{else}}
+  <p>Se necesita un Agile Enabler para revelar los votos.</p>
+    {{end}}
+  {{end}}
+  {{else if .Revelada}}
+  <p>Los votos de la ronda:</p>
+  <table>
+    <thead><tr><th>Integrante</th><th>Carta</th></tr></thead>
+    <tbody>
+      {{range .Resultado.Votos}}<tr><td>{{.Integrante}}</td><td>{{.Carta}}</td></tr>{{end}}
+    </tbody>
+  </table>
+  {{if .Resultado.Consenso}}
+  <p>Hay consenso en {{.Resultado.Maximo}}.</p>
+  {{else}}
+  <p>No hay consenso: el voto más alto es {{.Resultado.Maximo}} ({{.Resultado.VotaronMaximo}}) y el voto más bajo es {{.Resultado.Minimo}} ({{.Resultado.VotaronMinimo}}).</p>
+  {{end}}
   {{else if .Completada}}
   <p>La historia está completada: no se vota.</p>
   {{else}}
