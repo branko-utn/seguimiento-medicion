@@ -1,0 +1,117 @@
+{{define "titulo"}}Esfuerzo{{end}}
+
+{{define "contenido"}}
+<h1>Esfuerzo</h1>
+
+<section>
+  <h2>Registrar horas trabajadas</h2>
+  <form method="post" action="/esfuerzo">
+    {{- with .Datos.Form.Error}}
+    <p class="error-formulario" role="alert">{{.}}</p>
+    {{- end}}
+    <div class="grid">
+      <label>
+        Integrante
+        <select name="integrante" required>
+          {{- range .Datos.Integrantes}}
+          <option value="{{.ID}}"{{if eq .ID $.Datos.Form.Integrante}} selected{{end}}>{{.Nombre}} · {{.Proyecto}}</option>
+          {{- end}}
+        </select>
+      </label>
+      <label>
+        Historia
+        <select name="historia" required>
+          {{- range .Datos.Historias}}
+          <option value="{{.ID}}"{{if eq .ID $.Datos.Form.Historia}} selected{{end}}>{{.ID}} · {{.Titulo}}</option>
+          {{- end}}
+        </select>
+      </label>
+    </div>
+    <div class="grid">
+      <label>
+        Fecha
+        <input type="date" name="fecha" value="{{.Datos.Form.Fecha}}" required>
+      </label>
+      <label>
+        Actividad
+        <input name="actividad" value="{{.Datos.Form.Actividad}}" placeholder="Desarrollo, Tests, Revisión de PR…" required>
+      </label>
+      <label>
+        Horas
+        <input name="horas" value="{{.Datos.Form.Horas}}" inputmode="decimal" required>
+      </label>
+    </div>
+    <button type="submit">Registrar horas</button>
+  </form>
+</section>
+
+<section>
+  <h2>Horas registradas</h2>
+  {{- if .Datos.Registros}}
+  <div class="overflow-auto">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">Fecha</th>
+          <th scope="col">Integrante</th>
+          <th scope="col">Historia</th>
+          <th scope="col">Actividad</th>
+          <th scope="col">Horas</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{- range .Datos.Registros}}
+        <tr>
+          <td>{{.Fecha.Format "02/01/2006"}}</td>
+          <td>{{.Integrante}}</td>
+          <td>{{.HistoriaID}}</td>
+          <td>{{.Actividad}}</td>
+          <td>{{.Horas}}</td>
+        </tr>
+        {{- end}}
+      </tbody>
+    </table>
+  </div>
+  {{- else}}
+  <p>Todavía no hay horas registradas.</p>
+  {{- end}}
+</section>
+
+<section>
+  <h2>Horas estimadas por historia</h2>
+  {{- if .Datos.Historias}}
+  <div class="overflow-auto">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">Historia</th>
+          <th scope="col">Horas estimadas</th>
+          <th scope="col">Estimar</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{- range .Datos.Historias}}
+        <tr>
+          <td>{{.ID}} · {{.Titulo}}</td>
+          <td>{{if .Estimada}}{{.Horas}}{{else}}Sin estimar{{end}}</td>
+          <td>
+            <form method="post" action="/esfuerzo/historias/{{.ID}}/estimacion">
+              {{- with .Error}}
+              <p class="error-formulario" role="alert">{{.}}</p>
+              {{- end}}
+              <fieldset role="group">
+                <input name="horas" value="{{.Valor}}" inputmode="decimal" aria-label="Horas estimadas de {{.ID}}" required>
+                <button type="submit">Guardar</button>
+              </fieldset>
+            </form>
+          </td>
+        </tr>
+        {{- end}}
+      </tbody>
+    </table>
+  </div>
+  {{- else}}
+  <p>Todavía no hay historias en el backlog.</p>
+  {{- end}}
+</section>
+{{end}}
