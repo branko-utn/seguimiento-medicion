@@ -48,7 +48,6 @@
   {{- else}}
   <p>Todavía no hay historias en este sprint.</p>
   {{- end}}
-  <p><strong>{{.Datos.SPPlanificados}} Story Points planificados · {{.Datos.SPCompletados}} Story Points completados</strong></p>
 
   {{- if .Datos.PuedeAsignar}}
   {{- if .Datos.Disponibles}}
@@ -66,6 +65,21 @@
   {{- else}}
   <p>No hay historias del backlog sin sprint en este proyecto.</p>
   {{- end}}
+  {{- end}}
+</section>
+
+<section>
+  <h2>Métricas del sprint</h2>
+  {{- with .Datos.Metricas}}
+  <ul>
+    <li><strong>{{$.Datos.SPPlanificados}} Story Points planificados</strong></li>
+    <li><strong>{{$.Datos.SPCompletados}} Story Points completados</strong></li>
+    <li><strong>{{.Porcentaje}} % de historias completadas ({{.Completadas}} de {{.Historias}})</strong></li>
+    <li><strong>Velocidad del equipo: {{.Velocidad}} Story Points por sprint
+      {{- if eq .SprintsCerrados 0}} (sin sprints cerrados todavía)
+      {{- else if eq .SprintsCerrados 1}} (1 sprint cerrado)
+      {{- else}} ({{.SprintsCerrados}} sprints cerrados){{end}}</strong></li>
+  </ul>
   {{- end}}
 </section>
 
