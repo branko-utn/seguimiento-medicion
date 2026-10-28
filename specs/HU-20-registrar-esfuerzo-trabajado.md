@@ -57,6 +57,7 @@ Un `effort.Registro` guardado con `ID` generado (`E1`, `E2`, …).
 | El integrante es de otro proyecto | `effort.ErrIntegranteDeOtroProyecto`: "el integrante no pertenece al proyecto de la historia" |
 | La historia no existe | `backlog.ErrNoExiste`: "la historia no existe" |
 | Actividad vacía | `effort.ErrActividadVacia`: "la actividad es obligatoria" |
+| Fecha vacía | `effort.ErrFechaVacia`: "la fecha es obligatoria" (lo agregó TEC-15, #90) |
 | Horas iguales a cero o negativas | `effort.ErrHorasInvalidas`: "las horas deben ser mayores que cero" |
 | Superaría 24 horas en el día | `effort.ErrSuperaHorasDiarias`: "el integrante superaría las 24 horas en ese día" |
 | Fecha futura | `effort.ErrFechaFutura`: "la fecha no puede ser futura" |
