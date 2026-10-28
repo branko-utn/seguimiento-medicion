@@ -4,6 +4,8 @@ import (
 	"errors"
 	"net/http"
 	"slices"
+	"strconv"
+	"strings"
 
 	"github.com/branko-utn/seguimiento-medicion/internal/domain"
 	"github.com/branko-utn/seguimiento-medicion/internal/domain/backlog"
@@ -26,7 +28,7 @@ func (a *app) rutasSprints(mux *http.ServeMux) {
 // datosSprint es lo que recibe sprint.html. Historias son las del Sprint Backlog y Disponibles las del proyecto que
 // todavía no tienen sprint (se ofrecen todas: las reglas de HU-11 las valida el dominio). PuedeIniciar,
 // PuedeAsignar y PuedeCerrar los decide el handler con el enum (ADR 0003): la plantilla no compara textos de estado.
-// Completadas marca las historias completadas en el sprint (HU-12). Error es el mensaje de la última acción que
+// Completadas marca las historias completadas en el sprint (HU-12). Metricas son las del sprint (TEC-17). Error es el mensaje de la última acción que
 // falló y Elegida la historia que se había elegido, para volver a seleccionarla.
 type datosSprint struct {
 	Sprint         sprint.Sprint
@@ -35,6 +37,7 @@ type datosSprint struct {
 	Completadas    map[domain.HistoriaID]bool
 	SPPlanificados int
 	SPCompletados  int
+	Metricas       metricasSprint
 	Disponibles    []backlog.Historia
 	PuedeIniciar   bool
 	PuedeAsignar   bool
@@ -132,7 +135,51 @@ func (a *app) mostrarSprint(w http.ResponseWriter, r *http.Request, codigo int, 
 	}
 	datos.SPPlanificados = metrics.SPPlanificados(entradas)
 	datos.SPCompletados = metrics.SPCompletados(entradas)
+	datos.Metricas, err = a.metricasSprint(sp)
+	if err != nil {
+		a.renderError(w, r, http.StatusInternalServerError, "No se pudieron calcular las métricas del sprint.")
+		return
+	}
 	a.renderConCodigo(w, r, codigo, "sprint.html", datos)
+}
+
+// metricasSprint son las métricas de la pantalla del sprint (TEC-17), con los números ya formateados con un decimal
+// (HU-24 y HU-25). La velocidad es la del equipo en el proyecto: el promedio de SP completados de sus sprints
+// cerrados (RN-24.3), así que no depende del sprint que se está mirando.
+type metricasSprint struct {
+	Porcentaje             string
+	Completadas, Historias int
+	Velocidad              string
+	SprintsCerrados        int
+}
+
+func (a *app) metricasSprint(sp sprint.Sprint) (metricasSprint, error) {
+	porcentaje, err := metrics.PorcentajeCompletadas(len(sp.Completadas), len(sp.Historias))
+	if err != nil {
+		return metricasSprint{}, err
+	}
+	sprints, err := a.svc.Sprints.DelProyecto(sp.ProyectoID)
+	if err != nil {
+		return metricasSprint{}, err
+	}
+	var completados []int
+	for _, s := range sprints {
+		if s.Estado == sprint.Cerrado {
+			completados = append(completados, s.SPCompletados)
+		}
+	}
+	return metricasSprint{
+		Porcentaje:      unDecimal(porcentaje),
+		Completadas:     len(sp.Completadas),
+		Historias:       len(sp.Historias),
+		Velocidad:       unDecimal(metrics.Velocidad(completados)),
+		SprintsCerrados: len(completados),
+	}, nil
+}
+
+// unDecimal muestra el número con un decimal y coma decimal, como piden HU-24 y HU-25 (10,333… se muestra 10,3).
+func unDecimal(v float64) string {
+	return strings.Replace(strconv.FormatFloat(v, 'f', 1, 64), ".", ",", 1)
 }
 
 // grupoSprints es un proyecto con sus sprints, en el orden en que se crearon.
