@@ -16,16 +16,28 @@ import (
 
 type claveRespuesta struct{}
 
-func registrarPasosHTTP(sc *godog.ScenarioContext) {
-	sc.Step(`^hago un pedido "([^"]*)" a "([^"]*)"$`, hacerPedido)
+func registrarPasosHTTP(sc *godog.ScenarioContext, m *mundo) {
+	sc.Step(`^hago un pedido "([^"]*)" a "([^"]*)"$`, m.hacerPedido)
 	sc.Step(`^la respuesta tiene código (\d+)$`, respuestaTieneCodigo)
 	sc.Step(`^el cuerpo es el JSON (.+)$`, cuerpoEsJSON)
 	sc.Step(`^la página contiene "([^"]*)"$`, paginaContiene)
 	sc.Step(`^la página contiene un enlace a "([^"]*)" con el texto "([^"]*)"$`, paginaContieneEnlace)
 }
 
-func hacerPedido(ctx context.Context, metodo, ruta string) (context.Context, error) {
-	router, err := server.NewRouter(server.Servicios{})
+// hacerPedido construye el router con los servicios del mundo, así los datos creados en los pasos "Dado" son
+// visibles para el handler HTTP que renderiza la página.
+func (m *mundo) hacerPedido(ctx context.Context, metodo, ruta string) (context.Context, error) {
+	svc := server.Servicios{
+		Proyectos:    m.proyectos,
+		Integrantes:  m.integrantes,
+		Backlog:      m.backlog,
+		Sprints:      m.sprints,
+		Estimaciones: m.estimaciones,
+		Registros:    m.registros,
+		Defectos:     m.defectos,
+		Poker:        m.poker,
+	}
+	router, err := server.NewRouter(svc)
 	if err != nil {
 		return ctx, err
 	}

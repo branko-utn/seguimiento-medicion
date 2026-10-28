@@ -1,0 +1,70 @@
+{{define "titulo"}}{{.Datos.Historia.ID}} · {{.Datos.Historia.Titulo}}{{end}}
+
+{{define "contenido"}}
+{{- with .Datos.Historia}}
+<hgroup>
+  <h1>{{.ID}} · {{.Titulo}}</h1>
+  <p>{{$.Datos.Proyecto}} · Prioridad {{.Prioridad}} · {{.Estado}} · {{if .StoryPoints}}{{.StoryPoints}} Story Points{{else}}Sin estimar{{end}}
+    {{- if .SprintID}} · Sprint <a href="/sprints/{{.SprintID}}">{{.SprintID}}</a>{{end}}</p>
+</hgroup>
+{{- if .Descripcion}}
+<p>{{.Descripcion}}</p>
+{{- end}}
+{{- end}}
+
+{{- with .Datos.Error}}
+<p class="error-formulario" role="alert">{{.}}</p>
+{{- end}}
+
+<section>
+  <h2>Criterios de aceptación</h2>
+  {{- if .Datos.Criterios}}
+  <ol>
+    {{- range .Datos.Criterios}}
+    <li>
+      {{.Texto}}
+      <form method="post" action="/backlog/{{$.Datos.Historia.ID}}/criterios/{{.Numero}}/quitar" class="en-linea">
+        <button type="submit" class="secondary outline">Quitar</button>
+      </form>
+    </li>
+    {{- end}}
+  </ol>
+  {{- else}}
+  <p>Todavía no tiene criterios de aceptación.</p>
+  {{- end}}
+  <form method="post" action="/backlog/{{.Datos.Historia.ID}}/criterios">
+    <fieldset role="group">
+      <input name="texto" placeholder="Nuevo criterio de aceptación" aria-label="Nuevo criterio de aceptación" required>
+      <button type="submit">Agregar</button>
+    </fieldset>
+  </form>
+</section>
+
+<section class="grid">
+  <form method="post" action="/backlog/{{.Datos.Historia.ID}}/estimacion">
+    <label>
+      Story Points
+      <select name="story_points" required>
+        {{- range .Datos.Escala}}
+        <option value="{{.}}"{{if eq . $.Datos.Historia.StoryPoints}} selected{{end}}>{{.}}</option>
+        {{- end}}
+      </select>
+    </label>
+    <button type="submit">Estimar</button>
+  </form>
+
+  <form method="post" action="/backlog/{{.Datos.Historia.ID}}/estado">
+    <label>
+      Estado
+      <select name="estado" required>
+        {{- range .Datos.Estados}}
+        <option{{if eq . $.Datos.EstadoActual}} selected{{end}}>{{.}}</option>
+        {{- end}}
+      </select>
+    </label>
+    <button type="submit">Cambiar estado</button>
+  </form>
+</section>
+
+<p><a href="/backlog">Volver al backlog</a></p>
+{{end}}

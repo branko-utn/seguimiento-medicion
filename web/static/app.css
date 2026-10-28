@@ -7,3 +7,5 @@ header.container nav { flex-wrap: wrap; }
 article.error header h1 { color: var(--pico-del-color); margin: 0; }
 .error-formulario { color: var(--pico-del-color); font-weight: bold; }
 footer.container { margin-top: 2rem; color: var(--pico-muted-color); }
+form.en-linea { display: inline; margin: 0 0 0 .5rem; }
+form.en-linea button { padding: .1rem .6rem; font-size: .85em; margin: 0; width: auto; }

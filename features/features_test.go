@@ -33,7 +33,7 @@ func TestFeatures(t *testing.T) {
 func inicializarEscenario(sc *godog.ScenarioContext) {
 	m := nuevoMundo()
 	registrarPasosComunes(sc, m)
-	registrarPasosHTTP(sc)
+	registrarPasosHTTP(sc, m)
 	registrarPasosComunesProyectos(sc, m)
 	registrarPasosComunesBacklog(sc, m)
 	registrarPasosHU01(sc, m)
@@ -59,6 +59,7 @@ func inicializarEscenario(sc *godog.ScenarioContext) {
 	registrarPasosHU16(sc, m)
 	registrarPasosHU23(sc, m)
 	registrarPasosHU17(sc, m)
+	registrarPasosTEC16(sc, m)
 	// Cada historia registra acá sus pasos, por ejemplo: registrarPasosHU01(sc, m)
 	// Los pasos compartidos entre historias los registra una sola vez su responsable (features/README.md).
 }
