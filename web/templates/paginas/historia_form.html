@@ -1,0 +1,38 @@
+{{define "titulo"}}Nueva historia{{end}}
+
+{{define "contenido"}}
+<h1>Nueva historia</h1>
+
+<form method="post" action="/backlog">
+  {{- with .Datos.Error}}
+  <p class="error-formulario" role="alert">{{.}}</p>
+  {{- end}}
+  <label>
+    Proyecto
+    <select name="proyecto" required>
+      {{- range .Datos.Proyectos}}
+      <option value="{{.ID}}"{{if eq .ID $.Datos.Proyecto}} selected{{end}}>{{.Nombre}}</option>
+      {{- end}}
+    </select>
+  </label>
+  <label>
+    Título
+    <input name="titulo" value="{{.Datos.Titulo}}" required>
+  </label>
+  <label>
+    Descripción (opcional)
+    <textarea name="descripcion" rows="3">{{.Datos.Descripcion}}</textarea>
+  </label>
+  <label>
+    Prioridad
+    <select name="prioridad" required>
+      {{- range .Datos.Prioridades}}
+      <option{{if eq . $.Datos.Prioridad}} selected{{end}}>{{.}}</option>
+      {{- end}}
+    </select>
+  </label>
+  <button type="submit">Crear historia</button>
+</form>
+
+<p><a href="/backlog">Volver al backlog</a></p>
+{{end}}

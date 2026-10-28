@@ -77,7 +77,7 @@ func TestBacklog_formularioNuevo(t *testing.T) {
 	}
 	contieneTodo(t, rec.Body.String(), `action="/backlog"`, `name="titulo"`, `name="descripcion"`,
 		`<option value="P1">Demo</option>`, `<option value="P2">Otro</option>`,
-		"<option>Alta</option>", "<option>Media</option>", "<option>Baja</option>")
+		"<option>Alta</option>", "<option selected>Media</option>", "<option>Baja</option>")
 }
 
 func TestBacklog_crear(t *testing.T) {

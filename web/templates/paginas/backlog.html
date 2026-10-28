@@ -6,6 +6,8 @@
   <p>Historias con prioridad, estado, Story Points y criterios de aceptación.</p>
 </hgroup>
 
+<p><a href="/backlog/nueva" role="button">Nueva historia</a></p>
+
 {{if .Datos.Historias}}
 <div class="overflow-auto">
   <table>
@@ -24,7 +26,7 @@
       {{- range .Datos.Historias}}
       <tr>
         <td>{{.ID}}</td>
-        <td>{{.Titulo}}</td>
+        <td><a href="/backlog/{{.ID}}">{{.Titulo}}</a></td>
         <td>{{index $.Datos.Proyectos (printf "%s" .ProyectoID)}}</td>
         <td>{{.Prioridad}}</td>
         <td>{{.Estado}}</td>
