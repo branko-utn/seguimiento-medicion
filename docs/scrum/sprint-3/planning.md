@@ -40,7 +40,7 @@ El Sprint 4 queda para la exportación a PDF, la documentación y el informe; el
 | Ignacio Bianchi | HU-18 · Nueva ronda y estimación acordada (#25) | 5 | `main` |
 | | TEC-05 · Umbral de cobertura en el CI (#39) | 2 | `main` |
 | Federico Sosa | HU-04 · Consultar estado del proyecto (#11) | 3 | `main` + TEC-20 |
-| Branko Almeira | TEC-20 · Base compartida del Sprint 3 (**entra primero**) | 1 | — |
+| Branko Almeira | TEC-20 · Base compartida del Sprint 3 (#99, **entra primero**) | 1 | — |
 | | HU-29 · Reporte de sprint (#36) | 5 | `main` + TEC-20 |
 | | HU-30 · Reporte de proyecto (#37) — **recortable** (pasa al Sprint 4) | 3 | HU-29 (propia) |
 | Todo el equipo | TEC-06 · Datos de demo: cargar nuestro propio proyecto (#40) | 3 | todo lo anterior |
