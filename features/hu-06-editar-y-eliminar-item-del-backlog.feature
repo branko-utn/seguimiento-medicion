@@ -1,5 +1,5 @@
 # language: es
-@HU-06 @pendiente
+@HU-06
 Característica: Editar y eliminar ítem del backlog
   Como líder del proyecto
   Quiero editar o eliminar historias

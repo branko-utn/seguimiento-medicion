@@ -23,7 +23,7 @@ func escenarioSprint(t *testing.T) (http.Handler, Servicios) {
 	sprintsSvc := service.NuevoSprints(sprints, proyectos, historias)
 	svc := Servicios{
 		Proyectos: service.NuevoProyectos(proyectos),
-		Backlog:   service.NuevoBacklog(historias, proyectos, sprintsSvc),
+		Backlog:   service.NuevoBacklog(historias, proyectos, sprintsSvc, nil, nil),
 		Sprints:   sprintsSvc,
 	}
 	dia := func(d int) time.Time { return time.Date(2026, 10, d, 0, 0, 0, 0, time.Local) }

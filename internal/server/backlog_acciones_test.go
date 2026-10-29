@@ -23,11 +23,18 @@ func nuevoServidorBacklog(t *testing.T) entornoBacklog {
 	repoProyectos, _ := memory.NuevoProyectos("")
 	repoHistorias, _ := memory.NuevoHistorias("")
 	repoSprints, _ := memory.NuevoSprints("")
+	repoIntegrantes, _ := memory.NuevoIntegrantes("")
+	repoRegistros, _ := memory.NuevoRegistros("")
+	repoDefectos, _ := memory.NuevoDefectos("")
 	sprints := service.NuevoSprints(repoSprints, repoProyectos, repoHistorias)
+	registros := service.NuevoRegistros(repoRegistros, repoIntegrantes, repoHistorias, repoProyectos)
+	defectos := service.NuevoDefectos(repoDefectos, repoHistorias, repoSprints)
 	svc := Servicios{
 		Proyectos: service.NuevoProyectos(repoProyectos),
 		Sprints:   sprints,
-		Backlog:   service.NuevoBacklog(repoHistorias, repoProyectos, sprints),
+		Backlog:   service.NuevoBacklog(repoHistorias, repoProyectos, sprints, registros, defectos),
+		Registros: registros,
+		Defectos:  defectos,
 	}
 	for _, nombre := range []string{"Demo", "Otro"} {
 		if _, err := svc.Proyectos.Crear(nombre, "", fechaDeFormulario("2026-10-21"), fechaDeFormulario("2026-11-02")); err != nil {

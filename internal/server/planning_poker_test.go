@@ -50,7 +50,7 @@ func nuevoServidorPoker(t *testing.T) (http.Handler, *memory.Historias) {
 	svc := Servicios{
 		Proyectos:   service.NuevoProyectos(repoProyectos),
 		Integrantes: service.NuevoIntegrantes(repoIntegrantes, repoProyectos),
-		Backlog:     service.NuevoBacklog(repoHistorias, repoProyectos, service.NuevoSprints(repoSprints, repoProyectos, repoHistorias)),
+		Backlog:     service.NuevoBacklog(repoHistorias, repoProyectos, service.NuevoSprints(repoSprints, repoProyectos, repoHistorias), nil, nil),
 		Poker:       service.NuevoPlanningPoker(repoSesiones, repoHistorias, repoIntegrantes),
 	}
 	if _, err := svc.Proyectos.Crear("Demo", "", inicioPoker, finPoker); err != nil {
