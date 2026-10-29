@@ -25,7 +25,7 @@ func escenarioDefectos(t *testing.T, conDefecto bool) (http.Handler, Servicios) 
 	sprintsSvc := service.NuevoSprints(sprints, proyectos, historias)
 	svc := Servicios{
 		Proyectos: service.NuevoProyectos(proyectos),
-		Backlog:   service.NuevoBacklog(historias, proyectos, sprintsSvc),
+		Backlog:   service.NuevoBacklog(historias, proyectos, sprintsSvc, nil, nil),
 		Sprints:   sprintsSvc,
 		Defectos:  service.NuevoDefectos(defectos, historias, sprints),
 	}

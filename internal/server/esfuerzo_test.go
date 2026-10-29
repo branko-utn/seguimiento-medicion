@@ -30,7 +30,7 @@ func escenarioEsfuerzo(t *testing.T) (http.Handler, Servicios) {
 	svc := Servicios{
 		Proyectos:    service.NuevoProyectos(proyectos),
 		Integrantes:  service.NuevoIntegrantes(integrantes, proyectos),
-		Backlog:      service.NuevoBacklog(historias, proyectos, sprintsSvc),
+		Backlog:      service.NuevoBacklog(historias, proyectos, sprintsSvc, nil, nil),
 		Sprints:      sprintsSvc,
 		Estimaciones: service.NuevoEstimaciones(estimaciones, historias),
 		Registros:    service.NuevoRegistros(registros, integrantes, historias, proyectos),

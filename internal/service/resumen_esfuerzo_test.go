@@ -24,7 +24,7 @@ func servicioResumen(t *testing.T) *Registros {
 	repoSpr, _ := memory.NuevoSprints("")
 	proyectos := NuevoProyectos(repoProy)
 	integrantes := NuevoIntegrantes(repoInt, repoProy)
-	hist := NuevoBacklog(repoHist, repoProy, NuevoSprints(repoSpr, repoProy, repoHist))
+	hist := NuevoBacklog(repoHist, repoProy, NuevoSprints(repoSpr, repoProy, repoHist), nil, nil)
 	for _, nombre := range []string{"Demo", "Otro"} {
 		if _, err := proyectos.Crear(nombre, "", inicio, fin); err != nil {
 			t.Fatal(err)
