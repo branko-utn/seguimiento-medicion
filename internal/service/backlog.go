@@ -15,6 +15,8 @@ type RepoHistorias interface {
 	Buscar(id domain.HistoriaID) (backlog.Historia, error)
 	// Guardar reemplaza una historia ya guardada, o devuelve backlog.ErrNoExiste.
 	Guardar(h backlog.Historia) error
+	// Estimar asigna Story Points a una historia (HU-15, HU-18).
+	Estimar(id domain.HistoriaID, sp int) error
 }
 
 // CompletadorHistorias es lo que el servicio de backlog necesita de HU-12: registrar el paso de una historia a

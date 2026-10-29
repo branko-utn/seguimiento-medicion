@@ -84,6 +84,19 @@ func (r *Historias) Guardar(h backlog.Historia) error {
 	})
 }
 
+// Estimar asigna Story Points a una historia (HU-15, HU-18). Busca la historia, aplica Estimar del dominio
+// y guarda el resultado.
+func (r *Historias) Estimar(id domain.HistoriaID, sp int) error {
+	h, err := r.Buscar(id)
+	if err != nil {
+		return err
+	}
+	if err := h.Estimar(sp); err != nil {
+		return err
+	}
+	return r.Guardar(h)
+}
+
 // clonarCriterios copia la lista para que la historia guardada no comparta memoria con la que se devuelve.
 func clonarCriterios(c []backlog.Criterio) []backlog.Criterio {
 	if c == nil {

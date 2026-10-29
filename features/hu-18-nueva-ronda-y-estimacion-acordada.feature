@@ -1,5 +1,5 @@
 # language: es
-@HU-18 @pendiente
+@HU-18
 Característica: Nueva ronda y estimación acordada
   Como líder del proyecto
   Quiero abrir nuevas rondas y registrar la estimación acordada

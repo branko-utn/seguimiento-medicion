@@ -328,3 +328,178 @@ func TestSesion_Votar_ExtremosEscala(t *testing.T) {
 		t.Fatalf("Votar 21 error = %v", err)
 	}
 }
+
+// ===== HU-18: Nueva ronda y estimación acordada =====
+
+// TestSesion_NuevaRonda_SinRevelar: RN-18.1, solo se abre una ronda nueva después de revelar.
+func TestSesion_NuevaRonda_SinRevelar(t *testing.T) {
+	s, _ := NuevaSesion(domain.HistoriaID("h1"))
+	s.Votar(domain.IntegranteID("i1"), 5)
+	// No revelar, intentar nueva ronda
+	if err := s.NuevaRonda(); !errors.Is(err, ErrRondaSinRevelar) {
+		t.Fatalf("se esperaba ErrRondaSinRevelar, se obtuvo %v", err)
+	}
+}
+
+// TestSesion_NuevaRonda: RN-18.1, abre una nueva ronda vacía y archiva la anterior.
+func TestSesion_NuevaRonda(t *testing.T) {
+	s, _ := NuevaSesion(domain.HistoriaID("h1"))
+	s.Votar(domain.IntegranteID("i1"), 3)
+	s.Votar(domain.IntegranteID("i2"), 8)
+	if _, err := s.Revelar(); err != nil {
+		t.Fatal(err)
+	}
+	// Abrir nueva ronda
+	if err := s.NuevaRonda(); err != nil {
+		t.Fatalf("NuevaRonda error = %v", err)
+	}
+	// La ronda actual debe ser 2, sin votos
+	if s.Ronda != 2 {
+		t.Fatalf("Ronda = %d, se esperaba 2", s.Ronda)
+	}
+	if len(s.QuienesVotaron()) != 0 {
+		t.Fatalf("nueva ronda debe empezar sin votos, got %v", s.QuienesVotaron())
+	}
+	// Historial: debe tener la ronda 1 con sus votos
+	rondas := s.Rondas()
+	if len(rondas) != 1 {
+		t.Fatalf("historial debe tener 1 ronda, got %d", len(rondas))
+	}
+	if rondas[0].Numero != 1 || len(rondas[0].Votos) != 2 {
+		t.Fatalf("ronda archivada = %+v, se esperaba ronda 1 con 2 votos", rondas[0])
+	}
+}
+
+// TestSesion_NuevaRonda_Varias: varias rondas se archivan en orden.
+func TestSesion_NuevaRonda_Varias(t *testing.T) {
+	s, _ := NuevaSesion(domain.HistoriaID("h1"))
+	// Ronda 1
+	s.Votar(domain.IntegranteID("i1"), 3)
+	s.Votar(domain.IntegranteID("i2"), 8)
+	s.Revelar()
+	s.NuevaRonda()
+	// Ronda 2
+	s.Votar(domain.IntegranteID("i1"), 5)
+	s.Votar(domain.IntegranteID("i2"), 5)
+	s.Revelar()
+	s.NuevaRonda()
+	// Ronda 3
+	if s.Ronda != 3 {
+		t.Fatalf("Ronda = %d, se esperaba 3", s.Ronda)
+	}
+	rondas := s.Rondas()
+	if len(rondas) != 2 {
+		t.Fatalf("historial debe tener 2 rondas, got %d", len(rondas))
+	}
+	if rondas[0].Numero != 1 || rondas[1].Numero != 2 {
+		t.Fatalf("números de ronda = %v, se esperaba [1, 2]", []int{rondas[0].Numero, rondas[1].Numero})
+	}
+}
+
+// TestSesion_Acordar: RN-18.3/RN-18.4, registra estimación acordada y cierra la votación.
+func TestSesion_Acordar(t *testing.T) {
+	s, _ := NuevaSesion(domain.HistoriaID("h1"))
+	s.Votar(domain.IntegranteID("i1"), 3)
+	s.Votar(domain.IntegranteID("i2"), 8)
+	s.Revelar()
+	// Acordar valor (puede ser distinto a lo votado, RN-18.3)
+	if err := s.Acordar(5); err != nil {
+		t.Fatalf("Acordar error = %v", err)
+	}
+	// La votación se cierra: no hay ronda actual
+	if s.Ronda != 0 {
+		t.Fatalf("tras acordar Ronda = %d, se esperaba 0 (cerrada)", s.Ronda)
+	}
+	// No se puede votar ni abrir nueva ronda
+	if err := s.Votar(domain.IntegranteID("i1"), 5); !errors.Is(err, ErrSinVotacionAbierta) {
+		t.Fatalf("votar tras acordar = %v, se esperaba ErrSinVotacionAbierta", err)
+	}
+	if err := s.NuevaRonda(); !errors.Is(err, ErrSinVotacionAbierta) {
+		t.Fatalf("nueva ronda tras acordar = %v, se esperaba ErrSinVotacionAbierta", err)
+	}
+	// Historial completo preservado
+	rondas := s.Rondas()
+	if len(rondas) != 1 {
+		t.Fatalf("historial debe tener 1 ronda, got %d", len(rondas))
+	}
+}
+
+// TestSesion_Acordar_SinRevelar: RN-18.4, solo se acuerda después de revelar.
+func TestSesion_Acordar_SinRevelar(t *testing.T) {
+	s, _ := NuevaSesion(domain.HistoriaID("h1"))
+	s.Votar(domain.IntegranteID("i1"), 5)
+	if err := s.Acordar(5); !errors.Is(err, ErrRondaSinRevelar) {
+		t.Fatalf("se esperaba ErrRondaSinRevelar, se obtuvo %v", err)
+	}
+}
+
+// TestSesion_Acordar_ValorFueraDeEscala: RN-18.3, el valor debe ser de la escala.
+func TestSesion_Acordar_ValorFueraDeEscala(t *testing.T) {
+	s, _ := NuevaSesion(domain.HistoriaID("h1"))
+	s.Votar(domain.IntegranteID("i1"), 5)
+	s.Revelar()
+	if err := s.Acordar(4); !errors.Is(err, ErrStoryPointsInvalidos) {
+		t.Fatalf("se esperaba ErrStoryPointsInvalidos, se obtuvo %v", err)
+	}
+}
+
+// TestSesion_Acordar_SinVotacionAbierta: tras acordar no hay votación abierta (RN-18.4).
+func TestSesion_Acordar_SinVotacionAbierta(t *testing.T) {
+	s, _ := NuevaSesion(domain.HistoriaID("h1"))
+	s.Votar(domain.IntegranteID("i1"), 5)
+	s.Revelar()
+	s.Acordar(5)
+	// Intentar operar sobre votación cerrada
+	if err := s.NuevaRonda(); !errors.Is(err, ErrSinVotacionAbierta) {
+		t.Fatalf("nueva ronda tras acordar = %v, se esperaba ErrSinVotacionAbierta", err)
+	}
+	if _, err := s.Resultado(); !errors.Is(err, ErrSinVotacionAbierta) {
+		t.Fatalf("resultado tras acordar = %v, se esperaba ErrSinVotacionAbierta", err)
+	}
+}
+
+// TestSesion_Rondas: el historial incluye la ronda actual si está revelada.
+func TestSesion_Rondas(t *testing.T) {
+	s, _ := NuevaSesion(domain.HistoriaID("h1"))
+	s.Votar(domain.IntegranteID("i1"), 3)
+	s.Revelar()
+	rondas := s.Rondas()
+	if len(rondas) != 1 || rondas[0].Numero != 1 {
+		t.Fatalf("rondas = %+v, se esperaba 1 ronda revelada", s.Rondas())
+	}
+}
+
+// TestSesion_JSONRoundTrip_ConHistorial: el historial se persiste y recupera.
+func TestSesion_JSONRoundTrip_ConHistorial(t *testing.T) {
+	s, _ := NuevaSesion(domain.HistoriaID("h1"))
+	s.Votar(domain.IntegranteID("i1"), 3)
+	s.Votar(domain.IntegranteID("i2"), 8)
+	s.Revelar()
+	s.NuevaRonda()
+	s.Votar(domain.IntegranteID("i1"), 5)
+	s.Revelar()
+	s.Acordar(5)
+
+	contenido, err := json.Marshal(s)
+	if err != nil {
+		t.Fatalf("Marshal error = %v", err)
+	}
+	var otra Sesion
+	if err := json.Unmarshal(contenido, &otra); err != nil {
+		t.Fatalf("Unmarshal error = %v", err)
+	}
+
+	if otra.Ronda != 0 {
+		t.Fatalf("Ronda = %d, se esperaba 0 (cerrada)", otra.Ronda)
+	}
+	rondas := otra.Rondas()
+	if len(rondas) != 2 {
+		t.Fatalf("historial debe tener 2 rondas, got %d", len(rondas))
+	}
+	if rondas[0].Numero != 1 || len(rondas[0].Votos) != 2 {
+		t.Fatalf("ronda 1 = %+v", rondas[0])
+	}
+	if rondas[1].Numero != 2 || len(rondas[1].Votos) != 1 {
+		t.Fatalf("ronda 2 = %+v", rondas[1])
+	}
+}

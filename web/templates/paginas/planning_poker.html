@@ -3,45 +3,61 @@
 {{define "contenido"}}
 <h1>Planning Poker</h1>
 <p>Las cartas se muestran al revelar los votos: mientras la votación está abierta, solo se ve quién votó.</p>
-{{range .Datos.Filas}}
-<article>
-  <header><h2>{{.Historia.Titulo}}</h2></header>
-  <p>Estado: {{.Historia.Estado}}</p>
-  {{if .Abierta}}
-  <p>Votaron: {{.Votaron}}</p>
-  <form method="post" action="/planning-poker/votar">
-    <input type="hidden" name="historia" value="{{.Historia.ID}}">
-    <label>
-      Votás como
-      <select name="integrante" required>
-        {{range .Integrantes}}<option value="{{.ID}}">{{.Nombre}}</option>{{end}}
-      </select>
-    </label>
-    <label>
-      Carta
-      <select name="carta">
-        {{range $.Datos.Escala}}<option>{{.}}</option>{{end}}
-      </select>
-    </label>
-    <button type="submit">Votar</button>
-  </form>
-  {{if .ConVotos}}
-    {{if .Enablers}}
-  <form method="post" action="/planning-poker/revelar">
-    <input type="hidden" name="historia" value="{{.Historia.ID}}">
-    <label>
-      Revelo como
-      <select name="revelo" required>
-        {{range .Enablers}}<option value="{{.ID}}">{{.Nombre}}</option>{{end}}
-      </select>
-    </label>
-    <button type="submit">Revelar votos</button>
-  </form>
-    {{else}}
-  <p>Se necesita un Agile Enabler para revelar los votos.</p>
-    {{end}}
-  {{end}}
-  {{else if .Revelada}}
+
+{{if .Datos.Pendientes}}
+<section>
+  <h2>Pendientes</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Historia</th>
+        <th>Estado</th>
+        <th>Ronda</th>
+        <th>Votaron</th>
+        <th>Acciones</th>
+      </thead>
+      <tbody>
+        {{range .Datos.Pendientes}}
+        <tr>
+          <td>{{.Historia.Titulo}}</td>
+          <td>{{.Historia.Estado}}</td>
+          <td>{{if .Abierta}}1{{else if .Revelada}}1{{else if .Cerrada}}—{{end}}</td>
+          <td>Votaron: {{.Votaron}}</td>
+          <td>
+            {{if .Abierta}}
+            <form method="post" action="/planning-poker/votar" style="display:inline;">
+              <input type="hidden" name="historia" value="{{.Historia.ID}}">
+              <label>
+                Votás como
+                <select name="integrante" required>
+                  {{range .Integrantes}}<option value="{{.ID}}">{{.Nombre}}</option>{{end}}
+                </select>
+              </label>
+              <label>
+                Carta
+                <select name="carta">
+                  {{range $.Datos.Escala}}<option>{{.}}</option>{{end}}
+                </select>
+              </label>
+              <button type="submit" style="margin-left:0.5rem;">Votar</button>
+            </form>
+            {{if .ConVotos}}
+            {{if .Enablers}}
+            <form method="post" action="/planning-poker/revelar" style="display:inline; margin-left:0.5rem;">
+              <input type="hidden" name="historia" value="{{.Historia.ID}}">
+              <label>
+                Revelo como
+                <select name="revelo" required>
+                  {{range .Enablers}}<option value="{{.ID}}">{{.Nombre}}</option>{{end}}
+                </select>
+              </label>
+              <button type="submit">Revelar votos</button>
+            </form>
+            {{else}}
+            <span style="margin-left:0.5rem; color:#666;">Se necesita Agile Enabler</span>
+            {{end}}
+            {{end}}
+            {{else if .Revelada}}
   <p>Los votos de la ronda:</p>
   <table>
     <thead><tr><th>Integrante</th><th>Carta</th></tr></thead>
@@ -54,16 +70,113 @@
   {{else}}
   <p>No hay consenso: el voto más alto es {{.Resultado.Maximo}} ({{.Resultado.VotaronMaximo}}) y el voto más bajo es {{.Resultado.Minimo}} ({{.Resultado.VotaronMinimo}}).</p>
   {{end}}
-  {{else if .Completada}}
-  <p>La historia está completada: no se vota.</p>
-  {{else}}
-  <form method="post" action="/planning-poker/abrir">
+  <form method="post" action="/planning-poker/nueva-ronda" style="display:inline;">
     <input type="hidden" name="historia" value="{{.Historia.ID}}">
-    <button type="submit">Abrir votación</button>
+    <button type="submit">Nueva ronda</button>
   </form>
+  <form method="post" action="/planning-poker/acordar" style="display:inline; margin-left:0.5rem;">
+    <input type="hidden" name="historia" value="{{.Historia.ID}}">
+    <label>
+      Estimar
+      <select name="estimacion" required>
+        {{range $.Datos.Escala}}<option>{{.}}</option>{{end}}
+      </select>
+    </label>
+    <button type="submit">Registrar</button>
+  </form>
+            {{else if .Cerrada}}
+            <span style="color:#666;">Cerrada ({{.Historia.StoryPoints}} SP)</span>
+            {{else}}
+            <form method="post" action="/planning-poker/abrir" style="display:inline;">
+              <input type="hidden" name="historia" value="{{.Historia.ID}}">
+              <button type="submit">Abrir votación</button>
+            </form>
+            {{end}}
+          </td>
+        </tr>
+        {{if .Historial}}
+        <tr class="historial-row">
+          <td colspan="5">
+            <details>
+              <summary>📜 Historial de rondas ({{len .Historial}})</summary>
+              {{range .Historial}}
+              <article style="margin:0.5rem 0; padding:0.5rem; border:1px solid #ddd; border-radius:4px;">
+                <h4 style="margin:0 0 0.5rem;">Ronda {{.Numero}}</h4>
+                <table style="width:100%; border-collapse:collapse;">
+                  <thead><tr><th>Integrante</th><th>Carta</th></tr></thead>
+                  <tbody>
+                    {{range .Votos}}<tr><td>{{.Integrante}}</td><td>{{.Carta}}</td></tr>{{end}}
+                  </tbody>
+                </table>
+                {{if .Consenso}}
+                <p style="margin:0.5rem 0; color:#2a7;">✓ Consenso en {{.Maximo}} SP</p>
+                {{else}}
+                <p style="margin:0.5rem 0; color:#c50;">No hay consenso: más alto {{.Maximo}} ({{.VotaronMax}}), más bajo {{.Minimo}} ({{.VotaronMin}})</p>
+                {{end}}
+              </article>
+              {{end}}
+            </details>
+          </td>
+        </tr>
+        {{end}}
+        {{end}}
+      </tbody>
+    </table>
+  </section>
+{{end}}
+
+{{if .Datos.Completadas}}
+<section>
+  <h2>Completadas</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Historia</th>
+        <th>Estado</th>
+        <th>Story Points</th>
+        <th>Historial</th>
+      </thead>
+      <tbody>
+        {{range .Datos.Completadas}}
+        <tr>
+          <td>{{.Historia.Titulo}}</td>
+          <td>{{.Historia.Estado}}</td>
+          <td>{{.Historia.StoryPoints}} SP</td>
+          <td>
+            {{if .Historial}}
+            <details>
+              <summary>📜 Historial ({{len .Historial}} rondas)</summary>
+              {{range .Historial}}
+              <article style="margin:0.5rem 0; padding:0.5rem; border:1px solid #ddd; border-radius:4px;">
+                <h4 style="margin:0 0 0.5rem;">Ronda {{.Numero}}</h4>
+                <table style="width:100%; border-collapse:collapse;">
+                  <thead><tr><th>Integrante</th><th>Carta</th></tr></thead>
+                  <tbody>
+                    {{range .Votos}}<tr><td>{{.Integrante}}</td><td>{{.Carta}}</td></tr>{{end}}
+                  </tbody>
+                </table>
+                {{if .Consenso}}
+                <p style="margin:0.5rem 0; color:#2a7;">✓ Consenso en {{.Maximo}} SP</p>
+                {{else}}
+                <p style="margin:0.5rem 0; color:#c50;">No hay consenso: más alto {{.Maximo}} ({{.VotaronMax}}), más bajo {{.Minimo}} ({{.VotaronMin}})</p>
+                {{end}}
+              </article>
+              {{end}}
+            </details>
+            {{else}}
+            <p style="color:#666;">La historia está completada: no se vota.</p>
+            {{end}}
+          </td>
+        </tr>
+        {{end}}
+      </tbody>
+    </table>
+  </section>
+{{end}}
+
+{{if not .Datos.Pendientes}}
+  {{if not .Datos.Completadas}}
+  <p>No hay historias en el backlog.</p>
   {{end}}
-</article>
-{{else}}
-<p>No hay historias en el backlog.</p>
 {{end}}
 {{end}}

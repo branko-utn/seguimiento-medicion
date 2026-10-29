@@ -13,27 +13,41 @@ import (
 )
 
 // rutasPlanningPoker registra las rutas de la sección Planning Poker (épica E4): la lista de historias
-// con sus votaciones, abrir una votación, votar y revelar (HU-16 y HU-17).
+// con sus votaciones, abrir una votación, votar, revelar, nueva ronda y estimación acordada (HU-16, HU-17, HU-18).
 func (a *app) rutasPlanningPoker(mux *http.ServeMux) {
 	mux.HandleFunc("GET /planning-poker", a.listarPlanningPoker)
 	mux.HandleFunc("POST /planning-poker/abrir", a.abrirVotacion)
 	mux.HandleFunc("POST /planning-poker/votar", a.votar)
 	mux.HandleFunc("POST /planning-poker/revelar", a.revelar)
+	mux.HandleFunc("POST /planning-poker/nueva-ronda", a.nuevaRonda)
+	mux.HandleFunc("POST /planning-poker/acordar", a.acordar)
 }
 
-// filaPoker es lo que se muestra de cada historia: si tiene la votación abierta o revelada, quiénes
-// votaron (solo los nombres: RN-16.4), los integrantes habilitados para votar (RN-16.1) y los Agile
-// Enablers habilitados para revelar (regla de interfaz, ADR 0004).
+// filaPoker es lo que se muestra de cada historia en la tabla compacta.
 type filaPoker struct {
 	Historia    backlog.Historia
 	Abierta     bool
 	Revelada    bool
+	Cerrada     bool
 	Completada  bool
-	ConVotos    bool
+	RondaActual int
 	Votaron     string
+	ConVotos    bool
 	Integrantes []project.Integrante
 	Enablers    []project.Integrante
 	Resultado   *vistaResultado // nil mientras la ronda no está revelada
+	Historial   []vistaRonda    // historial de rondas (HU-18)
+}
+
+// vistaRonda es una ronda del historial con sus votos y resultado (HU-18).
+type vistaRonda struct {
+	Numero     int
+	Votos      []vistaVoto
+	Consenso   bool
+	Maximo     int
+	Minimo     int
+	VotaronMax string
+	VotaronMin string
 }
 
 // vistaResultado es el resultado de la ronda con nombres, listo para la plantilla (HU-17).
@@ -54,19 +68,23 @@ type vistaVoto struct {
 
 // datosPoker es lo que recibe la plantilla de la sección.
 type datosPoker struct {
-	Filas  []filaPoker
-	Escala []int
+	Pendientes  []filaPoker
+	Completadas []filaPoker
+	Escala      []int
 }
 
-// listarPlanningPoker muestra el backlog con el estado de la votación de cada historia (HU-16 y HU-17).
+// listarPlanningPoker muestra el backlog con el estado de la votación de cada historia (HU-16, HU-17, HU-18).
 // Los valores de los votos llegan a la plantilla solo cuando la ronda está revelada (RN-16.4).
+// Si la votación está cerrada (estimación acordada), muestra el historial de rondas.
+// Separa pendientes (arriba) y completadas (abajo con título).
 func (a *app) listarPlanningPoker(w http.ResponseWriter, r *http.Request) {
 	historias, err := a.svc.Backlog.Listar()
 	if err != nil {
 		a.renderError(w, r, http.StatusInternalServerError, "No se pudieron cargar las historias.")
 		return
 	}
-	filas := make([]filaPoker, 0, len(historias))
+	pendientes := make([]filaPoker, 0)
+	completadas := make([]filaPoker, 0)
 	for _, h := range historias {
 		// RN-16.1: en la pantalla solo se elige entre los integrantes del proyecto de la historia.
 		integrantes, err := a.svc.Integrantes.DelProyecto(h.ProyectoID)
@@ -84,19 +102,65 @@ func (a *app) listarPlanningPoker(w http.ResponseWriter, r *http.Request) {
 		votantes, err := a.svc.Poker.QuienesVotaron(h.ID)
 		switch {
 		case errors.Is(err, estimation.ErrSinVotacionAbierta):
-			// Sin votación abierta: la fila ofrece abrirla (si la historia no está completada, RN-16.5).
+			// Sin votación abierta: puede estar cerrada (acordada) o nunca abierta.
+			rondas, err := a.svc.Poker.Rondas(h.ID)
+			if err == nil && len(rondas) > 0 {
+				// Votación cerrada: tiene historial
+				fila.Cerrada = true
+				fila.Historial = make([]vistaRonda, 0, len(rondas))
+				for _, r := range rondas {
+					vr := vistaRonda{Numero: r.Numero}
+					for _, v := range r.Votos {
+						vr.Votos = append(vr.Votos, vistaVoto{
+							Integrante: strings.Join(nombresDe(integrantes, []domain.IntegranteID{v.IntegranteID}), ""),
+							Carta:      v.Carta,
+						})
+					}
+					// Calcular consenso/max/min/votaron para la ronda archivada
+					if len(r.Votos) > 0 {
+						max, min := r.Votos[0].Carta, r.Votos[0].Carta
+						for _, v := range r.Votos[1:] {
+							if v.Carta > max {
+								max = v.Carta
+							}
+							if v.Carta < min {
+								min = v.Carta
+							}
+						}
+						consenso := max == min
+						var votaronMax, votaronMin []string
+						for _, v := range r.Votos {
+							if v.Carta == max {
+								votaronMax = append(votaronMax, strings.Join(nombresDe(integrantes, []domain.IntegranteID{v.IntegranteID}), ""))
+							}
+							if v.Carta == min {
+								votaronMin = append(votaronMin, strings.Join(nombresDe(integrantes, []domain.IntegranteID{v.IntegranteID}), ""))
+							}
+						}
+						vr.Consenso = consenso
+						vr.Maximo = max
+						vr.Minimo = min
+						vr.VotaronMax = strings.Join(votaronMax, ", ")
+						vr.VotaronMin = strings.Join(votaronMin, ", ")
+					}
+					fila.Historial = append(fila.Historial, vr)
+				}
+				fila.Cerrada = true
+			}
+			// Si no hay historial, es una historia sin votación (ofrecer abrir)
 		case err != nil:
 			a.renderError(w, r, http.StatusInternalServerError, "No se pudo cargar la votación.")
 			return
 		default:
 			fila.Abierta = true
 			fila.ConVotos = len(votantes) > 0
+			fila.RondaActual = 1 // la sesión siempre está en ronda 1 si está abierta
 			if nombres := nombresDe(integrantes, votantes); len(nombres) > 0 {
 				fila.Votaron = strings.Join(nombres, ", ")
 			} else {
 				fila.Votaron = "todavía nadie"
 			}
-			// Con la ronda revelada, el resultado queda a la vista y la votación se cierra (RN-17.4).
+			// Con la ronda revelada, el resultado queda a la vista (RN-17.4).
 			res, err := a.svc.Poker.Resultado(h.ID)
 			switch {
 			case err == nil:
@@ -109,9 +173,17 @@ func (a *app) listarPlanningPoker(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
-		filas = append(filas, fila)
+		if fila.Completada {
+			completadas = append(completadas, fila)
+		} else {
+			pendientes = append(pendientes, fila)
+		}
 	}
-	a.render(w, r, "planning_poker.html", datosPoker{Filas: filas, Escala: estimation.Escala})
+	a.render(w, r, "planning_poker.html", datosPoker{
+		Pendientes:  pendientes,
+		Completadas: completadas,
+		Escala:      estimation.Escala,
+	})
 }
 
 // abrirVotacion inicia la votación de la historia (HU-16) y vuelve a la lista.
@@ -160,6 +232,27 @@ func (a *app) revelar(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if _, err := a.svc.Poker.Revelar(historiaID); err != nil {
+		a.renderError(w, r, http.StatusBadRequest, err.Error())
+		return
+	}
+	http.Redirect(w, r, "/planning-poker", http.StatusSeeOther)
+}
+
+// nuevaRonda abre una nueva ronda de votación (HU-18) y vuelve a la lista.
+func (a *app) nuevaRonda(w http.ResponseWriter, r *http.Request) {
+	historiaID := domain.HistoriaID(r.FormValue("historia"))
+	if _, err := a.svc.Poker.NuevaRonda(historiaID); err != nil {
+		a.renderError(w, r, http.StatusBadRequest, err.Error())
+		return
+	}
+	http.Redirect(w, r, "/planning-poker", http.StatusSeeOther)
+}
+
+// acordar registra la estimación acordada y cierra la votación (HU-18) y vuelve a la lista.
+func (a *app) acordar(w http.ResponseWriter, r *http.Request) {
+	historiaID := domain.HistoriaID(r.FormValue("historia"))
+	carta, _ := strconv.Atoi(r.FormValue("estimacion"))
+	if err := a.svc.Poker.Acordar(historiaID, carta); err != nil {
 		a.renderError(w, r, http.StatusBadRequest, err.Error())
 		return
 	}

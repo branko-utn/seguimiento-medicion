@@ -7,7 +7,7 @@ import (
 	"github.com/branko-utn/seguimiento-medicion/internal/domain"
 )
 
-// Errores de Planning Poker (HU-16, HU-17).
+// Errores de Planning Poker (HU-16, HU-17, HU-18).
 var (
 	ErrHistoriaCompletada = errors.New("no se puede votar una historia completada")
 	ErrVotacionAbierta    = errors.New("la historia ya tiene una votación abierta")
@@ -20,20 +20,30 @@ var (
 	// en la tabla de errores de la spec HU-16: lo acordó el equipo en la planning del Sprint 2 y se
 	// documenta como aclaración en el PR.
 	ErrSinVotacionAbierta = errors.New("la historia no tiene una votación abierta")
+	// ErrRondaSinRevelar: HU-18, nueva ronda o acuerdo requieren ronda actual revelada.
+	ErrRondaSinRevelar = errors.New("primero hay que revelar los votos de la ronda")
 )
+
+// Ronda es una ronda de votación archivada en el historial (HU-18).
+type Ronda struct {
+	Numero int
+	Votos  []Voto
+}
 
 // Sesion representa una votación de Planning Poker para una historia.
 type Sesion struct {
 	HistoriaID domain.HistoriaID
 	// Ronda es la ronda actual de la votación; una votación nueva abre en la ronda 1 (spec HU-16).
-	Ronda int
-	// revelada indica que la ronda actual ya se reveló: no acepta votos nuevos (RN-17.4).
+	// Ronda = 0 significa que la votación está cerrada (estimación acordada, HU-18).
+	Ronda    int
 	revelada bool
 	// votos son los votos de la ronda actual, en el orden en que se emitieron. No está exportado: mientras la
 	// votación está abierta, la sesión no expone los valores de los votos (RN-16.4), solo quién votó.
 	// Se persisten igual en el JSON con MarshalJSON/UnmarshalJSON: los votos se ocultan en la interfaz,
 	// no en el archivo privado de data/.
 	votos []Voto
+	// rondas archivadas (historial de rondas reveladas, HU-18).
+	rondas []Ronda
 }
 
 // Voto representa el voto de un integrante en la ronda.
@@ -60,13 +70,17 @@ func NuevaSesion(historiaID domain.HistoriaID) (Sesion, error) {
 	return Sesion{
 		HistoriaID: historiaID,
 		Ronda:      1,
+		rondas:     make([]Ronda, 0),
 	}, nil
 }
 
 // Votar registra el voto de un integrante en la ronda actual. Una ronda revelada no acepta votos nuevos
 // (RN-17.4); la carta tiene que ser de la escala (RN-16.3) y cada integrante vota una sola vez por
-// ronda (RN-16.2).
+// ronda (RN-16.2). Una votación cerrada (Ronda=0) no acepta votos (RN-18.4).
 func (s *Sesion) Votar(integranteID domain.IntegranteID, carta int) error {
+	if s.Ronda == 0 {
+		return ErrSinVotacionAbierta
+	}
 	if s.revelada {
 		return ErrYaRevelada
 	}
@@ -109,8 +123,8 @@ func (s *Sesion) Votos() ([]Voto, error) {
 	return append([]Voto{}, s.votos...), nil
 }
 
-// Revelar cierra la ronda mostrando todos sus votos y las diferencias (HU-17). Requiere al menos un voto
-// (RN-17.4) y no se puede repetir.
+// Revelar muestra todos los votos de la ronda y las diferencias (HU-17). Requiere al menos un voto
+// (RN-17.4) y no se puede repetir. La ronda queda revelada para consultar su resultado.
 func (s *Sesion) Revelar() (Resultado, error) {
 	if s.revelada {
 		return Resultado{}, ErrYaRevelada
@@ -125,12 +139,62 @@ func (s *Sesion) Revelar() (Resultado, error) {
 
 // Resultado devuelve el resultado de una ronda revelada sin cambiar la sesión: lo consulta la pantalla al
 // recargar, cuando Revelar ya no puede repetirse. Mientras la votación está abierta, los valores no se
-// pueden consultar (RN-16.4).
+// pueden consultar (RN-16.4). Si la votación está cerrada (Ronda=0), devuelve ErrSinVotacionAbierta.
 func (s *Sesion) Resultado() (Resultado, error) {
+	if s.Ronda == 0 {
+		return Resultado{}, ErrSinVotacionAbierta
+	}
 	if !s.revelada {
 		return Resultado{}, ErrVotosOcultos
 	}
 	return s.calcularResultado(), nil
+}
+
+// Revelada informa si la ronda actual está revelada (HU-18).
+func (s *Sesion) Revelada() bool {
+	return s.revelada
+}
+
+// NuevaRonda archiva la ronda actual (que debe estar revelada) y abre la siguiente sin votos (HU-18, RN-18.1).
+// Si la votación está cerrada (Ronda=0), devuelve ErrSinVotacionAbierta.
+func (s *Sesion) NuevaRonda() error {
+	if s.Ronda == 0 {
+		return ErrSinVotacionAbierta
+	}
+	if !s.revelada {
+		return ErrRondaSinRevelar
+	}
+	s.rondas = append(s.rondas, Ronda{Numero: s.Ronda, Votos: append([]Voto{}, s.votos...)})
+	s.Ronda++
+	s.revelada = false
+	s.votos = nil
+	return nil
+}
+
+// Acordar registra la estimación acordada (HU-18, RN-18.3/RN-18.4): la ronda actual debe estar revelada
+// y el valor debe ser de la escala. Cierra la votación (Ronda = 0) y archiva la ronda actual.
+func (s *Sesion) Acordar(sp int) error {
+	if !s.revelada {
+		return ErrRondaSinRevelar
+	}
+	if err := ValidarStoryPoints(sp); err != nil {
+		return err
+	}
+	// Archivar la ronda actual antes de cerrar
+	s.rondas = append(s.rondas, Ronda{Numero: s.Ronda, Votos: append([]Voto{}, s.votos...)})
+	s.Ronda = 0 // 0 = votación cerrada (HU-18)
+	s.revelada = false
+	s.votos = nil
+	return nil
+}
+
+// Rondas devuelve el historial de rondas archivadas más la actual si está revelada (HU-18).
+func (s *Sesion) Rondas() []Ronda {
+	rondas := append([]Ronda{}, s.rondas...)
+	if s.revelada {
+		rondas = append(rondas, Ronda{Numero: s.Ronda, Votos: append([]Voto{}, s.votos...)})
+	}
+	return rondas
 }
 
 // calcularResultado arma el resultado de la ronda (RN-17.1 a RN-17.3): todos los votos en orden, consenso
@@ -166,12 +230,13 @@ type sesionJSON struct {
 	Ronda      int
 	Revelada   bool
 	Votos      []Voto
+	Rondas     []Ronda
 }
 
-// MarshalJSON persiste también los votos, que no están exportados: sin este método, el JSON guardado
+// MarshalJSON persiste también los votos y el historial, que no están exportados: sin este método, el JSON guardado
 // por Store perdería la votación completa.
 func (s Sesion) MarshalJSON() ([]byte, error) {
-	return json.Marshal(sesionJSON{HistoriaID: s.HistoriaID, Ronda: s.Ronda, Revelada: s.revelada, Votos: s.votos})
+	return json.Marshal(sesionJSON{HistoriaID: s.HistoriaID, Ronda: s.Ronda, Revelada: s.revelada, Votos: s.votos, Rondas: s.rondas})
 }
 
 // UnmarshalJSON reconstruye la sesión guardada, incluido el estado de la ronda y sus votos.
@@ -180,6 +245,6 @@ func (s *Sesion) UnmarshalJSON(contenido []byte) error {
 	if err := json.Unmarshal(contenido, &guardada); err != nil {
 		return err
 	}
-	s.HistoriaID, s.Ronda, s.revelada, s.votos = guardada.HistoriaID, guardada.Ronda, guardada.Revelada, guardada.Votos
+	s.HistoriaID, s.Ronda, s.revelada, s.votos, s.rondas = guardada.HistoriaID, guardada.Ronda, guardada.Revelada, guardada.Votos, guardada.Rondas
 	return nil
 }
