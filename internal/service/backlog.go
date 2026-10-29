@@ -79,9 +79,25 @@ func (s *Backlog) Listar() ([]backlog.Historia, error) {
 	return s.historias.Listar(), nil
 }
 
-// DelProyecto devuelve el backlog de un proyecto ordenado por prioridad e identificador (HU-09).
+// DelProyecto devuelve el backlog de un proyecto ordenado por prioridad e identificador (HU-09, RN-09.1), o
+// project.ErrNoExiste. Con estado nil no filtra; si no, solo deja las historias en ese estado (RN-09.2) o devuelve
+// backlog.ErrEstadoInvalido. Filtra primero y ordena después, como dice la spec.
 func (s *Backlog) DelProyecto(proyectoID domain.ProyectoID, estado *backlog.Estado) ([]backlog.Historia, error) {
-	return nil, nil
+	if _, err := s.proyectos.Buscar(proyectoID); err != nil {
+		return nil, err
+	}
+	if estado != nil {
+		if err := backlog.ValidarEstado(*estado); err != nil {
+			return nil, err
+		}
+	}
+	var del []backlog.Historia
+	for _, h := range s.historias.Listar() {
+		if h.ProyectoID == proyectoID && (estado == nil || h.Estado == *estado) { // RN-09.3 y RN-09.2
+			del = append(del, h)
+		}
+	}
+	return backlog.Ordenar(del), nil
 }
 
 // Buscar devuelve la historia con ese ID, o backlog.ErrNoExiste ("la historia no existe").
