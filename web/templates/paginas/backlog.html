@@ -8,35 +8,46 @@
 
 <p><a href="/backlog/nueva" role="button">Nueva historia</a></p>
 
-{{if .Datos.Historias}}
-<div class="overflow-auto">
-  <table>
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>Título</th>
-        <th>Proyecto</th>
-        <th>Prioridad</th>
-        <th>Estado</th>
-        <th>Story Points</th>
-        <th>Criterios</th>
-      </tr>
-    </thead>
-    <tbody>
-      {{- range .Datos.Historias}}
-      <tr>
-        <td>{{.ID}}</td>
-        <td><a href="/backlog/{{.ID}}">{{.Titulo}}</a></td>
-        <td>{{index $.Datos.Proyectos (printf "%s" .ProyectoID)}}</td>
-        <td>{{.Prioridad}}</td>
-        <td>{{.Estado}}</td>
-        <td>{{if .StoryPoints}}{{.StoryPoints}}{{else}}—{{end}}</td>
-        <td>{{len .Criterios}}</td>
-      </tr>
-      {{- end}}
-    </tbody>
-  </table>
-</div>
+<form method="get" action="/backlog" role="group">
+  <select name="estado" aria-label="Filtrar por estado">
+    <option value=""{{if not .Datos.EstadoActual}} selected{{end}}>Todos</option>
+    {{- range .Datos.Estados}}
+    <option{{if eq .String $.Datos.EstadoActual}} selected{{end}}>{{.}}</option>
+    {{- end}}
+  </select>
+  <button type="submit">Filtrar</button>
+</form>
+
+{{range .Datos.Grupos}}
+<section id="backlog-{{.ID}}">
+  <h2>{{.Nombre}}</h2>
+  <div class="overflow-auto">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Título</th>
+          <th>Prioridad</th>
+          <th>Estado</th>
+          <th>Story Points</th>
+          <th>Criterios</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{- range .Historias}}
+        <tr>
+          <td>{{.ID}}</td>
+          <td><a href="/backlog/{{.ID}}">{{.Titulo}}</a></td>
+          <td>{{.Prioridad}}</td>
+          <td>{{.Estado}}</td>
+          <td>{{if .StoryPoints}}{{.StoryPoints}}{{else}}—{{end}}</td>
+          <td>{{len .Criterios}}</td>
+        </tr>
+        {{- end}}
+      </tbody>
+    </table>
+  </div>
+</section>
 {{else}}
 <p>No hay historias en el backlog.</p>
 {{end}}
