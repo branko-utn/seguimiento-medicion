@@ -55,7 +55,7 @@ func nuevoMundo() *mundo {
 	return &mundo{
 		hoy:           time.Now().Truncate(24 * time.Hour),
 		alias:         map[string]string{},
-		proyectos:     service.NuevoProyectos(repoProyectos),
+		proyectos:     service.NuevoProyectos(repoProyectos).ConResumen(repoSprints, repoHistorias),
 		repoProyectos: repoProyectos,
 		integrantes:   service.NuevoIntegrantes(repoIntegrantes, repoProyectos),
 		backlog:       service.NuevoBacklog(repoHistorias, repoProyectos, sprintsSvc),
