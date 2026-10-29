@@ -74,7 +74,7 @@ func Nuevo(nombre, descripcion string, inicio, fin time.Time) (Proyecto, error) 
 // (RN-02.3) y después aplica las validaciones del alta reutilizando Nuevo (RN-02.1). El ID y el estado no cambian
 // (RN-02.4). Si hay un error, el proyecto queda como estaba. Que el nombre no sea de otro proyecto (RN-02.2) lo
 // controla el servicio.
-func (p *Proyecto) Modificar(nombre, descripcion string, inicio, fin time.Time) error {
+func (p *Proyecto) Modificar(nombre, descripcion string, inicio, fin, hoy time.Time) error {
 	if p.Estado == Finalizado {
 		return ErrProyectoFinalizado
 	}

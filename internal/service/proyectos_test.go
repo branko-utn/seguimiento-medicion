@@ -14,6 +14,8 @@ import (
 var (
 	inicio = time.Date(2026, time.October, 21, 0, 0, 0, 0, time.Local)
 	fin    = time.Date(2026, time.November, 2, 0, 0, 0, 0, time.Local)
+	// hoyEnCurso es un día dentro del proyecto: HU-02 decide si está finalizado con las fechas (EstadoAl, HU-04).
+	hoyEnCurso = time.Date(2026, time.October, 27, 0, 0, 0, 0, time.Local)
 )
 
 func nuevoServicioProyectos(t *testing.T) *Proyectos {
@@ -108,7 +110,7 @@ func TestProyectos_Modificar(t *testing.T) {
 	s, repo := prepararModificacion(t)
 	nuevoInicio, nuevoFin := inicio.AddDate(0, 0, 1), fin.AddDate(0, 0, 1)
 
-	p, err := s.Modificar("P1", "  Software Metrics  ", "TPI", nuevoInicio, nuevoFin)
+	p, err := s.Modificar("P1", "  Software Metrics  ", "TPI", nuevoInicio, nuevoFin, hoyEnCurso)
 	if err != nil {
 		t.Fatalf("error inesperado: %v", err)
 	}
@@ -131,7 +133,7 @@ func TestProyectos_Modificar_mismoNombre(t *testing.T) {
 		t.Run(nombre, func(t *testing.T) {
 			s, _ := prepararModificacion(t)
 
-			if _, err := s.Modificar("P1", nombre, "", inicio, fin); err != nil {
+			if _, err := s.Modificar("P1", nombre, "", inicio, fin, hoyEnCurso); err != nil {
 				t.Errorf("mantener el propio nombre (o cambiarle las mayúsculas) es válido, pero se obtuvo %v", err)
 			}
 		})
@@ -159,13 +161,14 @@ func TestProyectos_Modificar_errores(t *testing.T) {
 	for _, caso := range casos {
 		t.Run(caso.titulo, func(t *testing.T) {
 			s, repo := prepararModificacion(t)
-			// P3 "Final" en estado Finalizado: todavía no hay caso de uso que finalice un proyecto.
-			if _, err := repo.Agregar(project.Proyecto{Nombre: "Final", Descripcion: "Original", Inicio: inicio, Fin: fin, Estado: project.Finalizado}); err != nil {
+			// P3 "Final" terminó en septiembre: al 27/10 está finalizado por sus fechas, aunque el campo diga Planificado.
+			final := project.Proyecto{Nombre: "Final", Descripcion: "Original", Inicio: inicio.AddDate(0, -2, 0), Fin: inicio.AddDate(0, -1, 0), Estado: project.Planificado}
+			if _, err := repo.Agregar(final); err != nil {
 				t.Fatal(err)
 			}
 			antes, _ := s.Listar()
 
-			_, err := s.Modificar(caso.proyecto, caso.nombre, "Cambiada", caso.inicio, caso.fin)
+			_, err := s.Modificar(caso.proyecto, caso.nombre, "Cambiada", caso.inicio, caso.fin, hoyEnCurso)
 			if !errors.Is(err, caso.quiereError) {
 				t.Fatalf("se esperaba el error %v, se obtuvo %v", caso.quiereError, err)
 			}

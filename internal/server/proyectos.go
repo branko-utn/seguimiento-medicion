@@ -42,7 +42,7 @@ func (a *app) modificarProyecto(w http.ResponseWriter, r *http.Request) {
 	form := formEdicion(id)
 	form.leer(r)
 
-	_, err := a.svc.Proyectos.Modificar(id, form.Nombre, form.Descripcion, fechaDeFormulario(form.Inicio), fechaDeFormulario(form.Fin))
+	_, err := a.svc.Proyectos.Modificar(id, form.Nombre, form.Descripcion, fechaDeFormulario(form.Inicio), fechaDeFormulario(form.Fin), hoy())
 	switch {
 	case errors.Is(err, project.ErrNoExiste):
 		a.renderError(w, r, http.StatusNotFound, err.Error())

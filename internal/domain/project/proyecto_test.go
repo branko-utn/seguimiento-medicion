@@ -161,41 +161,47 @@ func TestNuevo(t *testing.T) {
 	}
 }
 
-// proyectoGuardado devuelve el proyecto "Demo" (P1) del 21/10 al 02/11 en el estado indicado.
-func proyectoGuardado(estado Estado) Proyecto {
+// proyectoGuardado devuelve el proyecto "Demo" (P1) del 21/10 al 02/11. El campo Estado guardado no decide si se
+// puede modificar: HU-02 usa el estado calculado con las fechas (EstadoAl, HU-04).
+func proyectoGuardado() Proyecto {
 	return Proyecto{
 		ID:          "P1",
 		Nombre:      "Demo",
 		Descripcion: "Original",
 		Inicio:      fecha(2026, time.October, 21),
 		Fin:         fecha(2026, time.November, 2),
-		Estado:      estado,
+		Estado:      Planificado,
 	}
 }
 
 func TestModificar(t *testing.T) {
 	inicio := fecha(2026, time.October, 22)
 	fin := fecha(2026, time.November, 3)
+	enCurso := fecha(2026, time.October, 27)
 
 	casos := []struct {
 		titulo       string
-		estado       Estado
+		hoy          time.Time
+		guardado     Estado
 		nombre       string
 		descripcion  string
 		quiereNombre string
 	}{
-		{titulo: "cambia nombre, descripción y fechas", estado: Planificado, nombre: "Software Metrics", descripcion: "TPI", quiereNombre: "Software Metrics"},
-		{titulo: "quita los espacios sobrantes del nombre", estado: Planificado, nombre: "  Software Metrics  ", quiereNombre: "Software Metrics"},
-		{titulo: "permite dejar la descripción vacía", estado: Planificado, nombre: "Demo", descripcion: "", quiereNombre: "Demo"},
-		{titulo: "permite cambiar solo las mayúsculas del nombre", estado: Planificado, nombre: "DEMO", quiereNombre: "DEMO"},
-		{titulo: "se puede modificar un proyecto en curso", estado: EnCurso, nombre: "Demo", quiereNombre: "Demo"},
+		{titulo: "cambia nombre, descripción y fechas", hoy: enCurso, guardado: Planificado, nombre: "Software Metrics", descripcion: "TPI", quiereNombre: "Software Metrics"},
+		{titulo: "quita los espacios sobrantes del nombre", hoy: enCurso, guardado: Planificado, nombre: "  Software Metrics  ", quiereNombre: "Software Metrics"},
+		{titulo: "permite dejar la descripción vacía", hoy: enCurso, guardado: Planificado, nombre: "Demo", descripcion: "", quiereNombre: "Demo"},
+		{titulo: "permite cambiar solo las mayúsculas del nombre", hoy: enCurso, guardado: Planificado, nombre: "DEMO", quiereNombre: "DEMO"},
+		{titulo: "se puede modificar antes del inicio", hoy: fecha(2026, time.October, 20), guardado: Planificado, nombre: "Demo", quiereNombre: "Demo"},
+		{titulo: "se puede modificar el día de fin", hoy: fecha(2026, time.November, 2), guardado: Planificado, nombre: "Demo", quiereNombre: "Demo"},
+		{titulo: "el estado guardado no decide: con fechas en curso se modifica", hoy: enCurso, guardado: Finalizado, nombre: "Demo", quiereNombre: "Demo"},
 	}
 
 	for _, caso := range casos {
 		t.Run(caso.titulo, func(t *testing.T) {
-			p := proyectoGuardado(caso.estado)
+			p := proyectoGuardado()
+			p.Estado = caso.guardado
 
-			if err := p.Modificar(caso.nombre, caso.descripcion, inicio, fin); err != nil {
+			if err := p.Modificar(caso.nombre, caso.descripcion, inicio, fin, caso.hoy); err != nil {
 				t.Fatalf("error inesperado: %v", err)
 			}
 			if p.Nombre != caso.quiereNombre || p.Descripcion != caso.descripcion {
@@ -204,19 +210,19 @@ func TestModificar(t *testing.T) {
 			if !p.Inicio.Equal(inicio) || !p.Fin.Equal(fin) {
 				t.Errorf("fechas = %v al %v, se esperaba %v al %v", p.Inicio, p.Fin, inicio, fin)
 			}
-			// RN-02.4: el ID y el estado no cambian.
-			if p.ID != "P1" || p.Estado != caso.estado {
-				t.Errorf("ID y estado = %q y %v, se esperaba P1 y %v", p.ID, p.Estado, caso.estado)
+			// RN-02.4: el ID y el estado guardado no cambian.
+			if p.ID != "P1" || p.Estado != caso.guardado {
+				t.Errorf("ID y estado = %q y %v, se esperaba P1 y %v", p.ID, p.Estado, caso.guardado)
 			}
 		})
 	}
 }
 
 func TestModificar_sinCambios(t *testing.T) {
-	p := proyectoGuardado(Planificado)
+	p := proyectoGuardado()
 	antes := p
 
-	if err := p.Modificar(p.Nombre, p.Descripcion, p.Inicio, p.Fin); err != nil {
+	if err := p.Modificar(p.Nombre, p.Descripcion, p.Inicio, p.Fin, fecha(2026, time.October, 27)); err != nil {
 		t.Fatalf("guardar sin cambios es válido, pero se obtuvo %v", err)
 	}
 	if p != antes {
@@ -227,29 +233,32 @@ func TestModificar_sinCambios(t *testing.T) {
 func TestModificar_errores(t *testing.T) {
 	inicio := fecha(2026, time.October, 21)
 	fin := fecha(2026, time.November, 2)
+	enCurso := fecha(2026, time.October, 27)
+	despuesDelFin := fecha(2026, time.November, 3)
 
 	casos := []struct {
 		titulo      string
-		estado      Estado
+		hoy         time.Time
 		nombre      string
 		inicio, fin time.Time
 		quiereError error
 	}{
-		{"nombre de 2 caracteres", Planificado, "AB", inicio, fin, ErrNombreInvalido},
-		{"nombre de 101 caracteres", Planificado, strings.Repeat("a", 101), inicio, fin, ErrNombreInvalido},
-		{"nombre con solo espacios", Planificado, "   ", inicio, fin, ErrNombreInvalido},
-		{"fin anterior al inicio", Planificado, "Demo", fin, inicio, ErrFechasInvalidas},
-		{"sin fecha de inicio", Planificado, "Demo", time.Time{}, fin, ErrFechasInvalidas},
-		{"proyecto finalizado", Finalizado, "Demo 2", inicio, fin, ErrProyectoFinalizado},
-		{"primero se controla que no esté finalizado", Finalizado, "AB", fin, inicio, ErrProyectoFinalizado},
+		{"nombre de 2 caracteres", enCurso, "AB", inicio, fin, ErrNombreInvalido},
+		{"nombre de 101 caracteres", enCurso, strings.Repeat("a", 101), inicio, fin, ErrNombreInvalido},
+		{"nombre con solo espacios", enCurso, "   ", inicio, fin, ErrNombreInvalido},
+		{"fin anterior al inicio", enCurso, "Demo", fin, inicio, ErrFechasInvalidas},
+		{"sin fecha de inicio", enCurso, "Demo", time.Time{}, fin, ErrFechasInvalidas},
+		{"proyecto finalizado por sus fechas", despuesDelFin, "Demo 2", inicio, fin, ErrProyectoFinalizado},
+		{"finalizado aunque las fechas nuevas lo reabrirían", despuesDelFin, "Demo", inicio, fecha(2026, time.November, 10), ErrProyectoFinalizado},
+		{"primero se controla que no esté finalizado", despuesDelFin, "AB", fin, inicio, ErrProyectoFinalizado},
 	}
 
 	for _, caso := range casos {
 		t.Run(caso.titulo, func(t *testing.T) {
-			p := proyectoGuardado(caso.estado)
+			p := proyectoGuardado()
 			antes := p
 
-			err := p.Modificar(caso.nombre, "Cambiada", caso.inicio, caso.fin)
+			err := p.Modificar(caso.nombre, "Cambiada", caso.inicio, caso.fin, caso.hoy)
 			if !errors.Is(err, caso.quiereError) {
 				t.Fatalf("se esperaba el error %v, se obtuvo %v", caso.quiereError, err)
 			}

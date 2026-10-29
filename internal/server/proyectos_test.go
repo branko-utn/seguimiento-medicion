@@ -26,6 +26,11 @@ func nuevoServidorProyectos(t *testing.T) (http.Handler, Servicios) {
 // estados que todavía no tienen caso de uso (Finalizado).
 func armarServidorProyectos(t *testing.T) (http.Handler, Servicios, *memory.Proyectos) {
 	t.Helper()
+	// Hoy es el 27/10/2026, dentro de los proyectos de prueba: la edición (HU-02) decide con las fechas si está
+	// finalizado, y el test no debe depender de la fecha real.
+	original := hoy
+	hoy = func() time.Time { return fechaDeFormulario("2026-10-27") }
+	t.Cleanup(func() { hoy = original })
 	repoProyectos, err := memory.NuevoProyectos("")
 	if err != nil {
 		t.Fatal(err)
@@ -327,8 +332,10 @@ func TestProyectos_modificar_errores(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
+			// P3 "Final" terminó en septiembre: al 27/10 está finalizado por sus fechas, aunque el campo diga Planificado.
 			final := otro
-			final.ID, final.Nombre, final.Estado = "", "Final", project.Finalizado
+			final.ID, final.Nombre = "", "Final"
+			final.Inicio, final.Fin = fechaDeFormulario("2026-09-01"), fechaDeFormulario("2026-09-30")
 			if _, err := repo.Agregar(final); err != nil {
 				t.Fatal(err)
 			}

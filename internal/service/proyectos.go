@@ -44,12 +44,12 @@ func (s *Proyectos) Crear(nombre, descripcion string, inicio, fin time.Time) (pr
 // Modificar cambia nombre, descripción y fechas de un proyecto (HU-02). Busca el proyecto, el dominio valida que no
 // esté finalizado y los datos (RN-02.1, RN-02.3), y el servicio controla que el nombre no sea el de otro proyecto
 // sin distinguir mayúsculas (RN-02.2): el propio nombre se puede mantener.
-func (s *Proyectos) Modificar(id domain.ProyectoID, nombre, descripcion string, inicio, fin time.Time) (project.Proyecto, error) {
+func (s *Proyectos) Modificar(id domain.ProyectoID, nombre, descripcion string, inicio, fin, hoy time.Time) (project.Proyecto, error) {
 	p, err := s.repo.Buscar(id)
 	if err != nil {
 		return project.Proyecto{}, err
 	}
-	if err := p.Modificar(nombre, descripcion, inicio, fin); err != nil {
+	if err := p.Modificar(nombre, descripcion, inicio, fin, hoy); err != nil {
 		return project.Proyecto{}, err
 	}
 	if s.nombreEnUso(p.Nombre, p.ID) {
