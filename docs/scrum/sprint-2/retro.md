@@ -39,8 +39,8 @@
 
 - **Corte en la daily del segundo día:** el ítem que no tenga PR abierto se reasigna o se recorta en ese momento,
   como dice la planning.
-- **Comprometer como máximo la velocidad ajustada a la duración del sprint** (unos 28 SP para dos días, con una
-  velocidad promedio de 42,5 SP en tres días) y dejar los ítems recortables marcados.
+- **Comprometer en firme menos que la velocidad** (42,5 SP de promedio) y dejar marcados los ítems recortables, para
+  que el corte sea una decisión prevista y no una sorpresa.
 - **Abrir el PR temprano como borrador**, para que el avance se vea en el tablero antes del cierre.
 
 ## Acciones para el próximo sprint
@@ -51,4 +51,4 @@
 | Volcar la daily en `docs/scrum/sprint-3/dailies.md` todos los días | Branko Almeira |
 | En la daily del segundo día, reasignar o recortar los ítems sin PR abierto | Branko Almeira (facilita), todo el equipo |
 | Respetar la rotación de revisores; si el revisor no puede, avisar en el grupo antes de aprobar otro | Todo el equipo |
-| Planificar el Sprint 3 con un tope de 28–30 SP y marcar qué se recorta primero | Branko Almeira, con todo el equipo |
+| Planificar el Sprint 3 con menos SP firmes que la velocidad y los recortables marcados | Branko Almeira, con todo el equipo |
