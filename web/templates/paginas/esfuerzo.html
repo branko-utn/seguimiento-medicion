@@ -78,6 +78,45 @@
 </section>
 
 <section>
+  <h2>Esfuerzo por proyecto</h2>
+  {{- range .Datos.Resumenes}}
+  <article id="esfuerzo-{{.ID}}">
+    <header><strong>{{.Nombre}}</strong> · {{.Total}} horas</header>
+    {{- if .PorHistoria}}
+    <div class="grid">
+      <div class="overflow-auto">
+        <table>
+          <thead>
+            <tr><th scope="col">Historia</th><th scope="col">Horas</th></tr>
+          </thead>
+          <tbody>
+            {{- range .PorHistoria}}
+            <tr><td><a href="/backlog/{{.Historia}}">{{.Historia}}</a></td><td>{{.Horas}}</td></tr>
+            {{- end}}
+          </tbody>
+        </table>
+      </div>
+      <div class="overflow-auto">
+        <table>
+          <thead>
+            <tr><th scope="col">Integrante</th><th scope="col">Horas</th></tr>
+          </thead>
+          <tbody>
+            {{- range .PorIntegrante}}
+            <tr><td>{{.Nombre}}</td><td>{{.Horas}}</td></tr>
+            {{- end}}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {{- else}}
+    <p>Todavía no hay esfuerzo registrado.</p>
+    {{- end}}
+  </article>
+  {{- end}}
+</section>
+
+<section>
   <h2>Horas estimadas por historia</h2>
   {{- if .Datos.Historias}}
   <div class="overflow-auto">
