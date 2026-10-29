@@ -373,3 +373,155 @@ func TestPlanningPoker_ConsultarVotos_sinVotacionAbierta(t *testing.T) {
 		t.Fatalf("se esperaba ErrSinVotacionAbierta, se obtuvo %v", err)
 	}
 }
+
+// ===== HU-18: Nueva ronda y estimación acordada =====
+
+func TestPlanningPoker_NuevaRonda(t *testing.T) {
+	s, _ := nuevoServicioPoker(t)
+	if _, err := s.IniciarVotacion("HU-1"); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.Votar("HU-1", "I1", 3); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.Votar("HU-1", "I2", 8); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := s.Revelar("HU-1"); err != nil {
+		t.Fatal(err)
+	}
+
+	// Abrir nueva ronda
+	sesion, err := s.NuevaRonda("HU-1")
+	if err != nil {
+		t.Fatalf("error inesperado: %v", err)
+	}
+	// La ronda actual debe ser 2, sin votos
+	if sesion.Ronda != 2 {
+		t.Fatalf("Ronda = %d, se esperaba 2", sesion.Ronda)
+	}
+	if len(sesion.QuienesVotaron()) != 0 {
+		t.Fatalf("nueva ronda debe empezar sin votos")
+	}
+}
+
+func TestPlanningPoker_NuevaRonda_SinRevelar(t *testing.T) {
+	s, _ := nuevoServicioPoker(t)
+	if _, err := s.IniciarVotacion("HU-1"); err != nil {
+		t.Fatal(err)
+	}
+	// Intentar nueva ronda sin revelar
+	if _, err := s.NuevaRonda("HU-1"); !errors.Is(err, estimation.ErrRondaSinRevelar) {
+		t.Fatalf("se esperaba ErrRondaSinRevelar, se obtuvo %v", err)
+	}
+}
+
+func TestPlanningPoker_NuevaRonda_SinVotacionAbierta(t *testing.T) {
+	s, _ := nuevoServicioPoker(t)
+	if _, err := s.NuevaRonda("HU-1"); !errors.Is(err, estimation.ErrSinVotacionAbierta) {
+		t.Fatalf("se esperaba ErrSinVotacionAbierta, se obtuvo %v", err)
+	}
+}
+
+func TestPlanningPoker_Acordar(t *testing.T) {
+	s, _ := nuevoServicioPoker(t)
+	if _, err := s.IniciarVotacion("HU-1"); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.Votar("HU-1", "I1", 3); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.Votar("HU-1", "I2", 8); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := s.Revelar("HU-1"); err != nil {
+		t.Fatal(err)
+	}
+
+	// Acordar valor (puede ser distinto a lo votado, RN-18.3)
+	if err := s.Acordar("HU-1", 5); err != nil {
+		t.Fatalf("error inesperado: %v", err)
+	}
+
+	// La votación se cierra: no hay votación abierta
+	if _, err := s.QuienesVotaron("HU-1"); !errors.Is(err, estimation.ErrSinVotacionAbierta) {
+		t.Errorf("votación cerrada no debe estar abierta: %v", err)
+	}
+	// La historia debe tener los Story Points acordados (via HU-15/Estimar)
+}
+
+func TestPlanningPoker_Acordar_SinRevelar(t *testing.T) {
+	s, _ := nuevoServicioPoker(t)
+	if _, err := s.IniciarVotacion("HU-1"); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.Acordar("HU-1", 5); !errors.Is(err, estimation.ErrRondaSinRevelar) {
+		t.Fatalf("se esperaba ErrRondaSinRevelar, se obtuvo %v", err)
+	}
+}
+
+func TestPlanningPoker_Acordar_ValorFueraDeEscala(t *testing.T) {
+	s, _ := nuevoServicioPoker(t)
+	if _, err := s.IniciarVotacion("HU-1"); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.Votar("HU-1", "I1", 5); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := s.Revelar("HU-1"); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.Acordar("HU-1", 4); !errors.Is(err, estimation.ErrStoryPointsInvalidos) {
+		t.Fatalf("se esperaba ErrStoryPointsInvalidos, se obtuvo %v", err)
+	}
+}
+
+func TestPlanningPoker_Acordar_HistoriaCompletada(t *testing.T) {
+	s, repoHistorias := nuevoServicioPoker(t)
+	if _, err := s.IniciarVotacion("HU-1"); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.Votar("HU-1", "I1", 5); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := s.Revelar("HU-1"); err != nil {
+		t.Fatal(err)
+	}
+	// Completar la historia
+	h, err := repoHistorias.Buscar("HU-1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	h.Estado = backlog.Completada
+	if err := repoHistorias.Guardar(h); err != nil {
+		t.Fatal(err)
+	}
+	// Intentar acordar
+	if err := s.Acordar("HU-1", 5); !errors.Is(err, backlog.ErrHistoriaCompletada) {
+		t.Fatalf("se esperaba ErrHistoriaCompletada, se obtuvo %v", err)
+	}
+}
+
+func TestPlanningPoker_Rondas(t *testing.T) {
+	s, _ := nuevoServicioPoker(t)
+	if _, err := s.IniciarVotacion("HU-1"); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.Votar("HU-1", "I1", 3); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.Votar("HU-1", "I2", 8); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := s.Revelar("HU-1"); err != nil {
+		t.Fatal(err)
+	}
+
+	rondas, err := s.Rondas("HU-1")
+	if err != nil {
+		t.Fatalf("error inesperado: %v", err)
+	}
+	if len(rondas) != 1 || rondas[0].Numero != 1 || len(rondas[0].Votos) != 2 {
+		t.Fatalf("rondas = %+v, se esperaba 1 ronda con 2 votos", rondas)
+	}
+}
