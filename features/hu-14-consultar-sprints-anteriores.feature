@@ -1,5 +1,5 @@
 # language: es
-@HU-14 @pendiente
+@HU-14
 Característica: Consultar sprints anteriores
   Como integrante del equipo
   Quiero ver los sprints cerrados con sus resultados
