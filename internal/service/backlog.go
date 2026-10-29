@@ -144,12 +144,44 @@ func (s *Backlog) Estimar(id domain.HistoriaID, sp int) error {
 	return s.historias.Guardar(h)
 }
 
-// Editar cambia el título, la descripción y la prioridad de una historia (HU-06).
+// Editar cambia el título, la descripción y la prioridad de una historia (HU-06). Busca la historia, aplica las
+// reglas del dominio (RN-06.1 y RN-06.2) y guarda el resultado; si algo falla, no se guarda nada.
 func (s *Backlog) Editar(id domain.HistoriaID, titulo, descripcion string, prioridad backlog.Prioridad) error {
-	return nil
+	h, err := s.historias.Buscar(id)
+	if err != nil {
+		return err
+	}
+	if err := h.Editar(titulo, descripcion, prioridad); err != nil {
+		return err
+	}
+	return s.historias.Guardar(h)
 }
 
-// Eliminar saca una historia del backlog (HU-06).
+// Eliminar saca una historia del backlog (HU-06). Valida en orden: que exista, las reglas del dominio (RN-06.3) y
+// que no tenga esfuerzo ni defectos registrados (RN-06.5). El repositorio no libera su ID (RN-06.4).
 func (s *Backlog) Eliminar(id domain.HistoriaID) error {
-	return nil
+	h, err := s.historias.Buscar(id)
+	if err != nil {
+		return err
+	}
+	if err := h.PuedeEliminarse(); err != nil {
+		return err
+	}
+	if s.tieneRegistros(id) {
+		return ErrHistoriaConRegistros
+	}
+	return s.historias.Eliminar(id)
+}
+
+// tieneRegistros informa si la historia tiene horas registradas (HU-20) o algún defecto (HU-22), para RN-06.5.
+func (s *Backlog) tieneRegistros(id domain.HistoriaID) bool {
+	if len(s.esfuerzo.DeHistoria(id)) > 0 {
+		return true
+	}
+	for _, d := range s.defectos.Listar() {
+		if d.HistoriaID == id {
+			return true
+		}
+	}
+	return false
 }
