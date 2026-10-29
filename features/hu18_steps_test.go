@@ -1,6 +1,7 @@
 package features
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 
@@ -29,12 +30,8 @@ func registrarPasosHU18(sc *godog.ScenarioContext, m *mundo) {
 		// Buscar la ronda específica en el historial
 		for i := range sesion {
 			if sesion[i].Numero == ronda {
-				// Crear un Resultado temporal para verificar con la tabla
-				res := estimation.Resultado{
-					Votos:    sesion[i].Votos,
-					Consenso: len(sesion[i].Votos) > 0 && sesion[i].Votos[0].Carta == sesion[i].Votos[len(sesion[i].Votos)-1].Carta, // simplificado
-				}
-				// Verificar solo los votos (la tabla solo tiene integrante | voto)
+				// Verificar los votos de esta ronda
+				res := estimation.Resultado{Votos: sesion[i].Votos}
 				return verificarTablaVotosRonda(res, tabla, m)
 			}
 		}
@@ -50,7 +47,10 @@ func registrarPasosHU18(sc *godog.ScenarioContext, m *mundo) {
 			return err
 		}
 		_, err := m.poker.QuienesVotaron(domain.HistoriaID(m.id("historia", historia)))
-		return m.resultado(err)
+		if !errors.Is(err, estimation.ErrSinVotacionAbierta) {
+			return fmt.Errorf("se esperaba ErrSinVotacionAbierta, se obtuvo %v", err)
+		}
+		return nil
 	})
 
 	// "la historia ... no tiene Story Points" ya está implementado en hu05_steps_test.go (compartido)
@@ -64,40 +64,21 @@ func registrarPasosHU18(sc *godog.ScenarioContext, m *mundo) {
 		if err := m.sinError(); err != nil {
 			return err
 		}
-		sesion, ok := m.poker.BuscarSesionParaTest(domain.HistoriaID(m.id("historia", historia)))
-		if !ok {
-			return fmt.Errorf("no hay votación para la historia %s", historia)
-		}
-		if sesion.Ronda != ronda {
-			return fmt.Errorf("la votación está en la ronda %d, se esperaba %d", sesion.Ronda, ronda)
-		}
-		// La sesión no está revelada (nueva ronda), por lo que no tiene votos visibles.
-		// Verificamos que la ronda actual no tenga votos (campo privado votos está vacío).
-		// Usamos reflexión o asumimos que una ronda no revelada no tiene votos.
-		// Como no podemos acceder al campo privado, verificamos que la ronda no esté revelada.
-		if sesion.Revelada() {
-			votos, err := sesion.Votos()
-			if err != nil {
-				return err
-			}
-			if len(votos) != 0 {
-				return fmt.Errorf("la ronda %d tiene %d votos, se esperaba 0", ronda, len(votos))
-			}
-		}
-		return nil
-	})
-
-	// "la votación de la historia ... está en la ronda N" (Entonces)
-	sc.Step(`^la votación de la historia "([^"]*)" está en la ronda (\d+)$`, func(historia string, ronda int) error {
-		if err := m.sinError(); err != nil {
+		rondaActual, err := m.poker.RondaActual(domain.HistoriaID(m.id("historia", historia)))
+		if err != nil {
 			return err
 		}
-		sesion, ok := m.poker.BuscarSesionParaTest(domain.HistoriaID(m.id("historia", historia)))
-		if !ok {
-			return fmt.Errorf("no hay votación para la historia %s", historia)
+		if rondaActual != ronda {
+			return fmt.Errorf("la votación está en la ronda %d, se esperaba %d", rondaActual, ronda)
 		}
-		if sesion.Ronda != ronda {
-			return fmt.Errorf("la votación está en la ronda %d, se esperaba %d", sesion.Ronda, ronda)
+		// Verificar que no hay votos (la ronda no está revelada)
+		sesion, err := m.poker.Rondas(domain.HistoriaID(m.id("historia", historia)))
+		if err == nil {
+			for i := range sesion {
+				if sesion[i].Numero == ronda {
+					return fmt.Errorf("la ronda %d tiene %d votos, se esperaba 0", ronda, len(sesion[i].Votos))
+				}
+			}
 		}
 		return nil
 	})
@@ -115,6 +96,21 @@ func registrarPasosHU18(sc *godog.ScenarioContext, m *mundo) {
 	sc.Step(`^abro una nueva ronda en la historia "([^"]*)"$`, func(historia string) error {
 		_, err := m.poker.NuevaRonda(domain.HistoriaID(m.id("historia", historia)))
 		return m.resultado(err)
+	})
+
+	// "la votación de la historia ... está en la ronda N" (Entonces)
+	sc.Step(`^la votación de la historia "([^"]*)" está en la ronda (\d+)$`, func(historia string, ronda int) error {
+		if err := m.sinError(); err != nil {
+			return err
+		}
+		rondaActual, err := m.poker.RondaActual(domain.HistoriaID(m.id("historia", historia)))
+		if err != nil {
+			return err
+		}
+		if rondaActual != ronda {
+			return fmt.Errorf("la votación está en la ronda %d, se esperaba %d", rondaActual, ronda)
+		}
+		return nil
 	})
 
 	// "que se registró N como estimación acordada de la historia ..." (Dado)

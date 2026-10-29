@@ -58,7 +58,7 @@ func nuevoServicioPoker(t *testing.T) (*PlanningPoker, *memory.Historias) {
 	if _, err := back.Crear("P1", "Login", "", backlog.PrioridadAlta); err != nil {
 		t.Fatal(err)
 	}
-	return NuevoPlanningPoker(repoSesiones, repoHistorias, repoIntegrantes, repoHistorias), repoHistorias
+	return NuevoPlanningPoker(repoSesiones, repoHistorias, repoIntegrantes), repoHistorias
 }
 
 func TestPlanningPoker_IniciarVotacion(t *testing.T) {

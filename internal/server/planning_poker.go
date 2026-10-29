@@ -75,7 +75,6 @@ type datosPoker struct {
 
 // listarPlanningPoker muestra el backlog con el estado de la votación de cada historia (HU-16, HU-17, HU-18).
 // Los valores de los votos llegan a la plantilla solo cuando la ronda está revelada (RN-16.4).
-// Si la votación está cerrada (estimación acordada), muestra el historial de rondas.
 // Separa pendientes (arriba) y completadas (abajo con título).
 func (a *app) listarPlanningPoker(w http.ResponseWriter, r *http.Request) {
 	historias, err := a.svc.Backlog.Listar()
@@ -103,10 +102,22 @@ func (a *app) listarPlanningPoker(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case errors.Is(err, estimation.ErrSinVotacionAbierta):
 			// Sin votación abierta: puede estar cerrada (acordada) o nunca abierta.
+			// No hay historial visible (spec: historial solo mientras está abierta)
+		case err != nil:
+			a.renderError(w, r, http.StatusInternalServerError, "No se pudo cargar la votación.")
+			return
+		default:
+			fila.Abierta = true
+			fila.ConVotos = len(votantes) > 0
+			// Cargar la ronda actual y el historial desde el servicio (HU-18)
+			rondaActual, err := a.svc.Poker.RondaActual(h.ID)
+			if err == nil {
+				fila.RondaActual = rondaActual
+			} else {
+				fila.RondaActual = 1
+			}
 			rondas, err := a.svc.Poker.Rondas(h.ID)
 			if err == nil && len(rondas) > 0 {
-				// Votación cerrada: tiene historial
-				fila.Cerrada = true
 				fila.Historial = make([]vistaRonda, 0, len(rondas))
 				for _, r := range rondas {
 					vr := vistaRonda{Numero: r.Numero}
@@ -116,7 +127,6 @@ func (a *app) listarPlanningPoker(w http.ResponseWriter, r *http.Request) {
 							Carta:      v.Carta,
 						})
 					}
-					// Calcular consenso/max/min/votaron para la ronda archivada
 					if len(r.Votos) > 0 {
 						max, min := r.Votos[0].Carta, r.Votos[0].Carta
 						for _, v := range r.Votos[1:] {
@@ -145,16 +155,7 @@ func (a *app) listarPlanningPoker(w http.ResponseWriter, r *http.Request) {
 					}
 					fila.Historial = append(fila.Historial, vr)
 				}
-				fila.Cerrada = true
 			}
-			// Si no hay historial, es una historia sin votación (ofrecer abrir)
-		case err != nil:
-			a.renderError(w, r, http.StatusInternalServerError, "No se pudo cargar la votación.")
-			return
-		default:
-			fila.Abierta = true
-			fila.ConVotos = len(votantes) > 0
-			fila.RondaActual = 1 // la sesión siempre está en ronda 1 si está abierta
 			if nombres := nombresDe(integrantes, votantes); len(nombres) > 0 {
 				fila.Votaron = strings.Join(nombres, ", ")
 			} else {

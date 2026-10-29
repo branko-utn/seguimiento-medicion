@@ -21,7 +21,7 @@
         <tr>
           <td>{{.Historia.Titulo}}</td>
           <td>{{.Historia.Estado}}</td>
-          <td>{{if .Abierta}}1{{else if .Revelada}}1{{else if .Cerrada}}—{{end}}</td>
+          <td>{{.RondaActual}}</td>
           <td>Votaron: {{.Votaron}}</td>
           <td>
             {{if .Abierta}}
@@ -58,46 +58,34 @@
             {{end}}
             {{end}}
             {{else if .Revelada}}
-  <p>Los votos de la ronda:</p>
-  <table>
-    <thead><tr><th>Integrante</th><th>Carta</th></tr></thead>
-    <tbody>
-      {{range .Resultado.Votos}}<tr><td>{{.Integrante}}</td><td>{{.Carta}}</td></tr>{{end}}
-    </tbody>
-  </table>
-  {{if .Resultado.Consenso}}
-  <p>Hay consenso en {{.Resultado.Maximo}}.</p>
-  {{else}}
-  <p>No hay consenso: el voto más alto es {{.Resultado.Maximo}} ({{.Resultado.VotaronMaximo}}) y el voto más bajo es {{.Resultado.Minimo}} ({{.Resultado.VotaronMinimo}}).</p>
-  {{end}}
-  <form method="post" action="/planning-poker/nueva-ronda" style="display:inline;">
-    <input type="hidden" name="historia" value="{{.Historia.ID}}">
-    <button type="submit">Nueva ronda</button>
-  </form>
-  <form method="post" action="/planning-poker/acordar" style="display:inline; margin-left:0.5rem;">
-    <input type="hidden" name="historia" value="{{.Historia.ID}}">
-    <label>
-      Estimar
-      <select name="estimacion" required>
-        {{range $.Datos.Escala}}<option>{{.}}</option>{{end}}
-      </select>
-    </label>
-    <button type="submit">Registrar</button>
-  </form>
-            {{else if .Cerrada}}
-            <span style="color:#666;">Cerrada ({{.Historia.StoryPoints}} SP)</span>
+            <p>Los votos de la ronda:</p>
+            <table>
+              <thead><tr><th>Integrante</th><th>Carta</th></tr></thead>
+              <tbody>
+                {{range .Resultado.Votos}}<tr><td>{{.Integrante}}</td><td>{{.Carta}}</td></tr>{{end}}
+              </tbody>
+            </table>
+            {{if .Resultado.Consenso}}
+            <p>Hay consenso en {{.Resultado.Maximo}}.</p>
             {{else}}
-            <form method="post" action="/planning-poker/abrir" style="display:inline;">
-              <input type="hidden" name="historia" value="{{.Historia.ID}}">
-              <button type="submit">Abrir votación</button>
-            </form>
+            <p>No hay consenso: el voto más alto es {{.Resultado.Maximo}} ({{.Resultado.VotaronMaximo}}) y el voto más bajo es {{.Resultado.Minimo}} ({{.Resultado.VotaronMinimo}}).</p>
             {{end}}
-          </td>
-        </tr>
-        {{if .Historial}}
-        <tr class="historial-row">
-          <td colspan="5">
-            <details>
+            <form method="post" action="/planning-poker/nueva-ronda" style="display:inline;">
+              <input type="hidden" name="historia" value="{{.Historia.ID}}">
+              <button type="submit">Nueva ronda</button>
+            </form>
+            <form method="post" action="/planning-poker/acordar" style="display:inline; margin-left:0.5rem;">
+              <input type="hidden" name="historia" value="{{.Historia.ID}}">
+              <label>
+                Estimar
+                <select name="estimacion" required>
+                  {{range $.Datos.Escala}}<option>{{.}}</option>{{end}}
+                </select>
+              </label>
+              <button type="submit">Registrar</button>
+            </form>
+            {{if .Historial}}
+            <details style="margin-top:1rem;">
               <summary>📜 Historial de rondas ({{len .Historial}})</summary>
               {{range .Historial}}
               <article style="margin:0.5rem 0; padding:0.5rem; border:1px solid #ddd; border-radius:4px;">
@@ -116,9 +104,21 @@
               </article>
               {{end}}
             </details>
+            {{end}}
+            {{else if .Historia.StoryPoints}}
+            <p style="color:#2a7;">Estimación acordada: {{.Historia.StoryPoints}} SP</p>
+            <form method="post" action="/planning-poker/abrir" style="display:inline;">
+              <input type="hidden" name="historia" value="{{.Historia.ID}}">
+              <button type="submit">Abrir nueva votación</button>
+            </form>
+            {{else}}
+            <form method="post" action="/planning-poker/abrir" style="display:inline;">
+              <input type="hidden" name="historia" value="{{.Historia.ID}}">
+              <button type="submit">Abrir votación</button>
+            </form>
+            {{end}}
           </td>
         </tr>
-        {{end}}
         {{end}}
       </tbody>
     </table>

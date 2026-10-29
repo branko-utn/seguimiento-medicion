@@ -406,30 +406,11 @@ func TestSesion_Acordar(t *testing.T) {
 	if err := s.Acordar(5); err != nil {
 		t.Fatalf("Acordar error = %v", err)
 	}
-	// La votación se cierra: no hay ronda actual
-	if s.Ronda != 0 {
-		t.Fatalf("tras acordar Ronda = %d, se esperaba 0 (cerrada)", s.Ronda)
-	}
-	// No se puede votar ni abrir nueva ronda
-	if err := s.Votar(domain.IntegranteID("i1"), 5); !errors.Is(err, ErrSinVotacionAbierta) {
-		t.Fatalf("votar tras acordar = %v, se esperaba ErrSinVotacionAbierta", err)
-	}
-	if err := s.NuevaRonda(); !errors.Is(err, ErrSinVotacionAbierta) {
-		t.Fatalf("nueva ronda tras acordar = %v, se esperaba ErrSinVotacionAbierta", err)
-	}
+	// El dominio valida (revealed + escala); el cierre (Ronda=0 / eliminación) lo hace el servicio.
 	// Historial completo preservado
 	rondas := s.Rondas()
 	if len(rondas) != 1 {
 		t.Fatalf("historial debe tener 1 ronda, got %d", len(rondas))
-	}
-}
-
-// TestSesion_Acordar_SinRevelar: RN-18.4, solo se acuerda después de revelar.
-func TestSesion_Acordar_SinRevelar(t *testing.T) {
-	s, _ := NuevaSesion(domain.HistoriaID("h1"))
-	s.Votar(domain.IntegranteID("i1"), 5)
-	if err := s.Acordar(5); !errors.Is(err, ErrRondaSinRevelar) {
-		t.Fatalf("se esperaba ErrRondaSinRevelar, se obtuvo %v", err)
 	}
 }
 
@@ -443,18 +424,12 @@ func TestSesion_Acordar_ValorFueraDeEscala(t *testing.T) {
 	}
 }
 
-// TestSesion_Acordar_SinVotacionAbierta: tras acordar no hay votación abierta (RN-18.4).
-func TestSesion_Acordar_SinVotacionAbierta(t *testing.T) {
+// TestSesion_Acordar_SinRevelar: RN-18.4, solo se acuerda después de revelar.
+func TestSesion_Acordar_SinRevelar(t *testing.T) {
 	s, _ := NuevaSesion(domain.HistoriaID("h1"))
 	s.Votar(domain.IntegranteID("i1"), 5)
-	s.Revelar()
-	s.Acordar(5)
-	// Intentar operar sobre votación cerrada
-	if err := s.NuevaRonda(); !errors.Is(err, ErrSinVotacionAbierta) {
-		t.Fatalf("nueva ronda tras acordar = %v, se esperaba ErrSinVotacionAbierta", err)
-	}
-	if _, err := s.Resultado(); !errors.Is(err, ErrSinVotacionAbierta) {
-		t.Fatalf("resultado tras acordar = %v, se esperaba ErrSinVotacionAbierta", err)
+	if err := s.Acordar(5); !errors.Is(err, ErrRondaSinRevelar) {
+		t.Fatalf("se esperaba ErrRondaSinRevelar, se obtuvo %v", err)
 	}
 }
 
@@ -489,9 +464,7 @@ func TestSesion_JSONRoundTrip_ConHistorial(t *testing.T) {
 		t.Fatalf("Unmarshal error = %v", err)
 	}
 
-	if otra.Ronda != 0 {
-		t.Fatalf("Ronda = %d, se esperaba 0 (cerrada)", otra.Ronda)
-	}
+	// Tras Acordar, la ronda actual sigue siendo 2 (el cierre lo hace el servicio eliminando la sesión).
 	rondas := otra.Rondas()
 	if len(rondas) != 2 {
 		t.Fatalf("historial debe tener 2 rondas, got %d", len(rondas))

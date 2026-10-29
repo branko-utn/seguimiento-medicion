@@ -78,9 +78,6 @@ func NuevaSesion(historiaID domain.HistoriaID) (Sesion, error) {
 // (RN-17.4); la carta tiene que ser de la escala (RN-16.3) y cada integrante vota una sola vez por
 // ronda (RN-16.2). Una votación cerrada (Ronda=0) no acepta votos (RN-18.4).
 func (s *Sesion) Votar(integranteID domain.IntegranteID, carta int) error {
-	if s.Ronda == 0 {
-		return ErrSinVotacionAbierta
-	}
 	if s.revelada {
 		return ErrYaRevelada
 	}
@@ -141,9 +138,6 @@ func (s *Sesion) Revelar() (Resultado, error) {
 // recargar, cuando Revelar ya no puede repetirse. Mientras la votación está abierta, los valores no se
 // pueden consultar (RN-16.4). Si la votación está cerrada (Ronda=0), devuelve ErrSinVotacionAbierta.
 func (s *Sesion) Resultado() (Resultado, error) {
-	if s.Ronda == 0 {
-		return Resultado{}, ErrSinVotacionAbierta
-	}
 	if !s.revelada {
 		return Resultado{}, ErrVotosOcultos
 	}
@@ -158,9 +152,6 @@ func (s *Sesion) Revelada() bool {
 // NuevaRonda archiva la ronda actual (que debe estar revelada) y abre la siguiente sin votos (HU-18, RN-18.1).
 // Si la votación está cerrada (Ronda=0), devuelve ErrSinVotacionAbierta.
 func (s *Sesion) NuevaRonda() error {
-	if s.Ronda == 0 {
-		return ErrSinVotacionAbierta
-	}
 	if !s.revelada {
 		return ErrRondaSinRevelar
 	}
@@ -172,7 +163,7 @@ func (s *Sesion) NuevaRonda() error {
 }
 
 // Acordar registra la estimación acordada (HU-18, RN-18.3/RN-18.4): la ronda actual debe estar revelada
-// y el valor debe ser de la escala. Cierra la votación (Ronda = 0) y archiva la ronda actual.
+// y el valor debe ser de la escala. La votación se cierra en el servicio (se elimina la sesión).
 func (s *Sesion) Acordar(sp int) error {
 	if !s.revelada {
 		return ErrRondaSinRevelar
@@ -180,11 +171,6 @@ func (s *Sesion) Acordar(sp int) error {
 	if err := ValidarStoryPoints(sp); err != nil {
 		return err
 	}
-	// Archivar la ronda actual antes de cerrar
-	s.rondas = append(s.rondas, Ronda{Numero: s.Ronda, Votos: append([]Voto{}, s.votos...)})
-	s.Ronda = 0 // 0 = votación cerrada (HU-18)
-	s.revelada = false
-	s.votos = nil
 	return nil
 }
 
