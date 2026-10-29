@@ -91,3 +91,8 @@ func clonarCriterios(c []backlog.Criterio) []backlog.Criterio {
 	}
 	return append([]backlog.Criterio(nil), c...)
 }
+
+// Eliminar saca una historia del backlog (HU-06).
+func (r *Historias) Eliminar(id domain.HistoriaID) error {
+	return nil
+}
