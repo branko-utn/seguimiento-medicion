@@ -1,5 +1,5 @@
 # language: es
-@HU-21 @pendiente
+@HU-21
 Característica: Consultar el esfuerzo registrado
   Como integrante del equipo
   Quiero ver el esfuerzo registrado por historia y por integrante

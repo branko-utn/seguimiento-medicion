@@ -51,7 +51,7 @@ func nuevoMundo() *mundo {
 	repoSesiones, _ := memory.NuevoSesiones("")
 
 	sprintsSvc := service.NuevoSprints(repoSprints, repoProyectos, repoHistorias)
-	registrosSvc := service.NuevoRegistros(repoRegistros, repoIntegrantes, repoHistorias)
+	registrosSvc := service.NuevoRegistros(repoRegistros, repoIntegrantes, repoHistorias, repoProyectos)
 	defectosSvc := service.NuevoDefectos(repoDefectos, repoHistorias, repoSprints)
 
 	return &mundo{

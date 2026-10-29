@@ -56,7 +56,7 @@ func NuevosServicios(dir string) (server.Servicios, error) {
 	// Backlog delega en Sprints para completar historias (HU-08 → HU-12).
 	sprintsSvc := service.NuevoSprints(sprints, proyectos, historias)
 	// Backlog consulta registros y defectos para no eliminar historias con datos (HU-06, RN-06.5).
-	registrosSvc := service.NuevoRegistros(registros, integrantes, historias)
+	registrosSvc := service.NuevoRegistros(registros, integrantes, historias, proyectos)
 	defectosSvc := service.NuevoDefectos(defectos, historias, sprints)
 	return server.Servicios{
 		Proyectos:    service.NuevoProyectos(proyectos),

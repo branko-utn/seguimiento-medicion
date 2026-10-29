@@ -27,7 +27,7 @@ func nuevoServidorBacklog(t *testing.T) entornoBacklog {
 	repoRegistros, _ := memory.NuevoRegistros("")
 	repoDefectos, _ := memory.NuevoDefectos("")
 	sprints := service.NuevoSprints(repoSprints, repoProyectos, repoHistorias)
-	registros := service.NuevoRegistros(repoRegistros, repoIntegrantes, repoHistorias)
+	registros := service.NuevoRegistros(repoRegistros, repoIntegrantes, repoHistorias, repoProyectos)
 	defectos := service.NuevoDefectos(repoDefectos, repoHistorias, repoSprints)
 	svc := Servicios{
 		Proyectos: service.NuevoProyectos(repoProyectos),
