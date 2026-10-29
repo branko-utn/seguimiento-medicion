@@ -35,7 +35,7 @@ type Sesion struct {
 	HistoriaID domain.HistoriaID
 	// Ronda es la ronda actual de la votación; una votación nueva abre en la ronda 1 (spec HU-16).
 	// Ronda = 0 significa que la votación está cerrada (estimación acordada, HU-18).
-	Ronda   int
+	Ronda    int
 	revelada bool
 	// votos son los votos de la ronda actual, en el orden en que se emitieron. No está exportado: mientras la
 	// votación está abierta, la sesión no expone los valores de los votos (RN-16.4), solo quién votó.

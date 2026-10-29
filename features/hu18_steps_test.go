@@ -31,8 +31,8 @@ func registrarPasosHU18(sc *godog.ScenarioContext, m *mundo) {
 			if sesion[i].Numero == ronda {
 				// Crear un Resultado temporal para verificar con la tabla
 				res := estimation.Resultado{
-					Votos:         sesion[i].Votos,
-					Consenso:      len(sesion[i].Votos) > 0 && sesion[i].Votos[0].Carta == sesion[i].Votos[len(sesion[i].Votos)-1].Carta, // simplificado
+					Votos:    sesion[i].Votos,
+					Consenso: len(sesion[i].Votos) > 0 && sesion[i].Votos[0].Carta == sesion[i].Votos[len(sesion[i].Votos)-1].Carta, // simplificado
 				}
 				// Verificar solo los votos (la tabla solo tiene integrante | voto)
 				return verificarTablaVotosRonda(res, tabla, m)
