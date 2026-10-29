@@ -215,3 +215,8 @@ func (s *PlanningPoker) Rondas(historiaID domain.HistoriaID) ([]estimation.Ronda
 	}
 	return sesion.Rondas(), nil
 }
+
+// BuscarSesionParaTest devuelve la sesión completa para pruebas (incluye estado interno).
+func (s *PlanningPoker) BuscarSesionParaTest(historiaID domain.HistoriaID) (estimation.Sesion, bool) {
+	return s.sesiones.Buscar(historiaID)
+}
