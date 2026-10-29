@@ -155,6 +155,11 @@ func (s *Sesion) Revelada() bool {
 	return s.revelada
 }
 
+// Revelada informa si la ronda actual está revelada (HU-18).
+func (s *Sesion) Revelada() bool {
+	return s.revelada
+}
+
 // NuevaRonda archiva la ronda actual (que debe estar revelada) y abre la siguiente sin votos (HU-18, RN-18.1).
 // Si la votación está cerrada (Ronda=0), devuelve ErrSinVotacionAbierta.
 func (s *Sesion) NuevaRonda() error {
