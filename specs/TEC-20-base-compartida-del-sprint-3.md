@@ -28,6 +28,6 @@ depende de una historia de otro.
 
 ## Criterio de terminado
 
-- [ ] Las tres funciones con tests de tabla (incluidos los bordes: día de inicio, día de fin, registros fuera del período)
-- [ ] Cobertura del 100 % en las funciones nuevas
+- [x] Las tres funciones con tests de tabla (incluidos los bordes: día de inicio, día de fin, registros fuera del período)
+- [x] Cobertura del 100 % en las funciones nuevas
 - [ ] Mergeado antes de que se abra el primer PR de una historia del Sprint 3
