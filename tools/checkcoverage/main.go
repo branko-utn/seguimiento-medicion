@@ -1,146 +1,143 @@
-// Check que la cobertura COMBINADA (aggregate) de internal/domain + internal/metrics sea >= 80%.
+// Comando checkcoverage hace cumplir el umbral de cobertura de la Definition of Done (TEC-05): la cobertura
+// COMBINADA de internal/domain e internal/metrics tiene que ser de al menos 80 %.
 // Uso: go run ./tools/checkcoverage -profile=coverage.out
-// Si $GITHUB_STEP_SUMMARY está seteado (CI), escribe tabla por paquete + combinada ahí.
+// Si $GITHUB_STEP_SUMMARY está definida (CI), escribe ahí la tabla por paquete y la combinada.
 package main
 
 import (
 	"bufio"
+	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"os"
-	"path/filepath"
+	"path"
+	"sort"
 	"strconv"
 	"strings"
 )
+
+const umbral = 80.0
+
+// modulo es el prefijo que se saca del nombre de los paquetes en la tabla.
+const modulo = "github.com/branko-utn/seguimiento-medicion/"
+
+// medidos son los paquetes que cuentan para el umbral (con sus subpaquetes).
+var medidos = []string{"internal/domain", "internal/metrics"}
+
+// paquete es la cobertura de un paquete, en sentencias, como la calcula go tool cover.
+type paquete struct {
+	nombre             string
+	cubiertas, totales int64
+}
 
 func main() {
 	profile := flag.String("profile", "coverage.out", "archivo de perfil de cobertura")
 	flag.Parse()
 
-	fmt.Fprintf(os.Stderr, "Verificando umbral de cobertura combinada (>= 80%%) en internal/domain + internal/metrics...\n")
+	f, err := os.Open(*profile)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error abriendo %s: %v\n", *profile, err)
+		os.Exit(1)
+	}
+	defer f.Close()
+	paquetes, combinada, err := calcular(f)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Error:", err)
+		os.Exit(1)
+	}
 
-	checkCoverage(*profile)
+	tabla := armarTabla(paquetes, combinada)
+	fmt.Println(tabla)
+	if resumen := os.Getenv("GITHUB_STEP_SUMMARY"); resumen != "" {
+		if s, err := os.OpenFile(resumen, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0o644); err == nil {
+			fmt.Fprintln(s, tabla)
+			s.Close()
+		}
+	}
+	if combinada < umbral {
+		fmt.Fprintf(os.Stderr, "❌ Cobertura combinada de internal/domain e internal/metrics = %.1f %% (< %.0f %%)\n", combinada, umbral)
+		os.Exit(1)
+	}
+	fmt.Fprintf(os.Stderr, "✅ Cobertura combinada de internal/domain e internal/metrics = %.1f %% (>= %.0f %%)\n", combinada, umbral)
 }
 
-func checkCoverage(profilePath string) {
-	file, err := os.Open(profilePath)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error abriendo %s: %v\n", profilePath, err)
-		os.Exit(1)
-	}
-	defer file.Close()
-
-	scanner := bufio.NewScanner(file)
-
-	if !scanner.Scan() {
-		fmt.Fprintf(os.Stderr, "Perfil vacío\n")
-		os.Exit(1)
-	}
-
-	type pkgStats struct{ covered, total int64 }
-	stats := make(map[string]*pkgStats)
-
-	for scanner.Scan() {
-		line := strings.TrimSpace(scanner.Text())
-		if line == "" || strings.HasPrefix(line, "mode:") {
+// calcular lee un perfil de cobertura ("archivo:inicio,fin sentencias veces") y devuelve la cobertura de cada
+// paquete medido, ordenados por nombre, y la combinada en porcentaje. Pesa por sentencias, como go tool cover.
+func calcular(r io.Reader) ([]paquete, float64, error) {
+	porNombre := make(map[string]*paquete)
+	sc := bufio.NewScanner(r)
+	for sc.Scan() {
+		campos := strings.Fields(sc.Text())
+		if len(campos) != 3 || strings.HasPrefix(campos[0], "mode:") {
 			continue
 		}
-		parts := strings.Fields(line)
-		if len(parts) != 3 {
+		sentencias, err1 := strconv.ParseInt(campos[1], 10, 64)
+		veces, err2 := strconv.ParseInt(campos[2], 10, 64)
+		if err1 != nil || err2 != nil {
 			continue
 		}
-		loc := parts[0]
-		countStr := parts[2]
-
-		count, err := strconv.ParseInt(countStr, 10, 64)
-		if err != nil {
+		archivo, _, _ := strings.Cut(campos[0], ":")
+		nombre := strings.TrimPrefix(path.Dir(archivo), modulo)
+		if !esMedido(nombre) {
 			continue
 		}
-
-		filePath := strings.Split(loc, ":")[0]
-		// Normalizar separadores de ruta (Windows usa \, Unix usa /)
-		filePath = filepath.ToSlash(filePath)
-		dir := filepath.ToSlash(filepath.Dir(filePath))
-
-		if !strings.Contains(dir, "/internal/domain/") && !strings.Contains(dir, "/internal/metrics/") {
-			continue
+		p := porNombre[nombre]
+		if p == nil {
+			p = &paquete{nombre: nombre}
+			porNombre[nombre] = p
 		}
-
-		pkgPath := dir
-		if stats[pkgPath] == nil {
-			stats[pkgPath] = &pkgStats{}
-		}
-		stats[pkgPath].total++
-		if count > 0 {
-			stats[pkgPath].covered++
+		p.totales += sentencias
+		if veces > 0 {
+			p.cubiertas += sentencias
 		}
 	}
-
-	if err := scanner.Err(); err != nil {
-		fmt.Fprintf(os.Stderr, "Error leyendo perfil: %v\n", err)
-		os.Exit(1)
+	if err := sc.Err(); err != nil {
+		return nil, 0, err
+	}
+	if len(porNombre) == 0 {
+		return nil, 0, errors.New("el perfil no tiene paquetes de internal/domain ni de internal/metrics")
 	}
 
-	if len(stats) == 0 {
-		fmt.Fprintf(os.Stderr, "No se encontraron paquetes internal/domain ni internal/metrics en el perfil\n")
-		os.Exit(1)
+	paquetes := make([]paquete, 0, len(porNombre))
+	var cubiertas, totales int64
+	for _, p := range porNombre {
+		paquetes = append(paquetes, *p)
+		cubiertas += p.cubiertas
+		totales += p.totales
 	}
+	sort.Slice(paquetes, func(i, j int) bool { return paquetes[i].nombre < paquetes[j].nombre })
+	return paquetes, porcentaje(cubiertas, totales), nil
+}
 
-	// Calcular por paquete y combinada
-	var totalCovered, totalTotal int64
-	rows := make([]string, 0, len(stats))
-
-	// Ordenar por nombre de paquete para salida determinística
-	pkgs := make([]string, 0, len(stats))
-	for p := range stats {
-		pkgs = append(pkgs, p)
-	}
-	// Sort simple
-	for i := 0; i < len(pkgs)-1; i++ {
-		for j := i + 1; j < len(pkgs); j++ {
-			if pkgs[i] > pkgs[j] {
-				pkgs[i], pkgs[j] = pkgs[j], pkgs[i]
-			}
+// esMedido indica si el paquete es uno de los medidos o un subpaquete suyo.
+func esMedido(nombre string) bool {
+	for _, m := range medidos {
+		if nombre == m || strings.HasPrefix(nombre, m+"/") {
+			return true
 		}
 	}
+	return false
+}
 
-	for _, pkg := range pkgs {
-		s := stats[pkg]
-		if s.total == 0 {
-			continue
-		}
-		pct := float64(s.covered) * 100.0 / float64(s.total)
-		totalCovered += s.covered
-		totalTotal += s.total
-		short := strings.TrimPrefix(pkg, "github.com/branko-utn/seguimiento-medicion/")
-		rows = append(rows, fmt.Sprintf("| %s | %d | %d | %.1f%% |", short, s.covered, s.total, pct))
+func porcentaje(cubiertas, totales int64) float64 {
+	if totales == 0 {
+		return 0
 	}
+	return float64(cubiertas) * 100 / float64(totales)
+}
 
-	combinedPct := float64(totalCovered) * 100.0 / float64(totalTotal)
-	combinedRow := fmt.Sprintf("| **Combinada (domain+metrics)** | **%d** | **%d** | **%.1f%%** |", totalCovered, totalTotal, combinedPct)
-
-	// Output tabla markdown
-	table := "### Cobertura por paquete (internal/domain + internal/metrics)\n\n"
-	table += "| Paquete | Cubiertas | Totales | Cobertura |\n"
-	table += "|---------|-----------|---------|-----------|\n"
-	table += strings.Join(rows, "\n") + "\n"
-	table += combinedRow + "\n"
-
-	// Imprimir a stdout (logs CI) y a $GITHUB_STEP_SUMMARY si existe
-	fmt.Println(table)
-	if summaryPath := os.Getenv("GITHUB_STEP_SUMMARY"); summaryPath != "" {
-		f, err := os.OpenFile(summaryPath, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
-		if err == nil {
-			defer f.Close()
-			f.WriteString(table + "\n")
-		}
+// armarTabla arma la tabla markdown del resumen del CI.
+func armarTabla(paquetes []paquete, combinada float64) string {
+	var b strings.Builder
+	b.WriteString("### Cobertura de internal/domain e internal/metrics (umbral 80 %)\n\n")
+	b.WriteString("| Paquete | Sentencias cubiertas | Sentencias | Cobertura |\n|---|---|---|---|\n")
+	var cubiertas, totales int64
+	for _, p := range paquetes {
+		fmt.Fprintf(&b, "| %s | %d | %d | %.1f %% |\n", p.nombre, p.cubiertas, p.totales, porcentaje(p.cubiertas, p.totales))
+		cubiertas += p.cubiertas
+		totales += p.totales
 	}
-
-	// Verificar umbral COMBINADO
-	if combinedPct < 80.0 {
-		fmt.Fprintf(os.Stderr, "\n❌ Cobertura combinada internal/domain + internal/metrics = %.1f%% (< 80%%)\n", combinedPct)
-		os.Exit(1)
-	}
-
-	fmt.Fprintf(os.Stderr, "\n✅ Cobertura combinada internal/domain + internal/metrics = %.1f%% (>= 80%%)\n", combinedPct)
+	fmt.Fprintf(&b, "| **Combinada** | **%d** | **%d** | **%.1f %%** |\n", cubiertas, totales, combinada)
+	return b.String()
 }
