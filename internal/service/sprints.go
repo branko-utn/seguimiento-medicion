@@ -122,12 +122,55 @@ type HistoriaDetalle struct {
 	Completada  bool
 }
 
-// Cerrados devuelve los sprints cerrados de un proyecto (HU-14).
-func (s *Sprints) Cerrados(proyectoID domain.ProyectoID) ([]sprint.Sprint, error) { return nil, nil }
+// Cerrados devuelve los sprints cerrados de un proyecto ordenados por fecha de inicio, del más antiguo al más
+// reciente (RN-14.1 y RN-14.2). Los SP son los que quedaron fijos al cerrar (RN-14.3), no se recalculan.
+func (s *Sprints) Cerrados(proyectoID domain.ProyectoID) ([]sprint.Sprint, error) {
+	if _, err := s.proyectos.Buscar(proyectoID); err != nil {
+		return nil, err
+	}
+	cerrados := make([]sprint.Sprint, 0)
+	for _, sp := range s.sprints.DelProyecto(proyectoID) {
+		if sp.Estado == sprint.Cerrado {
+			cerrados = append(cerrados, sp)
+		}
+	}
+	slices.SortStableFunc(cerrados, func(a, b sprint.Sprint) int {
+		switch {
+		case a.Inicio.Before(b.Inicio):
+			return -1
+		case a.Inicio.After(b.Inicio):
+			return 1
+		default:
+			return 0
+		}
+	})
+	return cerrados, nil
+}
 
-// Detalle devuelve un sprint cerrado con sus historias (HU-14).
+// Detalle devuelve un sprint cerrado con todas las historias que se planificaron en él (HU-14). Se arma con
+// Sprint.Historias, así incluye las que volvieron al backlog al cerrar, marcadas como no completadas (RN-14.4).
 func (s *Sprints) Detalle(sprintID domain.SprintID) (DetalleSprint, error) {
-	return DetalleSprint{}, nil
+	sp, err := s.sprints.Buscar(sprintID)
+	if err != nil {
+		return DetalleSprint{}, err
+	}
+	if sp.Estado != sprint.Cerrado {
+		return DetalleSprint{}, sprint.ErrNoCerrado
+	}
+	detalle := DetalleSprint{Sprint: sp, Historias: make([]HistoriaDetalle, 0, len(sp.Historias))}
+	for _, id := range sp.Historias {
+		h, err := s.historias.Buscar(id)
+		if err != nil {
+			return DetalleSprint{}, err
+		}
+		detalle.Historias = append(detalle.Historias, HistoriaDetalle{
+			ID:          h.ID,
+			Titulo:      h.Titulo,
+			StoryPoints: h.StoryPoints,
+			Completada:  slices.Contains(sp.Completadas, id),
+		})
+	}
+	return detalle, nil
 }
 
 // CompletarHistoria registra una historia del sprint como completada (HU-12). Busca el sprint y la historia, y valida
