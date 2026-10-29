@@ -30,7 +30,7 @@ func escenarioReportes(t *testing.T) http.Handler {
 	sprintsSvc := service.NuevoSprints(sprints, proyectos, historias)
 	svc := Servicios{
 		Proyectos: service.NuevoProyectos(proyectos),
-		Backlog:   service.NuevoBacklog(historias, proyectos, sprintsSvc),
+		Backlog:   service.NuevoBacklog(historias, proyectos, sprintsSvc, nil, nil),
 		Sprints:   sprintsSvc,
 		Reportes:  service.NuevoReportes(sprints, historias, estimaciones, registros, integrantes, defectos),
 	}

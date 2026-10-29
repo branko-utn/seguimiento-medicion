@@ -39,7 +39,7 @@ func nuevoServicioRegistros(t *testing.T) *Registros {
 	proy := NuevoProyectos(repoProy)
 	integrantes := NuevoIntegrantes(repoInt, repoProy)
 	sprints := NuevoSprints(repoSpr, repoProy, repoHist)
-	hist := NuevoBacklog(repoHist, repoProy, sprints)
+	hist := NuevoBacklog(repoHist, repoProy, sprints, nil, nil)
 	for _, nombre := range []string{"Demo", "Otro"} {
 		if _, err := proy.Crear(nombre, "", inicio, fin); err != nil {
 			t.Fatal(err)
