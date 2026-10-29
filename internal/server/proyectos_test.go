@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/branko-utn/seguimiento-medicion/internal/domain/backlog"
 	"github.com/branko-utn/seguimiento-medicion/internal/domain/project"
 	"github.com/branko-utn/seguimiento-medicion/internal/service"
 	"github.com/branko-utn/seguimiento-medicion/internal/store/memory"
@@ -23,11 +24,26 @@ func nuevoServidorProyectos(t *testing.T) (http.Handler, Servicios) {
 }
 
 // armarServidorProyectos es nuevoServidorProyectos, pero devuelve también el repositorio de proyectos para preparar
-// estados que todavía no tienen caso de uso (Finalizado).
+// estados que todavía no tienen caso de uso.
 func armarServidorProyectos(t *testing.T) (http.Handler, Servicios, *memory.Proyectos) {
 	t.Helper()
-	// Hoy es el 27/10/2026, dentro de los proyectos de prueba: la edición (HU-02) decide con las fechas si está
-	// finalizado, y el test no debe depender de la fecha real.
+	e := nuevoEntornoProyectos(t)
+	return e.router, e.svc, e.repoProyectos
+}
+
+// entornoProyectos es el router de la sección Proyectos con sus servicios y los repositorios para preparar casos
+// (por ejemplo, el estado de las historias).
+type entornoProyectos struct {
+	router        http.Handler
+	svc           Servicios
+	repoProyectos *memory.Proyectos
+	repoHistorias *memory.Historias
+}
+
+// nuevoEntornoProyectos arma el entorno sin datos. Hoy es el 27/10/2026, dentro de los proyectos de prueba: el estado
+// (HU-04) y la edición (HU-02) se calculan con las fechas, y el test no debe depender de la fecha real.
+func nuevoEntornoProyectos(t *testing.T) entornoProyectos {
+	t.Helper()
 	original := hoy
 	hoy = func() time.Time { return fechaDeFormulario("2026-10-27") }
 	t.Cleanup(func() { hoy = original })
@@ -39,15 +55,24 @@ func armarServidorProyectos(t *testing.T) (http.Handler, Servicios, *memory.Proy
 	if err != nil {
 		t.Fatal(err)
 	}
+	repoSprints, err := memory.NuevoSprints("")
+	if err != nil {
+		t.Fatal(err)
+	}
+	repoHistorias, err := memory.NuevoHistorias("")
+	if err != nil {
+		t.Fatal(err)
+	}
 	svc := Servicios{
-		Proyectos:   service.NuevoProyectos(repoProyectos),
+		Proyectos:   service.NuevoProyectos(repoProyectos).ConResumen(repoSprints, repoHistorias),
 		Integrantes: service.NuevoIntegrantes(repoIntegrantes, repoProyectos),
+		Sprints:     service.NuevoSprints(repoSprints, repoProyectos, repoHistorias),
 	}
 	router, err := NewRouter(svc)
 	if err != nil {
 		t.Fatalf("NewRouter: %v", err)
 	}
-	return router, svc, repoProyectos
+	return entornoProyectos{router: router, svc: svc, repoProyectos: repoProyectos, repoHistorias: repoHistorias}
 }
 
 // crearDemo da de alta "Demo" (P1) del 21/10 al 02/11 directamente con el servicio.
@@ -87,7 +112,7 @@ func TestProyectos_lista(t *testing.T) {
 		t.Fatalf("código = %d, se esperaba 200", rec.Code)
 	}
 	contieneTodo(t, rec.Body.String(),
-		`<a href="/proyectos/P1">Demo</a>`, "21/10/2026", "02/11/2026", "Planificado", `href="/proyectos/nuevo"`)
+		`<a href="/proyectos/P1">Demo</a>`, "21/10/2026", "02/11/2026", "<td>En curso</td>", `href="/proyectos/nuevo"`)
 	if strings.Contains(rec.Body.String(), "Esta sección se construye") {
 		t.Error("la sección Proyectos sigue marcada como en construcción")
 	}
@@ -373,4 +398,77 @@ func TestProyectos_edicionDeProyectoInexistente(t *testing.T) {
 			contieneTodo(t, rec.Body.String(), "el proyecto no existe")
 		})
 	}
+}
+
+func TestProyectos_listaMuestraElEstadoCalculado(t *testing.T) {
+	e := nuevoEntornoProyectos(t)
+	// Al 27/10: Antiguo ya terminó, Demo está en curso y Futuro todavía no empezó. Los tres tienen Planificado guardado.
+	for _, p := range []struct{ nombre, inicio, fin string }{
+		{"Antiguo", "2026-09-01", "2026-09-30"}, {"Demo", "2026-10-21", "2026-11-02"}, {"Futuro", "2026-11-10", "2026-11-20"},
+	} {
+		if _, err := e.svc.Proyectos.Crear(p.nombre, "", fechaDeFormulario(p.inicio), fechaDeFormulario(p.fin)); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	rec := servir(e.router, httptest.NewRequest(http.MethodGet, "/proyectos", nil))
+
+	cuerpo := strings.Join(strings.Fields(rec.Body.String()), " ")
+	contieneTodo(t, cuerpo,
+		`Antiguo</a></td> <td>01/09/2026</td> <td>30/09/2026</td> <td>Finalizado</td>`,
+		`Demo</a></td> <td>21/10/2026</td> <td>02/11/2026</td> <td>En curso</td>`,
+		`Futuro</a></td> <td>10/11/2026</td> <td>20/11/2026</td> <td>Planificado</td>`)
+}
+
+func TestProyectos_detalleConResumen(t *testing.T) {
+	e := nuevoEntornoProyectos(t)
+	crearDemo(t, e.svc)
+	// S1 "Primer MVP" activo y 1 de 4 historias completadas.
+	if _, err := e.svc.Sprints.Crear("P1", "Primer MVP", fechaDeFormulario("2026-10-23"), fechaDeFormulario("2026-10-25")); err != nil {
+		t.Fatal(err)
+	}
+	if err := e.svc.Sprints.Iniciar("S1"); err != nil {
+		t.Fatal(err)
+	}
+	for _, estado := range []backlog.Estado{backlog.Completada, backlog.EnProgreso, backlog.Pendiente, backlog.Pendiente} {
+		if _, err := e.repoHistorias.Agregar(backlog.Historia{ProyectoID: "P1", Titulo: "Historia", Prioridad: backlog.PrioridadMedia, Estado: estado}); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	rec := servir(e.router, httptest.NewRequest(http.MethodGet, "/proyectos/P1", nil))
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("código = %d, se esperaba 200", rec.Code)
+	}
+	cuerpo := rec.Body.String()
+	// El encabezado usa el estado calculado, y el resumen va arriba de los integrantes.
+	contieneTodo(t, cuerpo, "En curso · del 21/10/2026 al 02/11/2026", "6 días restantes",
+		`Sprint activo: <a href="/sprints/S1">Primer MVP</a>`, "25.0 % de historias completadas")
+	if strings.Contains(cuerpo, "Planificado") {
+		t.Error("el detalle no debe mostrar el estado guardado (Planificado): se calcula con las fechas")
+	}
+	if strings.Index(cuerpo, "6 días restantes") > strings.Index(cuerpo, "<h2>Integrantes</h2>") {
+		t.Error("el resumen debe ir arriba de los integrantes")
+	}
+}
+
+func TestProyectos_detalleSinSprintActivo(t *testing.T) {
+	e := nuevoEntornoProyectos(t)
+	crearDemo(t, e.svc)
+
+	rec := servir(e.router, httptest.NewRequest(http.MethodGet, "/proyectos/P1", nil))
+
+	contieneTodo(t, rec.Body.String(), "Sin sprint activo", "0.0 % de historias completadas")
+}
+
+func TestProyectos_detalleDeProyectoFinalizado(t *testing.T) {
+	e := nuevoEntornoProyectos(t)
+	if _, err := e.svc.Proyectos.Crear("Antiguo", "", fechaDeFormulario("2026-09-01"), fechaDeFormulario("2026-09-30")); err != nil {
+		t.Fatal(err)
+	}
+
+	rec := servir(e.router, httptest.NewRequest(http.MethodGet, "/proyectos/P1", nil))
+
+	contieneTodo(t, rec.Body.String(), "Finalizado · del 01/09/2026 al 30/09/2026", "0 días restantes")
 }
