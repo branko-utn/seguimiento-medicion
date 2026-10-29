@@ -27,31 +27,55 @@ func (a *app) rutasBacklog(mux *http.ServeMux) {
 	mux.HandleFunc("POST /backlog/{historia}/estado", a.cambiarEstadoHistoria)
 }
 
-// datosBacklog es lo que recibe la plantilla del backlog.
+// datosBacklog es lo que recibe la plantilla del backlog: un grupo por proyecto con historias, en el orden de HU-09,
+// y el desplegable del filtro por estado.
 type datosBacklog struct {
-	Historias []backlog.Historia
-	Proyectos map[string]string
+	Grupos       []grupoBacklog
+	Estados      []backlog.Estado
+	EstadoActual string // "" es "Todos"
 }
 
+// grupoBacklog es el backlog de un proyecto en la pantalla.
+type grupoBacklog struct {
+	ID, Nombre string
+	Historias  []backlog.Historia
+}
+
+// listarBacklog muestra el backlog de cada proyecto ordenado por prioridad e identificador (HU-09) y, con
+// ?estado=…, solo las historias de ese estado. Los proyectos sin historias para mostrar no aparecen. Un estado que
+// no existe responde 400 con el mensaje de la spec.
 func (a *app) listarBacklog(w http.ResponseWriter, r *http.Request) {
-	var historias []backlog.Historia
-	if a.svc.Backlog != nil {
-		if h, err := a.svc.Backlog.Listar(); err == nil {
-			historias = h
-		} else {
+	datos := datosBacklog{Estados: estadosHistoria, EstadoActual: r.URL.Query().Get("estado")}
+	var estado *backlog.Estado
+	if datos.EstadoActual != "" {
+		e := estadoDesdeTexto(datos.EstadoActual)
+		// Se valida acá y no solo en DelProyecto, para responder el error aunque no haya proyectos.
+		if err := backlog.ValidarEstado(e); err != nil {
+			a.renderError(w, r, http.StatusBadRequest, err.Error())
+			return
+		}
+		estado = &e
+	}
+	if a.svc.Backlog == nil || a.svc.Proyectos == nil {
+		a.render(w, r, "backlog.html", datos)
+		return
+	}
+	proyectos, err := a.svc.Proyectos.Listar()
+	if err != nil {
+		a.renderError(w, r, http.StatusInternalServerError, "No se pudieron cargar las historias.")
+		return
+	}
+	for _, p := range proyectos {
+		historias, err := a.svc.Backlog.DelProyecto(p.ID, estado)
+		if err != nil {
 			a.renderError(w, r, http.StatusInternalServerError, "No se pudieron cargar las historias.")
 			return
 		}
-	}
-	nombres := make(map[string]string)
-	if a.svc.Proyectos != nil {
-		if ps, err := a.svc.Proyectos.Listar(); err == nil {
-			for _, p := range ps {
-				nombres[string(p.ID)] = p.Nombre
-			}
+		if len(historias) > 0 {
+			datos.Grupos = append(datos.Grupos, grupoBacklog{ID: string(p.ID), Nombre: p.Nombre, Historias: historias})
 		}
 	}
-	a.render(w, r, "backlog.html", datosBacklog{Historias: historias, Proyectos: nombres})
+	a.render(w, r, "backlog.html", datos)
 }
 
 // prioridades son las prioridades que se ofrecen en el formulario, en el orden de la spec HU-05.
