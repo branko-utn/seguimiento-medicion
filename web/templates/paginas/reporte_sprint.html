@@ -1,0 +1,118 @@
+{{define "titulo"}}Reporte · {{.Datos.Goal}}{{end}}
+
+{{define "contenido"}}
+{{- with .Datos}}
+<hgroup>
+  <h1>Reporte del sprint</h1>
+  <p><strong>{{.Goal}}</strong> · {{.Estado}} · del {{.Inicio.Format "02/01/2006"}} al {{.Fin.Format "02/01/2006"}}</p>
+</hgroup>
+{{- if .Parcial}}
+<p><mark>Reporte parcial: el sprint sigue activo y el resultado todavía puede cambiar.</mark></p>
+{{- end}}
+
+<p class="no-imprimir">
+  <button type="button" onclick="window.print()">Imprimir o guardar como PDF</button>
+  <a href="/reportes">Volver a Reportes</a>
+</p>
+
+<section>
+  <h2>Historias planificadas</h2>
+  {{- if .Filas}}
+  <div class="overflow-auto">
+    <table>
+      <thead>
+        <tr><th>ID</th><th>Historia</th><th>Story Points</th><th>Horas estimadas</th><th>Horas reales</th><th>Completada</th></tr>
+      </thead>
+      <tbody>
+        {{- range .Filas}}
+        <tr>
+          <td>{{.ID}}</td>
+          <td>{{.Titulo}}</td>
+          <td>{{.StoryPoints}}</td>
+          <td>{{.HorasEstimadas}}</td>
+          <td>{{.HorasReales}}</td>
+          <td>{{if .Completada}}✔{{else}}No{{end}}</td>
+        </tr>
+        {{- end}}
+      </tbody>
+    </table>
+  </div>
+  {{- else}}
+  <p>El sprint no tuvo historias planificadas.</p>
+  {{- end}}
+</section>
+
+<section>
+  <h2>Métricas</h2>
+  <ul>
+    <li><strong>{{.SPPlanificados}} Story Points planificados</strong></li>
+    <li><strong>{{.SPCompletados}} Story Points completados</strong></li>
+    <li><strong>{{.Porcentaje}} % de historias completadas</strong></li>
+    <li><strong>{{.HorasEstimadas}} horas estimadas · {{.HorasReales}} horas reales ·
+      {{if .Desviacion}}desviación de {{.Desviacion}} %{{else}}desviación no calculable (sin horas estimadas){{end}}</strong></li>
+  </ul>
+</section>
+
+<section>
+  <h2>Esfuerzo registrado</h2>
+  {{- if .Registros}}
+  <div class="overflow-auto">
+    <table>
+      <thead>
+        <tr><th>Fecha</th><th>Integrante</th><th>Historia</th><th>Actividad</th><th>Horas</th></tr>
+      </thead>
+      <tbody>
+        {{- range .Registros}}
+        <tr>
+          <td>{{.Fecha.Format "02/01/2006"}}</td>
+          <td>{{.Integrante}}</td>
+          <td>{{.HistoriaID}}</td>
+          <td>{{.Actividad}}</td>
+          <td>{{.Horas}}</td>
+        </tr>
+        {{- end}}
+      </tbody>
+    </table>
+  </div>
+  <h3>Total por integrante</h3>
+  <table>
+    <thead><tr><th>Integrante</th><th>Horas</th></tr></thead>
+    <tbody>
+      {{- range .Totales}}
+      <tr><td>{{.Integrante}}</td><td>{{.Horas}}</td></tr>
+      {{- end}}
+    </tbody>
+  </table>
+  {{- else}}
+  <p>No se registró esfuerzo en las fechas del sprint.</p>
+  {{- end}}
+</section>
+
+<section>
+  <h2>Defectos</h2>
+  <p><strong>{{.Detectados}} detectado{{if ne .Detectados 1}}s{{end}} en el sprint · {{.Resueltos}} resuelto{{if ne .Resueltos 1}}s{{end}} en el sprint</strong></p>
+  {{- if .Defectos}}
+  <div class="overflow-auto">
+    <table>
+      <thead>
+        <tr><th>ID</th><th>Descripción</th><th>Severidad</th><th>Estado</th><th>Historia</th></tr>
+      </thead>
+      <tbody>
+        {{- range .Defectos}}
+        <tr>
+          <td>{{.ID}}</td>
+          <td>{{.Descripcion}}</td>
+          <td>{{.Severidad}}</td>
+          <td>{{.Estado}}</td>
+          <td>{{.HistoriaID}}</td>
+        </tr>
+        {{- end}}
+      </tbody>
+    </table>
+  </div>
+  {{- else}}
+  <p>No se registraron defectos en este sprint.</p>
+  {{- end}}
+</section>
+{{- end}}
+{{end}}
