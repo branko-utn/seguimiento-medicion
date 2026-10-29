@@ -32,7 +32,7 @@ func escenarioReportes(t *testing.T) http.Handler {
 		Proyectos: service.NuevoProyectos(proyectos),
 		Backlog:   service.NuevoBacklog(historias, proyectos, sprintsSvc, nil, nil),
 		Sprints:   sprintsSvc,
-		Reportes:  service.NuevoReportes(sprints, historias, estimaciones, registros, integrantes, defectos),
+		Reportes:  service.NuevoReportes(proyectos, sprints, historias, estimaciones, registros, integrantes, defectos),
 	}
 	dia := func(d int) time.Time { return time.Date(2026, 10, d, 0, 0, 0, 0, time.Local) }
 	p, err := svc.Proyectos.Crear("Demo", "", dia(21), dia(31))
