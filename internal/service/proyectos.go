@@ -21,6 +21,9 @@ type RepoProyectos interface {
 // Proyectos son los casos de uso de la épica E1.
 type Proyectos struct {
 	repo RepoProyectos
+	// sprints e historias solo los usa el resumen (HU-04); se configuran con ConResumen.
+	sprints   RepoSprints
+	historias RepoHistorias
 }
 
 func NuevoProyectos(repo RepoProyectos) *Proyectos {
