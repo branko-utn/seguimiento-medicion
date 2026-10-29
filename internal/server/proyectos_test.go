@@ -444,7 +444,7 @@ func TestProyectos_detalleConResumen(t *testing.T) {
 	cuerpo := rec.Body.String()
 	// El encabezado usa el estado calculado, y el resumen va arriba de los integrantes.
 	contieneTodo(t, cuerpo, "En curso · del 21/10/2026 al 02/11/2026", "6 días restantes",
-		`Sprint activo: <a href="/sprints/S1">Primer MVP</a>`, "25.0 % de historias completadas")
+		`Sprint activo: <a href="/sprints/S1">S1 · Primer MVP</a>`, "25.0 % de historias completadas")
 	if strings.Contains(cuerpo, "Planificado") {
 		t.Error("el detalle no debe mostrar el estado guardado (Planificado): se calcula con las fechas")
 	}
