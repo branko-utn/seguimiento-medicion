@@ -9,3 +9,9 @@ article.error header h1 { color: var(--pico-del-color); margin: 0; }
 footer.container { margin-top: 2rem; color: var(--pico-muted-color); }
 form.en-linea { display: inline; margin: 0 0 0 .5rem; }
 form.en-linea button { padding: .1rem .6rem; font-size: .85em; margin: 0; width: auto; }
+/* Impresión (HU-29): el reporte se guarda como PDF desde el navegador, sin la navegación ni los botones. */
+@media print {
+  header.container, footer.container, .no-imprimir { display: none; }
+  main.container { max-width: none; padding: 0; }
+  section { break-inside: avoid; }
+}

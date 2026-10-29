@@ -1,0 +1,37 @@
+{{define "titulo"}}Reportes{{end}}
+
+{{define "contenido"}}
+<hgroup>
+  <h1>Reportes</h1>
+  <p>Reporte de un sprint para la Sprint Review, listo para imprimir o guardar como PDF.</p>
+</hgroup>
+
+{{range .Datos}}
+<section>
+  <h2>{{.Proyecto.Nombre}}</h2>
+  {{- if .Sprints}}
+  <div class="overflow-auto">
+    <table>
+      <thead>
+        <tr><th>Sprint Goal</th><th>Inicio</th><th>Fin</th><th>Estado</th></tr>
+      </thead>
+      <tbody>
+        {{- range .Sprints}}
+        <tr>
+          <td><a href="/reportes/sprints/{{.ID}}">{{.Goal}}</a></td>
+          <td>{{.Inicio.Format "02/01/2006"}}</td>
+          <td>{{.Fin.Format "02/01/2006"}}</td>
+          <td>{{.Estado}}</td>
+        </tr>
+        {{- end}}
+      </tbody>
+    </table>
+  </div>
+  {{- else}}
+  <p>Todavía no hay sprints iniciados: un sprint planificado no tiene resultado para reportar.</p>
+  {{- end}}
+</section>
+{{else}}
+<p>Todavía no hay proyectos. <a href="/proyectos/nuevo">Creá un proyecto</a> para empezar.</p>
+{{end}}
+{{end}}

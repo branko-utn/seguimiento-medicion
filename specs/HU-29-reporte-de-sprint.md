@@ -5,7 +5,7 @@
 - **Redactada por:** Branko Almeira (Agile Enabler) · **Validada por:** el responsable al aprobar el PR de la planning del Sprint 3
 - **Depende de:** solo código en `main`: HU-12 y HU-13 (sprint y SP), HU-19 y HU-20 (horas), HU-22 y HU-23 (defectos),
   HU-24 a HU-27 (métricas) y TEC-20 (`metrics.HorasEnPeriodo`)
-- **Estado:** aprobada en la planning del Sprint 3
+- **Estado:** implementada (Sprint 3)
 
 ## Historia
 

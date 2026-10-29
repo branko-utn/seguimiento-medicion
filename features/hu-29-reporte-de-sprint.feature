@@ -1,5 +1,5 @@
 # language: es
-@HU-29 @pendiente
+@HU-29
 Característica: Reporte de sprint
   Como líder del proyecto
   Quiero generar el reporte de un sprint
