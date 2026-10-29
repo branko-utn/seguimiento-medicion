@@ -17,7 +17,7 @@
   <ul>
     <li>{{.Datos.Resumen.DiasRestantes}} días restantes</li>
     {{- with .Datos.Resumen.SprintActivo}}
-    <li>Sprint activo: <a href="/sprints/{{.ID}}">{{.Goal}}</a></li>
+    <li>Sprint activo: <a href="/sprints/{{.ID}}">{{.ID}} · {{.Goal}}</a></li>
     {{- else}}
     <li>Sin sprint activo</li>
     {{- end}}
