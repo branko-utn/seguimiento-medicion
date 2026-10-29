@@ -61,7 +61,7 @@ func NuevosServicios(dir string) (server.Servicios, error) {
 		Backlog:      service.NuevoBacklog(historias, proyectos, sprintsSvc),
 		Sprints:      sprintsSvc,
 		Estimaciones: service.NuevoEstimaciones(estimaciones, historias),
-		Registros:    service.NuevoRegistros(registros, integrantes, historias),
+		Registros:    service.NuevoRegistros(registros, integrantes, historias, proyectos),
 		Defectos:     service.NuevoDefectos(defectos, historias, sprints),
 		Poker:        service.NuevoPlanningPoker(sesiones, historias, integrantes),
 		Reportes:     service.NuevoReportes(sprints, historias, estimaciones, registros, integrantes, defectos),

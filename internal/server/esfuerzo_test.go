@@ -33,7 +33,7 @@ func escenarioEsfuerzo(t *testing.T) (http.Handler, Servicios) {
 		Backlog:      service.NuevoBacklog(historias, proyectos, sprintsSvc),
 		Sprints:      sprintsSvc,
 		Estimaciones: service.NuevoEstimaciones(estimaciones, historias),
-		Registros:    service.NuevoRegistros(registros, integrantes, historias),
+		Registros:    service.NuevoRegistros(registros, integrantes, historias, proyectos),
 	}
 	dia := func(d int) time.Time { return time.Date(2026, 10, d, 0, 0, 0, 0, time.Local) }
 	for _, p := range []struct{ proyecto, integrante string }{{"Demo", "Ana Pérez"}, {"Otro", "Beto Gómez"}} {

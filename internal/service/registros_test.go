@@ -54,7 +54,7 @@ func nuevoServicioRegistros(t *testing.T) *Registros {
 	if _, err := hist.Crear("P1", "Crear proyecto", "", backlog.PrioridadAlta); err != nil {
 		t.Fatal(err)
 	}
-	return NuevoRegistros(repoReg, repoInt, repoHist)
+	return NuevoRegistros(repoReg, repoInt, repoHist, repoProy)
 }
 
 func TestRegistros_Registrar(t *testing.T) {
