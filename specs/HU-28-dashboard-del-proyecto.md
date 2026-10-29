@@ -62,8 +62,9 @@ evolución sprint a sprint en cuatro gráficos. Es la pantalla que se muestra en
   defectos) y las funciones de `internal/metrics`; no calcula métricas por su cuenta.
 - `Dashboard` trae las series ya armadas (`[]PuntoSprint` con sprint, SP planificados, SP completados, horas estimadas,
   horas reales, defectos detectados y resueltos) y un mensaje por gráfico cuando no hay datos.
-- La pantalla usa Chart.js 4.4.7 por CDN (ADR 0001), con un `<canvas>` por gráfico y los datos de las series en un
-  `<script type="application/json">` generado por la plantilla. Los tests del handler verifican esos datos, no el dibujo.
+- La pantalla usa Chart.js 4.4.7, que ya está embebido en `web/static/vendor/chart.umd.min.js` y cargado en
+  `base.html` (TEC-03), con un `<canvas>` por gráfico y los datos de las series en un `<script type="application/json">`
+  generado por la plantilla. Los tests del handler verifican esos datos, no el dibujo.
 - **Dos PRs:** primero el servicio con el resumen y las métricas (CA-28.1), después los gráficos (CA-28.2 y CA-28.3).
   Así el primero ya suma valor aunque el segundo se atrase.
 - La sección deja de estar "en construcción" (`EnConstruccion: false` solo en Dashboard).

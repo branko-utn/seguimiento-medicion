@@ -75,7 +75,7 @@ conflictos entre personas.
 - **Estado del proyecto calculado con las fechas** (HU-04); HU-02 pasa a usar lo mismo.
 - **HU-06:** tampoco se elimina una historia con esfuerzo o defectos registrados.
 - **HU-18:** la votación se cierra eliminando la votación abierta; no hay un estado nuevo.
-- **HU-28:** el sprint activo no entra en los gráficos; Chart.js por CDN (ADR 0001).
+- **HU-28:** el sprint activo no entra en los gráficos; Chart.js ya embebido en `web/static/vendor/` (TEC-03).
 - **Acciones de la retro del Sprint 2:** las dailies se vuelcan en `dailies.md` y el corte se hace en la daily del
   viernes.
 
