@@ -95,9 +95,10 @@ func (s *PlanningPoker) Votar(historiaID domain.HistoriaID, integranteID domain.
 
 // QuienesVotaron devuelve los integrantes que ya votaron en la votación abierta de la historia, sin los
 // valores de sus votos (RN-16.4: mientras está abierta, solo se consulta quién votó).
+// Si la votación está cerrada (Ronda=0), devuelve ErrSinVotacionAbierta.
 func (s *PlanningPoker) QuienesVotaron(historiaID domain.HistoriaID) ([]domain.IntegranteID, error) {
 	sesion, ok := s.sesiones.Buscar(historiaID)
-	if !ok {
+	if !ok || sesion.Ronda == 0 {
 		return nil, estimation.ErrSinVotacionAbierta
 	}
 	return sesion.QuienesVotaron(), nil
@@ -105,9 +106,10 @@ func (s *PlanningPoker) QuienesVotaron(historiaID domain.HistoriaID) ([]domain.I
 
 // ConsultarVotos devuelve los votos de la ronda. Mientras la votación está abierta no se pueden ver
 // (RN-16.4, estimation.ErrVotosOcultos); HU-17 los expone al revelar.
+// Si la votación está cerrada (Ronda=0), devuelve ErrSinVotacionAbierta.
 func (s *PlanningPoker) ConsultarVotos(historiaID domain.HistoriaID) ([]estimation.Voto, error) {
 	sesion, ok := s.sesiones.Buscar(historiaID)
-	if !ok {
+	if !ok || sesion.Ronda == 0 {
 		return nil, estimation.ErrSinVotacionAbierta
 	}
 	return sesion.Votos()
@@ -117,7 +119,7 @@ func (s *PlanningPoker) ConsultarVotos(historiaID domain.HistoriaID) ([]estimati
 // guardado: la ronda no acepta votos nuevos (RN-17.4).
 func (s *PlanningPoker) Revelar(historiaID domain.HistoriaID) (estimation.Resultado, error) {
 	sesion, ok := s.sesiones.Buscar(historiaID)
-	if !ok {
+	if !ok || sesion.Ronda == 0 {
 		return estimation.Resultado{}, estimation.ErrSinVotacionAbierta
 	}
 	res, err := sesion.Revelar()
@@ -133,9 +135,10 @@ func (s *PlanningPoker) Revelar(historiaID domain.HistoriaID) (estimation.Result
 
 // Resultado devuelve el resultado de la ronda revelada, sin repetir la revelada: lo consulta la pantalla
 // al recargar. Mientras la votación está abierta, los valores no se pueden ver (RN-16.4).
+// Si la votación está cerrada (Ronda=0), devuelve ErrSinVotacionAbierta.
 func (s *PlanningPoker) Resultado(historiaID domain.HistoriaID) (estimation.Resultado, error) {
 	sesion, ok := s.sesiones.Buscar(historiaID)
-	if !ok {
+	if !ok || sesion.Ronda == 0 {
 		return estimation.Resultado{}, estimation.ErrSinVotacionAbierta
 	}
 	return sesion.Resultado()
@@ -143,6 +146,7 @@ func (s *PlanningPoker) Resultado(historiaID domain.HistoriaID) (estimation.Resu
 
 // NuevaRonda abre una nueva ronda de votación (HU-18): la historia debe tener una votación abierta
 // con la ronda actual revelada. Archiva la ronda actual y abre la siguiente sin votos.
+// Si la votación está cerrada (Ronda=0), devuelve ErrSinVotacionAbierta.
 func (s *PlanningPoker) NuevaRonda(historiaID domain.HistoriaID) (estimation.Sesion, error) {
 	h, err := s.historias.Buscar(historiaID)
 	if err != nil {
@@ -152,7 +156,7 @@ func (s *PlanningPoker) NuevaRonda(historiaID domain.HistoriaID) (estimation.Ses
 		return estimation.Sesion{}, estimation.ErrHistoriaCompletada
 	}
 	sesion, ok := s.sesiones.Buscar(historiaID)
-	if !ok {
+	if !ok || sesion.Ronda == 0 {
 		return estimation.Sesion{}, estimation.ErrSinVotacionAbierta
 	}
 	if !sesion.Revelada() {
@@ -196,8 +200,8 @@ func (s *PlanningPoker) Acordar(historiaID domain.HistoriaID, sp int) error {
 	if err := s.backlog.Estimar(historiaID, sp); err != nil {
 		return err
 	}
-	// Eliminar la votación (cerrada)
-	if err := s.sesiones.Eliminar(historiaID); err != nil {
+	// Guardar la sesión con Ronda=0 (cerrada) - NO eliminar, el historial debe persistir
+	if err := s.sesiones.Guardar(sesion); err != nil {
 		return err
 	}
 	return nil
