@@ -209,7 +209,7 @@ func TestProyectos_detalle(t *testing.T) {
 		t.Fatalf("código = %d, se esperaba 200", rec.Code)
 	}
 	contieneTodo(t, rec.Body.String(),
-		"<h1>Demo</h1>", "Proyecto de prueba", "21/10/2026", "02/11/2026", "Planificado",
+		"<h1>Demo</h1>", "Proyecto de prueba", "21/10/2026", "02/11/2026", "En curso",
 		"<td>Ana Pérez</td>", "<td>Agile Enabler</td>",
 		`action="/proyectos/P1/integrantes"`, `name="nombre"`,
 		"<option>Agile Enabler</option>", "<option>Product Builder</option>", "<option>Product Architect</option>")

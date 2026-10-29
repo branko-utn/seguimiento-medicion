@@ -4,13 +4,26 @@
 {{- with .Datos.Proyecto}}
 <hgroup>
   <h1>{{.Nombre}}</h1>
-  <p>{{.Estado}} · del {{.Inicio.Format "02/01/2006"}} al {{.Fin.Format "02/01/2006"}}</p>
+  <p>{{$.Datos.Resumen.Estado}} · del {{.Inicio.Format "02/01/2006"}} al {{.Fin.Format "02/01/2006"}}</p>
 </hgroup>
 {{- if .Descripcion}}
 <p>{{.Descripcion}}</p>
 {{- end}}
 <p><a href="/proyectos/{{.ID}}/editar" role="button" class="secondary">Editar proyecto</a></p>
 {{- end}}
+
+<article>
+  <header><strong>Estado del proyecto</strong></header>
+  <ul>
+    <li>{{.Datos.Resumen.DiasRestantes}} días restantes</li>
+    {{- with .Datos.Resumen.SprintActivo}}
+    <li>Sprint activo: <a href="/sprints/{{.ID}}">{{.Goal}}</a></li>
+    {{- else}}
+    <li>Sin sprint activo</li>
+    {{- end}}
+    <li>{{.Datos.Porcentaje}} % de historias completadas</li>
+  </ul>
+</article>
 
 <section>
   <h2>Integrantes</h2>

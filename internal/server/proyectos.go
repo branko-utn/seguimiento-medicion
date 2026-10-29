@@ -3,14 +3,16 @@ package server
 import (
 	"errors"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/branko-utn/seguimiento-medicion/internal/domain"
 	"github.com/branko-utn/seguimiento-medicion/internal/domain/project"
+	"github.com/branko-utn/seguimiento-medicion/internal/service"
 )
 
 // rutasProyectos registra las rutas de la sección Proyectos (épica E1, TEC-13): la lista y el alta (HU-01), el
-// detalle con sus integrantes (HU-03) y la edición (HU-02).
+// detalle con sus integrantes (HU-03) y su estado (HU-04), y la edición (HU-02).
 func (a *app) rutasProyectos(mux *http.ServeMux) {
 	mux.HandleFunc("GET /proyectos", a.listarProyectos)
 	mux.HandleFunc("GET /proyectos/nuevo", a.nuevoProyecto)
@@ -66,6 +68,8 @@ type formIntegrante struct {
 // datosDetalle es lo que recibe proyecto.html.
 type datosDetalle struct {
 	Proyecto    project.Proyecto
+	Resumen     service.ResumenProyecto // HU-04: estado, días restantes, sprint activo y porcentaje
+	Porcentaje  string                  // el porcentaje con un decimal, como en las métricas del sprint
 	Integrantes []project.Integrante
 	Roles       []string
 	Form        formIntegrante
@@ -102,6 +106,11 @@ func (a *app) mostrarDetalle(w http.ResponseWriter, r *http.Request, codigo int,
 	if !ok {
 		return
 	}
+	resumen, err := a.svc.Proyectos.Resumen(p.ID, hoy())
+	if err != nil {
+		a.renderError(w, r, http.StatusInternalServerError, "No se pudo calcular el estado del proyecto.")
+		return
+	}
 	integrantes, err := a.svc.Integrantes.DelProyecto(p.ID)
 	if err != nil {
 		a.renderError(w, r, http.StatusInternalServerError, "No se pudieron cargar los integrantes.")
@@ -111,7 +120,14 @@ func (a *app) mostrarDetalle(w http.ResponseWriter, r *http.Request, codigo int,
 	for _, rol := range rolesIntegrante {
 		roles = append(roles, rol.String())
 	}
-	a.renderConCodigo(w, r, codigo, "proyecto.html", datosDetalle{Proyecto: p, Integrantes: integrantes, Roles: roles, Form: form})
+	a.renderConCodigo(w, r, codigo, "proyecto.html", datosDetalle{
+		Proyecto:    p,
+		Resumen:     resumen,
+		Porcentaje:  strconv.FormatFloat(resumen.PorcentajeCompletadas, 'f', 1, 64),
+		Integrantes: integrantes,
+		Roles:       roles,
+		Form:        form,
+	})
 }
 
 // proyectoDeLaRuta busca el proyecto del {id} de la ruta. Si no existe muestra el error 404 ("el proyecto no
@@ -152,13 +168,24 @@ type formProyecto struct {
 	Error                 string
 }
 
+// filaProyecto es un proyecto de la lista con su estado calculado con las fechas (HU-04, RN-04.1): ninguna pantalla
+// muestra el campo Estado guardado.
+type filaProyecto struct {
+	Proyecto project.Proyecto
+	Estado   project.Estado
+}
+
 func (a *app) listarProyectos(w http.ResponseWriter, r *http.Request) {
 	proyectos, err := a.svc.Proyectos.Listar()
 	if err != nil {
 		a.renderError(w, r, http.StatusInternalServerError, "No se pudieron cargar los proyectos.")
 		return
 	}
-	a.render(w, r, "proyectos.html", proyectos)
+	filas := make([]filaProyecto, 0, len(proyectos))
+	for _, p := range proyectos {
+		filas = append(filas, filaProyecto{Proyecto: p, Estado: p.EstadoAl(hoy())})
+	}
+	a.render(w, r, "proyectos.html", filas)
 }
 
 func (a *app) nuevoProyecto(w http.ResponseWriter, r *http.Request) {
