@@ -525,3 +525,52 @@ func TestPlanningPoker_Rondas(t *testing.T) {
 		t.Fatalf("rondas = %+v, se esperaba 1 ronda con 2 votos", rondas)
 	}
 }
+
+// TestPlanningPoker_Acordar_IniciarVotacionSinError: RN-18.5, tras acordar se puede abrir otra votación.
+func TestPlanningPoker_Acordar_IniciarVotacionSinError(t *testing.T) {
+	s, _ := nuevoServicioPoker(t)
+	if _, err := s.IniciarVotacion("HU-1"); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.Votar("HU-1", "I1", 3); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.Votar("HU-1", "I2", 8); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := s.Revelar("HU-1"); err != nil {
+		t.Fatal(err)
+	}
+	// Acordar cierra la votación
+	if err := s.Acordar("HU-1", 5); err != nil {
+		t.Fatalf("error inesperado: %v", err)
+	}
+	// Tras acordar se puede abrir otra votación (RN-18.5)
+	if _, err := s.IniciarVotacion("HU-1"); err != nil {
+		t.Fatalf("tras acordar, IniciarVotacion debería ser válido: %v", err)
+	}
+}
+
+// TestPlanningPoker_Acordar_AcordarConError: tras acordar, un segundo Acordar devuelve ErrSinVotacionAbierta.
+func TestPlanningPoker_Acordar_AcordarConError(t *testing.T) {
+	s, _ := nuevoServicioPoker(t)
+	if _, err := s.IniciarVotacion("HU-1"); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.Votar("HU-1", "I1", 3); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.Votar("HU-1", "I2", 8); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := s.Revelar("HU-1"); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.Acordar("HU-1", 5); err != nil {
+		t.Fatalf("error inesperado: %v", err)
+	}
+	// Segundo acordar: sin votación abierta → ErrSinVotacionAbierta
+	if err := s.Acordar("HU-1", 8); !errors.Is(err, estimation.ErrSinVotacionAbierta) {
+		t.Fatalf("se esperaba ErrSinVotacionAbierta, se obtuvo %v", err)
+	}
+}
