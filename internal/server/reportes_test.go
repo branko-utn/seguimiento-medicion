@@ -127,3 +127,43 @@ func TestReportes_sprint_errores(t *testing.T) {
 		}
 	}
 }
+
+// La sección Reportes ofrece el reporte de cada proyecto (HU-30).
+func TestReportes_seccionEnlazaElReporteDelProyecto(t *testing.T) {
+	router := escenarioReportes(t)
+	cuerpo := servir(router, httptest.NewRequest(http.MethodGet, "/reportes", nil)).Body.String()
+	contieneTodo(t, cuerpo, `href="/reportes/proyecto?proyecto=P1"`)
+}
+
+func TestReportes_proyecto(t *testing.T) {
+	anterior := hoy
+	hoy = func() time.Time { return time.Date(2026, 10, 27, 0, 0, 0, 0, time.Local) }
+	t.Cleanup(func() { hoy = anterior })
+	router := escenarioReportes(t)
+
+	rec := servir(router, httptest.NewRequest(http.MethodGet, "/reportes/proyecto?proyecto=P1", nil))
+	if rec.Code != http.StatusOK {
+		t.Fatalf("código = %d, se esperaba 200", rec.Code)
+	}
+	contieneTodo(t, rec.Body.String(),
+		"Reporte del proyecto", "Demo", "del 21/10/2026 al 31/10/2026", "En curso", "4 días restantes",
+		// Resumen: solo S1 (activo); S2 está planificado.
+		`<a href="/reportes/sprints/S1">Primer MVP</a>`, "<td>Activo</td>", "<td>8</td>", "<td>50,0 %</td>",
+		"Velocidad: 0,0 Story Points por sprint (sin sprints cerrados todavía)", "3 Story Points completados",
+		"50,0 % de historias completadas (1 de 2)", "4,0 horas estimadas · 3,0 horas reales · desviación de -25,0 %",
+		"1 detectado · 0 resueltos · 1 abierto", "<td>Falla al guardar</td>", "<td>Alta</td>",
+		"Imprimir o guardar como PDF", `class="no-imprimir"`)
+	if strings.Contains(rec.Body.String(), "Segundo") {
+		t.Error("un sprint planificado no va en el resumen (RN-30.1)")
+	}
+}
+
+func TestReportes_proyectoInexistente(t *testing.T) {
+	router := escenarioReportes(t)
+	for _, ruta := range []string{"/reportes/proyecto?proyecto=P9", "/reportes/proyecto"} {
+		rec := servir(router, httptest.NewRequest(http.MethodGet, ruta, nil))
+		if rec.Code != http.StatusNotFound || !strings.Contains(rec.Body.String(), "el proyecto no existe") {
+			t.Errorf("GET %s: código = %d, se esperaba 404 con \"el proyecto no existe\"", ruta, rec.Code)
+		}
+	}
+}
