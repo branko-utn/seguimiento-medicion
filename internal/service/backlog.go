@@ -79,6 +79,11 @@ func (s *Backlog) Listar() ([]backlog.Historia, error) {
 	return s.historias.Listar(), nil
 }
 
+// DelProyecto devuelve el backlog de un proyecto ordenado por prioridad e identificador (HU-09).
+func (s *Backlog) DelProyecto(proyectoID domain.ProyectoID, estado *backlog.Estado) ([]backlog.Historia, error) {
+	return nil, nil
+}
+
 // Buscar devuelve la historia con ese ID, o backlog.ErrNoExiste ("la historia no existe").
 func (s *Backlog) Buscar(id domain.HistoriaID) (backlog.Historia, error) {
 	return s.historias.Buscar(id)
