@@ -59,7 +59,7 @@ func NuevosServicios(dir string) (server.Servicios, error) {
 	registrosSvc := service.NuevoRegistros(registros, integrantes, historias, proyectos)
 	defectosSvc := service.NuevoDefectos(defectos, historias, sprints)
 	return server.Servicios{
-		Proyectos:    service.NuevoProyectos(proyectos),
+		Proyectos:    service.NuevoProyectos(proyectos).ConResumen(sprints, historias),
 		Integrantes:  service.NuevoIntegrantes(integrantes, proyectos),
 		Backlog:      service.NuevoBacklog(historias, proyectos, sprintsSvc, registrosSvc, defectosSvc),
 		Sprints:      sprintsSvc,

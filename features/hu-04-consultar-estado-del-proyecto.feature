@@ -1,5 +1,5 @@
 # language: es
-@HU-04 @pendiente
+@HU-04
 Característica: Consultar estado del proyecto
   Como integrante del equipo
   Quiero ver el estado del proyecto
