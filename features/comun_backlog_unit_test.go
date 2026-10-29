@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/branko-utn/seguimiento-medicion/internal/domain"
+	"github.com/branko-utn/seguimiento-medicion/internal/domain/backlog"
 )
 
 // Tests de los pasos compartidos de backlog: todavía ningún .feature activo los usa (HU-08, HU-11, HU-12 y HU-15
@@ -39,6 +40,32 @@ func TestCargarHistorias(t *testing.T) {
 	h3, _ := m.backlog.Buscar(domain.HistoriaID(m.id("historia", "HU-3")))
 	if h3.StoryPoints != 5 || len(h3.Criterios) != 0 {
 		t.Errorf("HU-3 = %+v, se esperaba 5 SP y sin criterios", h3)
+	}
+}
+
+// TestCargarHistorias_prioridad: la columna prioridad es opcional y vale Media si no está (spec HU-09, nota para los
+// pasos).
+func TestCargarHistorias_prioridad(t *testing.T) {
+	m := mundoConProyecto(t)
+	err := m.cargarHistorias([]filaHistoria{
+		{historia: "HU-1", titulo: "Registrar defecto", storyPoints: 2, criterios: 1, prioridad: backlog.PrioridadBaja},
+		{historia: "HU-2", titulo: "Crear sprint", storyPoints: 5, criterios: 1, prioridad: backlog.PrioridadAlta},
+		{historia: "HU-3", titulo: "Ver dashboard", storyPoints: 8, criterios: 1},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for historia, want := range map[string]backlog.Prioridad{
+		"HU-1": backlog.PrioridadBaja, "HU-2": backlog.PrioridadAlta, "HU-3": backlog.PrioridadMedia,
+	} {
+		h, err := m.buscarHistoria(historia)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if h.Prioridad != want {
+			t.Errorf("%s tiene prioridad %v, se esperaba %v", historia, h.Prioridad, want)
+		}
 	}
 }
 

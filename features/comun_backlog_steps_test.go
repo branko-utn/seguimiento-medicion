@@ -79,6 +79,7 @@ func estadoDesdeTexto(texto string) (backlog.Estado, error) {
 type filaHistoria struct {
 	historia, titulo       string
 	storyPoints, criterios int
+	prioridad              backlog.Prioridad // opcional (HU-09): el cero vale Media
 }
 
 // queElProyectoTieneLasHistorias carga las historias de la tabla en el último proyecto creado ("Dado").
