@@ -55,3 +55,12 @@ func (r *Registros) filtrar(incluir func(effort.Registro) bool) []effort.Registr
 	})
 	return filtrados
 }
+
+// Listar devuelve una copia de todos los registros.
+func (r *Registros) Listar() []effort.Registro {
+	var lista []effort.Registro
+	r.store.View(func(l []effort.Registro) {
+		lista = append(lista, l...)
+	})
+	return lista
+}

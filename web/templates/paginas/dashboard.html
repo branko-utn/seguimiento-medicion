@@ -1,0 +1,131 @@
+{{define "titulo"}}Dashboard · {{.Datos.Nombre}}{{end}}
+
+{{define "contenido"}}
+{{- with .Datos}}
+<hgroup>
+  <h1>Dashboard</h1>
+  <p><strong>{{.Nombre}}</strong> · {{.Estado}} ({{.DiasRestantes}} días restantes) · del {{.Inicio.Format "02/01/2006"}} al {{.Fin.Format "02/01/2006"}}</p>
+</hgroup>
+
+<p><a href="/dashboard">Cambiar de proyecto</a></p>
+
+<section>
+  <h2>Resumen</h2>
+  <ul>
+    <li><strong>Estado:</strong> {{.Estado}} con {{.DiasRestantes}} días restantes</li>
+    <li><strong>Sprint activo:</strong> {{if .SprintActivo}}{{.SprintActivo}}{{else}}Ninguno{{end}}</li>
+    <li><strong>Velocidad del proyecto:</strong> {{printf "%.1f" .Velocidad}}</li>
+    <li><strong>Historias completadas:</strong> {{printf "%.1f" .PorcentajeCompletadas}} %</li>
+    <li><strong>Horas estimadas:</strong> {{printf "%.1f" .HorasEstimadas}}</li>
+    <li><strong>Horas reales:</strong> {{printf "%.1f" .HorasReales}}</li>
+    <li><strong>Desviación:</strong> {{if .DesviacionCalculable}}{{printf "%.1f" .Desviacion}} %{{else}}no calculable{{end}}</li>
+    <li><strong>Defectos:</strong> {{.DefectosDetectados}} detectados · {{.DefectosResueltos}} resueltos · {{.DefectosAbiertos}} abiertos</li>
+  </ul>
+</section>
+
+<section>
+  <h2>Velocidad por sprint</h2>
+  {{if .Mensajes.Velocidad}}<p>{{.Mensajes.Velocidad}}</p>{{end}}
+  <canvas id="grafico-velocidad"></canvas>
+</section>
+
+<section>
+  <h2>Story Points planificados vs. completados</h2>
+  {{if .Mensajes.SP}}<p>{{.Mensajes.SP}}</p>{{end}}
+  <canvas id="grafico-sp"></canvas>
+</section>
+
+<section>
+  <h2>Horas estimadas vs. reales</h2>
+  {{if .Mensajes.Horas}}<p>{{.Mensajes.Horas}}</p>{{end}}
+  <canvas id="grafico-horas"></canvas>
+</section>
+
+<section>
+  <h2>Defectos detectados vs. resueltos</h2>
+  {{if .Mensajes.Defectos}}<p>{{.Mensajes.Defectos}}</p>{{end}}
+  <canvas id="grafico-defectos"></canvas>
+</section>
+
+<script id="series-dashboard" type="application/json">{{.SeriesJSON}}</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  var raw = document.getElementById("series-dashboard");
+  if (!raw || !window.Chart) return;
+  try {
+    var data = JSON.parse(raw.textContent);
+    var puntos = data.puntos || [];
+    if (puntos.length === 0) return;
+    var labels = puntos.map(function(p) { return p.Sprint; });
+
+    if (!data.mensajes.Velocidad) {
+      var ctxVel = document.getElementById("grafico-velocidad");
+      if (ctxVel) {
+        new Chart(ctxVel, {
+          type: "line",
+          data: {
+            labels: labels,
+            datasets: [{
+              label: "SP completados",
+              data: puntos.map(function(p) { return p.SPCompletados; }),
+              borderColor: "#3b82f6",
+              fill: false
+            }]
+          }
+        });
+      }
+    }
+
+    if (!data.mensajes.SP) {
+      var ctxSP = document.getElementById("grafico-sp");
+      if (ctxSP) {
+        new Chart(ctxSP, {
+          type: "bar",
+          data: {
+            labels: labels,
+            datasets: [
+              { label: "SP planificados", data: puntos.map(function(p) { return p.SPPlanificados; }), backgroundColor: "#93c5fd" },
+              { label: "SP completados", data: puntos.map(function(p) { return p.SPCompletados; }), backgroundColor: "#3b82f6" }
+            ]
+          }
+        });
+      }
+    }
+
+    if (!data.mensajes.Horas) {
+      var ctxHoras = document.getElementById("grafico-horas");
+      if (ctxHoras) {
+        new Chart(ctxHoras, {
+          type: "bar",
+          data: {
+            labels: labels,
+            datasets: [
+              { label: "Horas estimadas", data: puntos.map(function(p) { return p.HorasEstimadas; }), backgroundColor: "#fcd34d" },
+              { label: "Horas reales", data: puntos.map(function(p) { return p.HorasReales; }), backgroundColor: "#f59e0b" }
+            ]
+          }
+        });
+      }
+    }
+
+    if (!data.mensajes.Defectos) {
+      var ctxDef = document.getElementById("grafico-defectos");
+      if (ctxDef) {
+        new Chart(ctxDef, {
+          type: "bar",
+          data: {
+            labels: labels,
+            datasets: [
+              { label: "Detectados", data: puntos.map(function(p) { return p.DefectosDetectados; }), backgroundColor: "#ef4444" },
+              { label: "Resueltos", data: puntos.map(function(p) { return p.DefectosResueltos; }), backgroundColor: "#10b981" }
+            ]
+          }
+        });
+      }
+    }
+  } catch(e) {}
+});
+</script>
+{{- end}}
+{{end}}

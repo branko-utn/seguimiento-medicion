@@ -16,6 +16,8 @@ type RepoRegistros interface {
 	DelIntegrante(id domain.IntegranteID) []effort.Registro
 	// DeHistoria devuelve los registros de una historia, en el orden en que se registraron.
 	DeHistoria(id domain.HistoriaID) []effort.Registro
+	// Listar devuelve todos los registros.
+	Listar() []effort.Registro
 }
 
 // BuscadorIntegrantes es lo que el servicio de esfuerzo necesita del repositorio de integrantes (épica E1).

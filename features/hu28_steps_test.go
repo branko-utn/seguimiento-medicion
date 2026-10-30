@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"math"
 	"strconv"
-	"strings"
 
 	"github.com/branko-utn/seguimiento-medicion/internal/dashboard"
 	"github.com/branko-utn/seguimiento-medicion/internal/domain"
@@ -14,7 +13,6 @@ import (
 
 func registrarPasosHU28(sc *godog.ScenarioContext, m *mundo) {
 	var d dashboard.Dashboard
-	var httpCtx context.Context
 
 	sc.Step(`^veo el dashboard de "([^"]*)"$`, func(nombre string) error {
 		pid := domain.ProyectoID(m.id("proyecto", nombre))
@@ -28,8 +26,7 @@ func registrarPasosHU28(sc *godog.ScenarioContext, m *mundo) {
 			return nil
 		}
 		// también intentar vía HTTP para cubrir el caso
-		ctx, _ := m.hacerPedido(context.Background(), "GET", "/dashboard?proyecto="+nombre)
-		httpCtx = ctx
+		_, _ = m.hacerPedido(context.Background(), "GET", "/dashboard?proyecto="+nombre)
 		return nil
 	})
 
@@ -143,30 +140,6 @@ func registrarPasosHU28(sc *godog.ScenarioContext, m *mundo) {
 		return nil
 	})
 
-	sc.Step(`^veo el error "([^"]*)"$`, func(mensaje string) error {
-		// also check http error if set
-		if m.err != nil {
-			if m.err.Error() != mensaje {
-				return fmt.Errorf("se esperaba el error %q, pero fue %q", mensaje, m.err.Error())
-			}
-			m.err = nil
-			return nil
-		}
-		if httpCtx != nil {
-			rec, err := respuesta(httpCtx)
-			if err != nil {
-				return err
-			}
-			if rec.Code == 404 && strings.Contains(rec.Body.String(), mensaje) {
-				return nil
-			}
-			if !strings.Contains(rec.Body.String(), mensaje) {
-				return fmt.Errorf("no se encontró el error %q en la respuesta", mensaje)
-			}
-			return nil
-		}
-		return fmt.Errorf("se esperaba el error %q, pero la acción no falló", mensaje)
-	})
 }
 
 // ensure project error type is referenced if needed

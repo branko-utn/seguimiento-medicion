@@ -19,6 +19,7 @@ type RepoSprints interface {
 	Actualizar(s sprint.Sprint) error
 	// DelProyecto devuelve los sprints de un proyecto en el orden en que se crearon.
 	DelProyecto(id domain.ProyectoID) []sprint.Sprint
+	Listar() []sprint.Sprint
 }
 
 // Sprints son los casos de uso de la épica E3.

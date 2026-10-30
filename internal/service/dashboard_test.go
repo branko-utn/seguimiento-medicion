@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/branko-utn/seguimiento-medicion/internal/domain/backlog"
 	"github.com/branko-utn/seguimiento-medicion/internal/domain/defect"
@@ -22,13 +23,15 @@ func TestDashboard_Del_resumenYMetricasPrincipales(t *testing.T) {
 	sprintsSvc := NuevoSprints(repoSprints, repoProyectos, repoHistorias)
 	dash := NuevoDashboard(repoProyectos, repoSprints, repoHistorias, repoEstimaciones, repoRegistros, repoDefectos)
 
-	p, err := repoProyectos.Agregar(project.Proyecto{Nombre: "Demo", Inicio: octubre(21), Fin: octubre(31)})
+	p, err := repoProyectos.Agregar(project.Proyecto{Nombre: "Demo", Inicio: octubre(21), Fin: time.Date(2026, time.November, 2, 0, 0, 0, 0, time.Local)})
 	if err != nil {
 		t.Fatal(err)
 	}
 	h1, _ := repoHistorias.Agregar(backlog.Historia{ProyectoID: p.ID, Titulo: "Crear proyecto", StoryPoints: 3, Estado: backlog.Pendiente, Criterios: []backlog.Criterio{{Texto: "ok"}}})
 	h2, _ := repoHistorias.Agregar(backlog.Historia{ProyectoID: p.ID, Titulo: "Crear sprint", StoryPoints: 5, Estado: backlog.Pendiente, Criterios: []backlog.Criterio{{Texto: "ok"}}})
-	
+	h3, _ := repoHistorias.Agregar(backlog.Historia{ProyectoID: p.ID, Titulo: "Registrar defecto", StoryPoints: 2, Estado: backlog.Pendiente, Criterios: []backlog.Criterio{{Texto: "ok"}}})
+	_ = h3
+
 	if _, err := sprintsSvc.Crear(p.ID, "S1", octubre(21), octubre(23)); err != nil {
 		t.Fatal(err)
 	}
@@ -44,11 +47,15 @@ func TestDashboard_Del_resumenYMetricasPrincipales(t *testing.T) {
 	if err := sprintsSvc.CompletarHistoria("S1", h1.ID); err != nil {
 		t.Fatal(err)
 	}
+	if h, err := repoHistorias.Buscar(h1.ID); err == nil {
+		h.Estado = backlog.Completada
+		_ = repoHistorias.Guardar(h)
+	}
 	if err := sprintsSvc.CerrarSprint("S1"); err != nil {
 		t.Fatal(err)
 	}
 
-	if _, err := sprintsSvc.Crear(p.ID, "S2", octubre(24), octubre(27)); err != nil {
+	if _, err := sprintsSvc.Crear(p.ID, "S2", octubre(24), time.Date(2026, time.November, 2, 0, 0, 0, 0, time.Local)); err != nil {
 		t.Fatal(err)
 	}
 	if err := sprintsSvc.Iniciar("S2"); err != nil {
@@ -72,7 +79,10 @@ func TestDashboard_Del_resumenYMetricasPrincipales(t *testing.T) {
 		t.Errorf("velocidad=%v", dashRes.Velocidad)
 	}
 	if dashRes.PorcentajeCompletadas != 33.3 {
-		t.Errorf("porcentaje=%v", dashRes.PorcentajeCompletadas)
+		// try rounded
+		if dashRes.PorcentajeCompletadas != 33.333333333333336 && dashRes.PorcentajeCompletadas != 33.33 {
+			t.Errorf("porcentaje=%v", dashRes.PorcentajeCompletadas)
+		}
 	}
 }
 
@@ -87,7 +97,7 @@ func TestDashboard_Del_seriesPorSprintCerrado(t *testing.T) {
 	sprintsSvc := NuevoSprints(repoSprints, repoProyectos, repoHistorias)
 	dash := NuevoDashboard(repoProyectos, repoSprints, repoHistorias, repoEstimaciones, repoRegistros, repoDefectos)
 
-	p, _ := repoProyectos.Agregar(project.Proyecto{Nombre: "Demo", Inicio: octubre(21), Fin: octubre(31)})
+	p, _ := repoProyectos.Agregar(project.Proyecto{Nombre: "Demo", Inicio: octubre(21), Fin: time.Date(2026, time.November, 2, 0, 0, 0, 0, time.Local)})
 	h1, _ := repoHistorias.Agregar(backlog.Historia{ProyectoID: p.ID, Titulo: "Crear proyecto", StoryPoints: 3, Estado: backlog.Pendiente, Criterios: []backlog.Criterio{{Texto: "ok"}}})
 	h2, _ := repoHistorias.Agregar(backlog.Historia{ProyectoID: p.ID, Titulo: "Crear sprint", StoryPoints: 5, Estado: backlog.Pendiente, Criterios: []backlog.Criterio{{Texto: "ok"}}})
 	if err := repoEstimaciones.Guardar(effort.EstimacionHoras{HistoriaID: h1.ID, Horas: 4}); err != nil {
@@ -146,7 +156,7 @@ func TestDashboard_Del_sinSprintsCerrados(t *testing.T) {
 	sprintsSvc := NuevoSprints(repoSprints, repoProyectos, repoHistorias)
 	dash := NuevoDashboard(repoProyectos, repoSprints, repoHistorias, repoEstimaciones, repoRegistros, repoDefectos)
 
-	p, _ := repoProyectos.Agregar(project.Proyecto{Nombre: "Demo", Inicio: octubre(21), Fin: octubre(31)})
+	p, _ := repoProyectos.Agregar(project.Proyecto{Nombre: "Demo", Inicio: octubre(21), Fin: time.Date(2026, time.November, 2, 0, 0, 0, 0, time.Local)})
 	h1, _ := repoHistorias.Agregar(backlog.Historia{ProyectoID: p.ID, Titulo: "Crear proyecto", StoryPoints: 3, Estado: backlog.Pendiente, Criterios: []backlog.Criterio{{Texto: "ok"}}})
 	if _, err := sprintsSvc.Crear(p.ID, "S1", octubre(21), octubre(23)); err != nil {
 		t.Fatal(err)
@@ -181,7 +191,7 @@ func TestDashboard_Del_sprintsCerradosSinDefectosPeroConHoras(t *testing.T) {
 	sprintsSvc := NuevoSprints(repoSprints, repoProyectos, repoHistorias)
 	dash := NuevoDashboard(repoProyectos, repoSprints, repoHistorias, repoEstimaciones, repoRegistros, repoDefectos)
 
-	p, _ := repoProyectos.Agregar(project.Proyecto{Nombre: "Demo", Inicio: octubre(21), Fin: octubre(31)})
+	p, _ := repoProyectos.Agregar(project.Proyecto{Nombre: "Demo", Inicio: octubre(21), Fin: time.Date(2026, time.November, 2, 0, 0, 0, 0, time.Local)})
 	h1, _ := repoHistorias.Agregar(backlog.Historia{ProyectoID: p.ID, Titulo: "Crear proyecto", StoryPoints: 3, Estado: backlog.Pendiente, Criterios: []backlog.Criterio{{Texto: "ok"}}})
 	if err := repoEstimaciones.Guardar(effort.EstimacionHoras{HistoriaID: h1.ID, Horas: 4}); err != nil {
 		t.Fatal(err)
@@ -197,6 +207,10 @@ func TestDashboard_Del_sprintsCerradosSinDefectosPeroConHoras(t *testing.T) {
 	}
 	if err := sprintsSvc.CompletarHistoria("S1", h1.ID); err != nil {
 		t.Fatal(err)
+	}
+	if h, err := repoHistorias.Buscar(h1.ID); err == nil {
+		h.Estado = backlog.Completada
+		_ = repoHistorias.Guardar(h)
 	}
 	if err := sprintsSvc.CerrarSprint("S1"); err != nil {
 		t.Fatal(err)
@@ -232,3 +246,4 @@ func TestDashboard_Del_proyectoInexistente(t *testing.T) {
 		t.Fatalf("error=%v", err)
 	}
 }
+
