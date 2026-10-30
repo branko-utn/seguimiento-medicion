@@ -62,6 +62,7 @@ func inicializarEscenario(sc *godog.ScenarioContext) {
 	registrarPasosTEC16(sc, m)
 	registrarPasosHU14(sc, m)
 	registrarPasosHU29(sc, m)
+	registrarPasosHU28(sc, m)
 	// Cada historia registra acá sus pasos, por ejemplo: registrarPasosHU01(sc, m)
 	// Los pasos compartidos entre historias los registra una sola vez su responsable (features/README.md).
 }

@@ -1,0 +1,17 @@
+{{define "titulo"}}Dashboard{{end}}
+{{define "contenido"}}
+<section>
+  <h1>Dashboard</h1>
+  <form method="get" action="/dashboard">
+    <label>Proyecto
+      <select name="proyecto">
+        {{range .Datos}}
+        <option value="{{.ID}}">{{.Nombre}}</option>
+        {{end}}
+      </select>
+    </label>
+    <button type="submit">Ver dashboard</button>
+  </form>
+</section>
+{{end}}
+EOF

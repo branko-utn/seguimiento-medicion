@@ -37,6 +37,7 @@ type mundo struct {
 	defectos      *service.Defectos
 	poker         *service.PlanningPoker
 	reportes      *service.Reportes
+	dashboard     *service.Dashboard
 }
 
 func nuevoMundo() *mundo {
@@ -67,6 +68,7 @@ func nuevoMundo() *mundo {
 		defectos:      service.NuevoDefectos(repoDefectos, repoHistorias, repoSprints),
 		poker:         service.NuevoPlanningPoker(repoSesiones, repoHistorias, repoIntegrantes),
 		reportes:      service.NuevoReportes(repoSprints, repoHistorias, repoEstimaciones, repoRegistros, repoIntegrantes, repoDefectos),
+		dashboard:     service.NuevoDashboard(repoProyectos, repoSprints, repoHistorias, repoEstimaciones, repoRegistros, repoDefectos),
 	}
 }
 
