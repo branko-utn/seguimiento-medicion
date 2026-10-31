@@ -17,12 +17,12 @@ func TestBacklog_vacio(t *testing.T) {
 	if rec.Code != http.StatusOK {
 		t.Fatalf("código = %d, se esperaba 200", rec.Code)
 	}
-	if !strings.Contains(rec.Body.String(), "Backlog") {
+	cuerpo := rec.Body.String()
+	if !strings.Contains(cuerpo, "Backlog") {
 		t.Errorf("no contiene 'Backlog'")
 	}
-	if !strings.Contains(rec.Body.String(), "No hay historias en el backlog.") {
-		t.Errorf("no contiene mensaje de backlog vacío")
-	}
+	// RN-32.4: sin historias se ve el estado vacío, con un enlace a la acción que llena el backlog.
+	contieneTodo(t, rec.Body.String(), "No hay historias en el backlog.", `class="vacio"`, `href="/backlog/nueva"`)
 }
 
 func TestBacklog_conHistorias(t *testing.T) {
@@ -65,4 +65,46 @@ func TestBacklog_conHistorias(t *testing.T) {
 	if !strings.Contains(cuerpo, "Proyecto Alpha") {
 		t.Errorf("no contiene el nombre del proyecto 'Proyecto Alpha'")
 	}
+}
+
+// RN-32.1: la prioridad y el estado de cada historia se ven con insignias de tono, tanto en la lista
+// como en el detalle. Los tonos los decide el handler en Go (ADR 0003), no la plantilla.
+func TestTonoPrioridad(t *testing.T) {
+	// De más urgente (alerta) a menos (neutro), igual que tonoSeveridad; el cero no es una prioridad.
+	casos := []struct {
+		prioridad backlog.Prioridad
+		quiere    string
+	}{
+		{backlog.PrioridadAlta, tonoAlerta},
+		{backlog.PrioridadMedia, tonoInfo},
+		{backlog.PrioridadBaja, tonoNeutro},
+		{backlog.Prioridad(0), tonoNeutro},
+	}
+	for _, caso := range casos {
+		if got := tonoPrioridad(caso.prioridad); got != caso.quiere {
+			t.Errorf("tonoPrioridad(%v) = %q, se esperaba %q", caso.prioridad, got, caso.quiere)
+		}
+	}
+}
+
+func TestBacklog_insignias(t *testing.T) {
+	e := nuevoServidorBacklog(t)
+	e.crearHistoria(t) // HU-1 "Crear proyecto", con prioridad Alta y estado Pendiente
+
+	cuerpo := ver(e.router, "/backlog").Body.String()
+
+	contieneTodo(t, cuerpo,
+		`class="insignia tono-alerta">Alta</span>`,
+		`class="insignia tono-neutro">Pendiente</span>`)
+}
+
+func TestDetalleHistoria_insignias(t *testing.T) {
+	e := nuevoServidorBacklog(t)
+	e.crearHistoria(t)
+
+	cuerpo := servir(e.router, httptest.NewRequest(http.MethodGet, "/backlog/HU-1", nil)).Body.String()
+
+	contieneTodo(t, cuerpo,
+		`class="insignia tono-alerta">Alta</span>`,
+		`class="insignia tono-neutro">Pendiente</span>`)
 }

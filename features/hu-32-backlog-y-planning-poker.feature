@@ -1,5 +1,5 @@
 # language: es
-@HU-32 @HU-32.2 @pendiente
+@HU-32 @HU-32.2
 Característica: Interfaz del backlog y del Planning Poker
   Como integrante del equipo
   Quiero ver prioridades y estados con colores y votar con cartas
