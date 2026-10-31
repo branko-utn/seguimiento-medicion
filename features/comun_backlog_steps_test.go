@@ -79,11 +79,12 @@ func estadoDesdeTexto(texto string) (backlog.Estado, error) {
 type filaHistoria struct {
 	historia, titulo       string
 	storyPoints, criterios int
+	prioridad              backlog.Prioridad // opcional (HU-09): el cero vale Media
 }
 
 // queElProyectoTieneLasHistorias carga las historias de la tabla en el último proyecto creado ("Dado").
 // Columnas: historia, título y story points; criterios (cantidad) es opcional y vale 1 si no está, para que la
-// historia se pueda asignar a un sprint (HU-11).
+// historia se pueda asignar a un sprint (HU-11); prioridad (Alta, Media o Baja) es opcional y vale Media (HU-09).
 func (m *mundo) queElProyectoTieneLasHistorias(tabla *godog.Table) error {
 	if len(tabla.Rows) < 2 {
 		return fmt.Errorf("la tabla de historias no tiene filas")
@@ -109,13 +110,19 @@ func (m *mundo) queElProyectoTieneLasHistorias(tabla *godog.Table) error {
 				return fmt.Errorf("criterios de %s: %w", f.historia, err)
 			}
 		}
+		if _, ok := columnas["prioridad"]; ok {
+			if f.prioridad = prioridadDesdeTexto(valor("prioridad")); f.prioridad == 0 {
+				return fmt.Errorf("prioridad de %s: %q no es Alta, Media ni Baja", f.historia, valor("prioridad"))
+			}
+		}
 		filas = append(filas, f)
 	}
 	return m.cargarHistorias(filas)
 }
 
-// cargarHistorias crea las historias en el último proyecto creado y les fija Story Points y criterios directamente
-// en el repositorio: es preparación del escenario, no el caso de uso de HU-07 ni de HU-15.
+// cargarHistorias crea las historias en el último proyecto creado, con prioridad Media si la fila no la trae, y les
+// fija Story Points y criterios directamente en el repositorio: es preparación del escenario, no el caso de uso de
+// HU-07 ni de HU-15.
 func (m *mundo) cargarHistorias(filas []filaHistoria) error {
 	proyectos, err := m.proyectos.Listar()
 	if err != nil {
@@ -126,7 +133,11 @@ func (m *mundo) cargarHistorias(filas []filaHistoria) error {
 	}
 	proyecto := proyectos[len(proyectos)-1]
 	for _, f := range filas {
-		h, err := m.backlog.Crear(proyecto.ID, f.titulo, "", backlog.PrioridadMedia)
+		prioridad := f.prioridad
+		if prioridad == 0 {
+			prioridad = backlog.PrioridadMedia
+		}
+		h, err := m.backlog.Crear(proyecto.ID, f.titulo, "", prioridad)
 		if err != nil {
 			return err
 		}
