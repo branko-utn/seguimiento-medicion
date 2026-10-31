@@ -1,7 +1,12 @@
 {{define "titulo"}}Nuevo sprint{{end}}
 
 {{define "contenido"}}
-<h1>Nuevo sprint</h1>
+<div class="encabezado">
+  <hgroup>
+    <h1>Nuevo sprint</h1>
+    <p>Proyecto, Sprint Goal y fechas del sprint.</p>
+  </hgroup>
+</div>
 
 <form method="post" action="/sprints">
   {{- with .Datos.Error}}

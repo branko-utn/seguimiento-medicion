@@ -167,7 +167,7 @@ func TestSprints_botonesDeCompletarYCerrar(t *testing.T) {
 	}
 	t.Run("activo: completar cada historia y cerrar", func(t *testing.T) {
 		cuerpo := servir(e.router, httptest.NewRequest(http.MethodGet, "/sprints/S1", nil)).Body.String()
-		contieneTodo(t, cuerpo, completar, cerrar, "0 Story Points completados")
+		contieneTodo(t, cuerpo, completar, cerrar, tarjeta("0", "Story Points completados"))
 	})
 
 	if rec := servir(e.router, pedidoFormulario(http.MethodPost, "/sprints/S1/historias/HU-1/completar", url.Values{})); rec.Code != http.StatusSeeOther {
@@ -175,7 +175,7 @@ func TestSprints_botonesDeCompletarYCerrar(t *testing.T) {
 	}
 	t.Run("activo con la historia completada", func(t *testing.T) {
 		cuerpo := servir(e.router, httptest.NewRequest(http.MethodGet, "/sprints/S1", nil)).Body.String()
-		contieneTodo(t, cuerpo, "✔ Completada", cerrar, "3 Story Points completados")
+		contieneTodo(t, cuerpo, `<span class="insignia tono-exito">Completada</span>`, cerrar, tarjeta("3", "Story Points completados"))
 		if strings.Contains(cuerpo, completar) {
 			t.Error("una historia completada no debe ofrecer el botón para completarla")
 		}
@@ -186,7 +186,7 @@ func TestSprints_botonesDeCompletarYCerrar(t *testing.T) {
 	}
 	t.Run("cerrado: sin acciones y con el resultado", func(t *testing.T) {
 		cuerpo := servir(e.router, httptest.NewRequest(http.MethodGet, "/sprints/S1", nil)).Body.String()
-		contieneTodo(t, cuerpo, "Cerrado", "3 Story Points planificados", "3 Story Points completados")
+		contieneTodo(t, cuerpo, `<span class="insignia tono-exito">Cerrado</span>`, tarjeta("3", "Story Points planificados"), tarjeta("3", "Story Points completados"))
 		for _, accion := range []string{completar, cerrar} {
 			if strings.Contains(cuerpo, accion) {
 				t.Errorf("un sprint cerrado no debe ofrecer %s", accion)

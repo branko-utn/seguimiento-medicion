@@ -112,7 +112,7 @@ func TestProyectos_lista(t *testing.T) {
 		t.Fatalf("código = %d, se esperaba 200", rec.Code)
 	}
 	contieneTodo(t, rec.Body.String(),
-		`<a href="/proyectos/P1">Demo</a>`, "21/10/2026", "02/11/2026", "<td>En curso</td>", `href="/proyectos/nuevo"`)
+		`<a href="/proyectos/P1">Demo</a>`, "21/10/2026", "02/11/2026", `<span class="insignia tono-info">En curso</span>`, `href="/proyectos/nuevo"`)
 	if strings.Contains(rec.Body.String(), "Esta sección se construye") {
 		t.Error("la sección Proyectos sigue marcada como en construcción")
 	}
@@ -126,7 +126,7 @@ func TestProyectos_listaVacia(t *testing.T) {
 	if rec.Code != http.StatusOK {
 		t.Fatalf("código = %d, se esperaba 200", rec.Code)
 	}
-	contieneTodo(t, rec.Body.String(), "Todavía no hay proyectos", `href="/proyectos/nuevo"`)
+	contieneTodo(t, rec.Body.String(), `class="vacio"`, "Todavía no hay proyectos", `href="/proyectos/nuevo"`)
 }
 
 func TestProyectos_formularioNuevo(t *testing.T) {
@@ -224,7 +224,7 @@ func TestProyectos_detalleSinIntegrantes(t *testing.T) {
 	if rec.Code != http.StatusOK {
 		t.Fatalf("código = %d, se esperaba 200", rec.Code)
 	}
-	contieneTodo(t, rec.Body.String(), "Todavía no hay integrantes", `action="/proyectos/P1/integrantes"`)
+	contieneTodo(t, rec.Body.String(), `class="vacio"`, "Todavía no hay integrantes", `action="/proyectos/P1/integrantes"`)
 }
 
 func TestProyectos_proyectoInexistente(t *testing.T) {
@@ -415,9 +415,9 @@ func TestProyectos_listaMuestraElEstadoCalculado(t *testing.T) {
 
 	cuerpo := strings.Join(strings.Fields(rec.Body.String()), " ")
 	contieneTodo(t, cuerpo,
-		`Antiguo</a></td> <td>01/09/2026</td> <td>30/09/2026</td> <td>Finalizado</td>`,
-		`Demo</a></td> <td>21/10/2026</td> <td>02/11/2026</td> <td>En curso</td>`,
-		`Futuro</a></td> <td>10/11/2026</td> <td>20/11/2026</td> <td>Planificado</td>`)
+		`Antiguo</a></td> <td>01/09/2026</td> <td>30/09/2026</td> <td><span class="insignia tono-exito">Finalizado</span></td>`,
+		`Demo</a></td> <td>21/10/2026</td> <td>02/11/2026</td> <td><span class="insignia tono-info">En curso</span></td>`,
+		`Futuro</a></td> <td>10/11/2026</td> <td>20/11/2026</td> <td><span class="insignia tono-neutro">Planificado</span></td>`)
 }
 
 func TestProyectos_detalleConResumen(t *testing.T) {
@@ -443,12 +443,12 @@ func TestProyectos_detalleConResumen(t *testing.T) {
 	}
 	cuerpo := rec.Body.String()
 	// El encabezado usa el estado calculado, y el resumen va arriba de los integrantes.
-	contieneTodo(t, cuerpo, "En curso · del 21/10/2026 al 02/11/2026", "6 días restantes",
-		`Sprint activo: <a href="/sprints/S1">S1 · Primer MVP</a>`, "25.0 % de historias completadas")
+	contieneTodo(t, cuerpo, `<span class="insignia tono-info">En curso</span> del 21/10/2026 al 02/11/2026`, tarjeta("6", "días restantes"),
+		tarjeta(`<a href="/sprints/S1">S1 · Primer MVP</a>`, "sprint activo"), tarjeta("25,0 %", "historias completadas"))
 	if strings.Contains(cuerpo, "Planificado") {
 		t.Error("el detalle no debe mostrar el estado guardado (Planificado): se calcula con las fechas")
 	}
-	if strings.Index(cuerpo, "6 días restantes") > strings.Index(cuerpo, "<h2>Integrantes</h2>") {
+	if strings.Index(cuerpo, tarjeta("6", "días restantes")) > strings.Index(cuerpo, "<h2>Integrantes</h2>") {
 		t.Error("el resumen debe ir arriba de los integrantes")
 	}
 }
@@ -459,7 +459,7 @@ func TestProyectos_detalleSinSprintActivo(t *testing.T) {
 
 	rec := servir(e.router, httptest.NewRequest(http.MethodGet, "/proyectos/P1", nil))
 
-	contieneTodo(t, rec.Body.String(), "Sin sprint activo", "0.0 % de historias completadas")
+	contieneTodo(t, rec.Body.String(), tarjeta("Ninguno", "sprint activo"), tarjeta("0,0 %", "historias completadas"))
 }
 
 func TestProyectos_detalleDeProyectoFinalizado(t *testing.T) {
@@ -470,5 +470,5 @@ func TestProyectos_detalleDeProyectoFinalizado(t *testing.T) {
 
 	rec := servir(e.router, httptest.NewRequest(http.MethodGet, "/proyectos/P1", nil))
 
-	contieneTodo(t, rec.Body.String(), "Finalizado · del 01/09/2026 al 30/09/2026", "0 días restantes")
+	contieneTodo(t, rec.Body.String(), `<span class="insignia tono-exito">Finalizado</span> del 01/09/2026 al 30/09/2026`, tarjeta("0", "días restantes"))
 }

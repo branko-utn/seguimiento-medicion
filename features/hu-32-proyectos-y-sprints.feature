@@ -1,5 +1,5 @@
 # language: es
-@HU-32 @HU-32.1 @pendiente
+@HU-32 @HU-32.1
 Característica: Interfaz de proyectos y sprints
   Como integrante del equipo
   Quiero ver proyectos y sprints con estados y métricas claros

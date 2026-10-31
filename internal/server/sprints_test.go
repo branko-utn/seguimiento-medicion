@@ -107,7 +107,7 @@ func TestSprints_lista(t *testing.T) {
 	cuerpo := rec.Body.String()
 	// Cada proyecto con sus sprints y su botón de alta; un proyecto sin sprints lo avisa.
 	contieneTodo(t, cuerpo,
-		"<h2>Demo</h2>", `<a href="/sprints/S1">Primer MVP</a>`, "23/10/2026", "25/10/2026", "Planificado",
+		"<h2>Demo</h2>", `<a href="/sprints/S1">Primer MVP</a>`, "23/10/2026", "25/10/2026", `<span class="insignia tono-neutro">Planificado</span>`,
 		`href="/sprints/nuevo?proyecto=P1"`, "<h2>Otro</h2>", "Todavía no hay sprints", `href="/sprints/nuevo?proyecto=P2"`)
 	if strings.Contains(cuerpo, "Esta sección se construye") {
 		t.Error("la sección Sprints sigue marcada como en construcción")
@@ -202,7 +202,7 @@ func TestSprints_detalle(t *testing.T) {
 		t.Fatalf("código = %d, se esperaba 200", rec.Code)
 	}
 	contieneTodo(t, rec.Body.String(),
-		"<h1>Primer MVP</h1>", `<a href="/proyectos/P1">Demo</a>`, "Planificado", "del 23/10/2026 al 25/10/2026",
+		"<h1>Primer MVP</h1>", `<a href="/proyectos/P1">Demo</a>`, `<span class="insignia tono-neutro">Planificado</span>`, "del 23/10/2026 al 25/10/2026",
 		`action="/sprints/S1/iniciar"`, "Todavía no hay historias en este sprint")
 }
 
@@ -215,7 +215,7 @@ func TestSprints_detalleDeSprintActivo(t *testing.T) {
 
 	rec := servir(e.router, httptest.NewRequest(http.MethodGet, "/sprints/S1", nil))
 
-	contieneTodo(t, rec.Body.String(), "Activo")
+	contieneTodo(t, rec.Body.String(), `<span class="insignia tono-info">Activo</span>`)
 	if strings.Contains(rec.Body.String(), `action="/sprints/S1/iniciar"`) {
 		t.Error("un sprint activo no debe ofrecer el botón para iniciarlo")
 	}
@@ -303,7 +303,7 @@ func TestSprints_detalleConHistorias(t *testing.T) {
 
 	cuerpo := rec.Body.String()
 	// Las historias del sprint con sus SP y el total planificado (HU-24).
-	contieneTodo(t, cuerpo, "<td>HU-1</td>", "<td>Crear proyecto</td>", "<td>3</td>", "3 Story Points planificados")
+	contieneTodo(t, cuerpo, "<td>HU-1</td>", "<td>Crear proyecto</td>", `<td class="num">3</td>`, tarjeta("3", "Story Points planificados"))
 	// El desplegable ofrece las historias de Demo sin sprint, también las que no están listas: las valida el dominio.
 	contieneTodo(t, cuerpo, `action="/sprints/S1/historias"`, `name="historia"`,
 		`<option value="HU-2">HU-2 · Crear sprint (0 SP)</option>`, `<option value="HU-3">HU-3 · Cerrar sprint (5 SP)</option>`)
@@ -326,7 +326,7 @@ func TestSprints_detalleSinHistoriasDisponibles(t *testing.T) {
 
 	rec := servir(e.router, httptest.NewRequest(http.MethodGet, "/sprints/S1", nil))
 
-	contieneTodo(t, rec.Body.String(), "<td>Ver métricas</td>", "2 Story Points planificados", "No hay historias del backlog sin sprint")
+	contieneTodo(t, rec.Body.String(), "<td>Ver métricas</td>", tarjeta("2", "Story Points planificados"), "No hay historias del backlog sin sprint")
 }
 
 func TestSprints_asignar(t *testing.T) {
@@ -490,7 +490,7 @@ func TestSprints_listaConSprintsCerrados(t *testing.T) {
 	contieneTodo(t, cuerpo, "Sprints cerrados", "<h2>Demo</h2>", `<a href="/sprints/S1">Primer MVP</a>`,
 		"23/10/2026", "25/10/2026", "Story Points planificados", "Story Points completados",
 		"Todavía no hay sprints cerrados")
-	if strings.Count(cuerpo, "<td>3</td>") < 2 {
+	if strings.Count(cuerpo, `<td class="num">3</td>`) < 2 {
 		t.Error("el listado debe mostrar 3 SP planificados y 3 completados del sprint cerrado")
 	}
 }
@@ -529,7 +529,7 @@ func TestSprints_detalleDeSprintCerrado(t *testing.T) {
 		t.Fatalf("código = %d, se esperaba 200", rec.Code)
 	}
 	contieneTodo(t, rec.Body.String(),
-		"<h1>Primer MVP</h1>", "<td>HU-1</td>", "<td>Crear proyecto</td>", "✔ Completada",
-		"<td>HU-2</td>", "<td>Crear sprint</td>", "No completada",
-		"8 Story Points planificados", "3 Story Points completados")
+		"<h1>Primer MVP</h1>", "<td>HU-1</td>", "<td>Crear proyecto</td>", `<span class="insignia tono-exito">Completada</span>`,
+		"<td>HU-2</td>", "<td>Crear sprint</td>", `<span class="insignia tono-neutro">No completada</span>`,
+		tarjeta("8", "Story Points planificados"), tarjeta("3", "Story Points completados"))
 }

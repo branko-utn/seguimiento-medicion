@@ -1,17 +1,22 @@
 {{define "titulo"}}Sprints{{end}}
 
 {{define "contenido"}}
-<hgroup>
-  <h1>Sprints</h1>
-  <p>Sprint Goal, asignación de historias, cierre e historial.</p>
-</hgroup>
+<div class="encabezado">
+  <hgroup>
+    <h1>Sprints</h1>
+    <p>Sprint Goal, asignación de historias, cierre e historial.</p>
+  </hgroup>
+</div>
 
 {{range .Datos}}
 <section>
-  <h2>{{.Proyecto.Nombre}}</h2>
+  <div class="encabezado">
+    <h2>{{.Proyecto.Nombre}}</h2>
+    <div class="acciones"><a href="/sprints/nuevo?proyecto={{.Proyecto.ID}}" role="button">Nuevo sprint</a></div>
+  </div>
   {{- if .Sprints}}
   <div class="overflow-auto">
-    <table>
+    <table class="tabla">
       <thead>
         <tr><th>Sprint Goal</th><th>Inicio</th><th>Fin</th><th>Estado</th></tr>
       </thead>
@@ -21,22 +26,25 @@
           <td><a href="/sprints/{{.ID}}">{{.Goal}}</a></td>
           <td>{{.Inicio.Format "02/01/2006"}}</td>
           <td>{{.Fin.Format "02/01/2006"}}</td>
-          <td>{{.Estado}}</td>
+          <td><span class="insignia {{.Tono}}">{{.Estado}}</span></td>
         </tr>
         {{- end}}
       </tbody>
     </table>
   </div>
   {{- else}}
-  <p>Todavía no hay sprints.</p>
+  <div class="vacio">
+    <p>Todavía no hay sprints.</p>
+    <p><a href="/sprints/nuevo?proyecto={{.Proyecto.ID}}">Planificar el primer sprint</a></p>
+  </div>
   {{- end}}
 
   <h3>Sprints cerrados</h3>
   {{- if .Cerrados}}
   <div class="overflow-auto">
-    <table>
+    <table class="tabla">
       <thead>
-        <tr><th>Sprint Goal</th><th>Inicio</th><th>Fin</th><th>Story Points planificados</th><th>Story Points completados</th></tr>
+        <tr><th>Sprint Goal</th><th>Inicio</th><th>Fin</th><th class="num">Story Points planificados</th><th class="num">Story Points completados</th></tr>
       </thead>
       <tbody>
         {{- range .Cerrados}}
@@ -44,20 +52,23 @@
           <td><a href="/sprints/{{.ID}}">{{.Goal}}</a></td>
           <td>{{.Inicio.Format "02/01/2006"}}</td>
           <td>{{.Fin.Format "02/01/2006"}}</td>
-          <td>{{.SPPlanificados}}</td>
-          <td>{{.SPCompletados}}</td>
+          <td class="num">{{.SPPlanificados}}</td>
+          <td class="num">{{.SPCompletados}}</td>
         </tr>
         {{- end}}
       </tbody>
     </table>
   </div>
   {{- else}}
-  <p>Todavía no hay sprints cerrados.</p>
+  <div class="vacio">
+    <p>Todavía no hay sprints cerrados.</p>
+  </div>
   {{- end}}
-
-  <p><a href="/sprints/nuevo?proyecto={{.Proyecto.ID}}" role="button">Nuevo sprint</a></p>
 </section>
 {{else}}
-<p>Todavía no hay proyectos. Para planificar un sprint, <a href="/proyectos/nuevo">creá un proyecto</a>.</p>
+<div class="vacio">
+  <p>Todavía no hay proyectos.</p>
+  <p>Para planificar un sprint, <a href="/proyectos/nuevo">creá un proyecto</a>.</p>
+</div>
 {{end}}
 {{end}}

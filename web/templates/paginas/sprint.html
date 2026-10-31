@@ -2,41 +2,54 @@
 
 {{define "contenido"}}
 {{- with .Datos.Sprint}}
-<hgroup>
-  <h1>{{.Goal}}</h1>
-  <p><a href="/proyectos/{{$.Datos.Proyecto.ID}}">{{$.Datos.Proyecto.Nombre}}</a> · {{.Estado}} · del {{.Inicio.Format "02/01/2006"}} al {{.Fin.Format "02/01/2006"}}</p>
-</hgroup>
+<div class="encabezado">
+  <hgroup>
+    <h1>{{.Goal}}</h1>
+    <p><a href="/proyectos/{{$.Datos.Proyecto.ID}}">{{$.Datos.Proyecto.Nombre}}</a> · <span class="insignia {{$.Datos.Tono}}">{{.Estado}}</span> · del {{.Inicio.Format "02/01/2006"}} al {{.Fin.Format "02/01/2006"}}</p>
+  </hgroup>
+  {{- if $.Datos.PuedeIniciar}}
+  <form class="acciones" method="post" action="/sprints/{{.ID}}/iniciar">
+    <button type="submit">Iniciar sprint</button>
+  </form>
+  {{- end}}
+</div>
 {{- end}}
 
 {{- with .Datos.Error}}
 <p class="error-formulario" role="alert">{{.}}</p>
 {{- end}}
 
-{{- if .Datos.PuedeIniciar}}
-<form method="post" action="/sprints/{{.Datos.Sprint.ID}}/iniciar">
-  <button type="submit">Iniciar sprint</button>
-</form>
-{{- end}}
+<section>
+  <h2>Métricas del sprint</h2>
+  {{- with .Datos.Metricas}}
+  <div class="tarjetas">
+    <article class="tarjeta-metrica"><span class="valor">{{$.Datos.SPPlanificados}}</span><span class="etiqueta">Story Points planificados</span></article>
+    <article class="tarjeta-metrica"><span class="valor">{{$.Datos.SPCompletados}}</span><span class="etiqueta">Story Points completados</span></article>
+    <article class="tarjeta-metrica"><span class="valor">{{.Porcentaje}} %</span><span class="etiqueta">historias completadas ({{.Completadas}} de {{.Historias}})</span></article>
+    <article class="tarjeta-metrica"><span class="valor">{{.Velocidad}}</span><span class="etiqueta">velocidad del equipo en SP por sprint {{if eq .SprintsCerrados 0}}(sin sprints cerrados todavía){{else if eq .SprintsCerrados 1}}(1 sprint cerrado){{else}}({{.SprintsCerrados}} sprints cerrados){{end}}</span></article>
+  </div>
+  {{- end}}
+</section>
 
 <section>
   <h2>Historias del sprint</h2>
   {{- if .Datos.Historias}}
   <div class="overflow-auto">
-    <table>
+    <table class="tabla">
       <thead>
-        <tr><th>ID</th><th>Historia</th><th>Story Points</th><th></th></tr>
+        <tr><th>ID</th><th>Historia</th><th class="num">Story Points</th><th></th></tr>
       </thead>
       <tbody>
         {{- range .Datos.Historias}}
         <tr>
           <td>{{.ID}}</td>
           <td>{{.Titulo}}</td>
-          <td>{{.StoryPoints}}</td>
+          <td class="num">{{.StoryPoints}}</td>
           <td>
-            {{- if index $.Datos.Completadas .ID}}✔ Completada
-            {{- else if $.Datos.Cerrado}}No completada
+            {{- if index $.Datos.Completadas .ID}}<span class="insignia tono-exito">Completada</span>
+            {{- else if $.Datos.Cerrado}}<span class="insignia tono-neutro">No completada</span>
             {{- else if $.Datos.PuedeCerrar}}
-            <form method="post" action="/sprints/{{$.Datos.Sprint.ID}}/historias/{{.ID}}/completar">
+            <form class="en-linea" method="post" action="/sprints/{{$.Datos.Sprint.ID}}/historias/{{.ID}}/completar">
               <button type="submit" class="secondary">Completar</button>
             </form>
             {{- end}}
@@ -47,7 +60,12 @@
     </table>
   </div>
   {{- else}}
-  <p>Todavía no hay historias en este sprint.</p>
+  <div class="vacio">
+    <p>Todavía no hay historias en este sprint.</p>
+    {{- if .Datos.PuedeAsignar}}
+    <p>Asigná una historia del backlog con el formulario de abajo.</p>
+    {{- end}}
+  </div>
   {{- end}}
 
   {{- if .Datos.PuedeAsignar}}
@@ -64,23 +82,11 @@
     <button type="submit">Asignar al sprint</button>
   </form>
   {{- else}}
-  <p>No hay historias del backlog sin sprint en este proyecto.</p>
+  <div class="vacio">
+    <p>No hay historias del backlog sin sprint en este proyecto.</p>
+    <p><a href="/backlog">Ir al backlog</a></p>
+  </div>
   {{- end}}
-  {{- end}}
-</section>
-
-<section>
-  <h2>Métricas del sprint</h2>
-  {{- with .Datos.Metricas}}
-  <ul>
-    <li><strong>{{$.Datos.SPPlanificados}} Story Points planificados</strong></li>
-    <li><strong>{{$.Datos.SPCompletados}} Story Points completados</strong></li>
-    <li><strong>{{.Porcentaje}} % de historias completadas ({{.Completadas}} de {{.Historias}})</strong></li>
-    <li><strong>Velocidad del equipo: {{.Velocidad}} Story Points por sprint
-      {{- if eq .SprintsCerrados 0}} (sin sprints cerrados todavía)
-      {{- else if eq .SprintsCerrados 1}} (1 sprint cerrado)
-      {{- else}} ({{.SprintsCerrados}} sprints cerrados){{end}}</strong></li>
-  </ul>
   {{- end}}
 </section>
 
