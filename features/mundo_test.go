@@ -68,7 +68,7 @@ func nuevoMundo() *mundo {
 		registros:     registrosSvc,
 		defectos:      defectosSvc,
 		poker:         service.NuevoPlanningPoker(repoSesiones, repoHistorias, repoIntegrantes),
-		reportes:      service.NuevoReportes(repoSprints, repoHistorias, repoEstimaciones, repoRegistros, repoIntegrantes, repoDefectos),
+		reportes:      service.NuevoReportes(repoProyectos, repoSprints, repoHistorias, repoEstimaciones, repoRegistros, repoIntegrantes, repoDefectos),
 	}
 }
 

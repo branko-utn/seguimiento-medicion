@@ -1,5 +1,5 @@
 # language: es
-@HU-30 @pendiente
+@HU-30
 Característica: Reporte de proyecto
   Como líder del proyecto
   Quiero generar el reporte del proyecto completo
