@@ -32,6 +32,25 @@ type datosEsfuerzo struct {
 	Integrantes []opcionIntegrante
 	Historias   []filaHistoria
 	Form        formRegistro
+	Resumenes   []resumenProyecto // HU-21: el esfuerzo de cada proyecto
+}
+
+// resumenProyecto es el esfuerzo registrado en un proyecto (HU-21), con las horas ya escritas con un decimal.
+type resumenProyecto struct {
+	ID            domain.ProyectoID
+	Nombre        string
+	Total         string
+	PorHistoria   []totalHistoria
+	PorIntegrante []totalIntegrante
+}
+
+type totalHistoria struct {
+	Historia domain.HistoriaID
+	Horas    string
+}
+
+type totalIntegrante struct {
+	Nombre, Horas string
 }
 
 // filaRegistro es un registro de esfuerzo de la lista, con el nombre del integrante.
@@ -150,7 +169,38 @@ func (a *app) mostrarEsfuerzo(w http.ResponseWriter, r *http.Request, codigo int
 		}
 		datos.Historias = append(datos.Historias, fila)
 	}
+	resumenes, err := a.resumenesEsfuerzo()
+	if err != nil {
+		a.renderError(w, r, http.StatusInternalServerError, "No se pudo cargar el esfuerzo de los proyectos.")
+		return
+	}
+	datos.Resumenes = resumenes
 	a.renderConCodigo(w, r, codigo, "esfuerzo.html", datos)
+}
+
+// resumenesEsfuerzo arma el resumen de esfuerzo de cada proyecto (HU-21), en el orden en que se crearon los
+// proyectos. Los totales vienen ordenados del servicio (RN-21.3); acá solo se escriben con un decimal.
+func (a *app) resumenesEsfuerzo() ([]resumenProyecto, error) {
+	proyectos, err := a.svc.Proyectos.Listar()
+	if err != nil {
+		return nil, err
+	}
+	var resumenes []resumenProyecto
+	for _, p := range proyectos {
+		res, err := a.svc.Registros.DelProyecto(p.ID)
+		if err != nil {
+			return nil, err
+		}
+		r := resumenProyecto{ID: p.ID, Nombre: p.Nombre, Total: unDecimal(res.Total)}
+		for _, t := range res.PorHistoria {
+			r.PorHistoria = append(r.PorHistoria, totalHistoria{Historia: t.Historia, Horas: unDecimal(t.Horas)})
+		}
+		for _, t := range res.PorIntegrante {
+			r.PorIntegrante = append(r.PorIntegrante, totalIntegrante{Nombre: t.Nombre, Horas: unDecimal(t.Horas)})
+		}
+		resumenes = append(resumenes, r)
+	}
+	return resumenes, nil
 }
 
 // opcionesIntegrante devuelve los integrantes de todos los proyectos, proyecto por proyecto.

@@ -28,10 +28,10 @@ func TestDashboard_muestraSelectorYSinDatos(t *testing.T) {
 	svc := Servicios{
 		Proyectos:    service.NuevoProyectos(repoProyectos),
 		Integrantes:  service.NuevoIntegrantes(repoIntegrantes, repoProyectos),
-		Backlog:      service.NuevoBacklog(repoHistorias, repoProyectos, sprintsSvc),
+		Backlog:      service.NuevoBacklog(repoHistorias, repoProyectos, sprintsSvc, nil, nil),
 		Sprints:      sprintsSvc,
 		Estimaciones: service.NuevoEstimaciones(repoEstimaciones, repoHistorias),
-		Registros:    service.NuevoRegistros(repoRegistros, repoIntegrantes, repoHistorias),
+		Registros:    service.NuevoRegistros(repoRegistros, repoIntegrantes, repoHistorias, repoProyectos),
 		Defectos:     service.NuevoDefectos(repoDefectos, repoHistorias, repoSprints),
 		Poker:        service.NuevoPlanningPoker(repoSesiones, repoHistorias, repoIntegrantes),
 		Dashboard:    service.NuevoDashboard(repoProyectos, repoSprints, repoHistorias, repoEstimaciones, repoRegistros, repoDefectos),
@@ -92,10 +92,10 @@ func TestDashboard_conSprintsCerradosMuestraSeries(t *testing.T) {
 	svc := Servicios{
 		Proyectos:    service.NuevoProyectos(repoProyectos),
 		Integrantes:  service.NuevoIntegrantes(repoIntegrantes, repoProyectos),
-		Backlog:      service.NuevoBacklog(repoHistorias, repoProyectos, sprintsSvc),
+		Backlog:      service.NuevoBacklog(repoHistorias, repoProyectos, sprintsSvc, nil, nil),
 		Sprints:      sprintsSvc,
 		Estimaciones: service.NuevoEstimaciones(repoEstimaciones, repoHistorias),
-		Registros:    service.NuevoRegistros(repoRegistros, repoIntegrantes, repoHistorias),
+		Registros:    service.NuevoRegistros(repoRegistros, repoIntegrantes, repoHistorias, repoProyectos),
 		Defectos:     service.NuevoDefectos(repoDefectos, repoHistorias, repoSprints),
 		Poker:        service.NuevoPlanningPoker(repoSesiones, repoHistorias, repoIntegrantes),
 		Dashboard:    service.NuevoDashboard(repoProyectos, repoSprints, repoHistorias, repoEstimaciones, repoRegistros, repoDefectos),
@@ -145,6 +145,10 @@ func TestDashboard_conSprintsCerradosMuestraSeries(t *testing.T) {
 	if !strings.Contains(body, "\"puntos\"") || !strings.Contains(body, "\"mensajes\"") {
 		t.Fatalf("falta JSON de series")
 	}
+	// La línea de referencia del gráfico de velocidad (spec HU-28) viaja con las series.
+	if !strings.Contains(body, "\"velocidad\":") {
+		t.Error("las series no traen la velocidad promedio para la línea de referencia")
+	}
 	if !strings.Contains(body, "S1") {
 		t.Fatalf("falta sprint en dashboard")
 	}
@@ -164,10 +168,10 @@ func TestDashboard_proyectoInexistente404(t *testing.T) {
 	svc := Servicios{
 		Proyectos:    service.NuevoProyectos(repoProyectos),
 		Integrantes:  service.NuevoIntegrantes(repoIntegrantes, repoProyectos),
-		Backlog:      service.NuevoBacklog(repoHistorias, repoProyectos, sprintsSvc),
+		Backlog:      service.NuevoBacklog(repoHistorias, repoProyectos, sprintsSvc, nil, nil),
 		Sprints:      sprintsSvc,
 		Estimaciones: service.NuevoEstimaciones(repoEstimaciones, repoHistorias),
-		Registros:    service.NuevoRegistros(repoRegistros, repoIntegrantes, repoHistorias),
+		Registros:    service.NuevoRegistros(repoRegistros, repoIntegrantes, repoHistorias, repoProyectos),
 		Defectos:     service.NuevoDefectos(repoDefectos, repoHistorias, repoSprints),
 		Poker:        service.NuevoPlanningPoker(repoSesiones, repoHistorias, repoIntegrantes),
 		Dashboard:    service.NuevoDashboard(repoProyectos, repoSprints, repoHistorias, repoEstimaciones, repoRegistros, repoDefectos),

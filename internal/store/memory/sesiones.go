@@ -54,3 +54,16 @@ func (r *Sesiones) Buscar(id domain.HistoriaID) (estimation.Sesion, bool) {
 	}
 	return encontrada, true
 }
+
+// Eliminar elimina la votación de una historia (HU-18: al acordar la estimación, la votación se cierra).
+func (r *Sesiones) Eliminar(id domain.HistoriaID) error {
+	return r.store.Update(func(lista *[]estimation.Sesion) error {
+		for i := range *lista {
+			if (*lista)[i].HistoriaID == id {
+				*lista = append((*lista)[:i], (*lista)[i+1:]...)
+				return nil
+			}
+		}
+		return nil // no es error si no existe
+	})
+}

@@ -1,7 +1,6 @@
 package features
 
 import (
-	"context"
 	"fmt"
 	"math"
 	"strconv"
@@ -15,19 +14,9 @@ func registrarPasosHU28(sc *godog.ScenarioContext, m *mundo) {
 	var d dashboard.Dashboard
 
 	sc.Step(`^veo el dashboard de "([^"]*)"$`, func(nombre string) error {
-		pid := domain.ProyectoID(m.id("proyecto", nombre))
-		if pid == "" || string(pid) == nombre && m.alias["proyecto:"+nombre] == "" {
-			// si no existe alias y el nombre tal cual no fue recordado, puede que el paso lo pase como "Otro" sin crear
-		}
-		res, err := m.dashboard.Del(pid, m.hoy)
-		d = res
-		m.resultado(err)
-		if err != nil {
-			return nil
-		}
-		// también intentar vía HTTP para cubrir el caso
-		_, _ = m.hacerPedido(context.Background(), "GET", "/dashboard?proyecto="+nombre)
-		return nil
+		var err error
+		d, err = m.dashboard.Del(domain.ProyectoID(m.id("proyecto", nombre)), m.hoy)
+		return m.resultado(err)
 	})
 
 	sc.Step(`^el dashboard muestra el estado "([^"]*)" con (\d+) días restantes$`, func(estado string, dias int) error {

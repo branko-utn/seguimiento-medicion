@@ -5,7 +5,7 @@
 - **Redactada por:** Branko Almeira (Agile Enabler) · **Validada por:** el responsable al aprobar el PR de la planning del Sprint 3
 - **Depende de:** HU-29 (`service.Reportes` y las filas por sprint; mismo responsable, va después) y código en `main`:
   HU-24 a HU-27 (métricas) y TEC-20 (`Proyecto.EstadoAl` y `Proyecto.DiasRestantes`). **No espera a HU-04 ni a HU-21.**
-- **Estado:** aprobada en la planning del Sprint 3
+- **Estado:** implementada (Sprint 3)
 
 ## Historia
 

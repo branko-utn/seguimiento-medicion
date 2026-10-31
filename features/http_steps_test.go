@@ -37,9 +37,7 @@ func (m *mundo) hacerPedido(ctx context.Context, metodo, ruta string) (context.C
 		Defectos:     m.defectos,
 		Poker:        m.poker,
 		Reportes:     m.reportes,
-	}
-	if ruta != "/dashboard" {
-		svc.Dashboard = m.dashboard
+		Dashboard:    m.dashboard,
 	}
 	router, err := server.NewRouter(svc)
 	if err != nil {

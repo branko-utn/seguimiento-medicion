@@ -52,22 +52,24 @@ func nuevoMundo() *mundo {
 	repoSesiones, _ := memory.NuevoSesiones("")
 
 	sprintsSvc := service.NuevoSprints(repoSprints, repoProyectos, repoHistorias)
+	registrosSvc := service.NuevoRegistros(repoRegistros, repoIntegrantes, repoHistorias, repoProyectos)
+	defectosSvc := service.NuevoDefectos(repoDefectos, repoHistorias, repoSprints)
 
 	return &mundo{
 		hoy:           time.Now().Truncate(24 * time.Hour),
 		alias:         map[string]string{},
-		proyectos:     service.NuevoProyectos(repoProyectos),
+		proyectos:     service.NuevoProyectos(repoProyectos).ConResumen(repoSprints, repoHistorias),
 		repoProyectos: repoProyectos,
 		integrantes:   service.NuevoIntegrantes(repoIntegrantes, repoProyectos),
-		backlog:       service.NuevoBacklog(repoHistorias, repoProyectos, sprintsSvc),
+		backlog:       service.NuevoBacklog(repoHistorias, repoProyectos, sprintsSvc, registrosSvc, defectosSvc),
 		historias:     repoHistorias,
 		sprints:       sprintsSvc,
 		repoSprints:   repoSprints,
 		estimaciones:  service.NuevoEstimaciones(repoEstimaciones, repoHistorias),
-		registros:     service.NuevoRegistros(repoRegistros, repoIntegrantes, repoHistorias),
-		defectos:      service.NuevoDefectos(repoDefectos, repoHistorias, repoSprints),
+		registros:     registrosSvc,
+		defectos:      defectosSvc,
 		poker:         service.NuevoPlanningPoker(repoSesiones, repoHistorias, repoIntegrantes),
-		reportes:      service.NuevoReportes(repoSprints, repoHistorias, repoEstimaciones, repoRegistros, repoIntegrantes, repoDefectos),
+		reportes:      service.NuevoReportes(repoProyectos, repoSprints, repoHistorias, repoEstimaciones, repoRegistros, repoIntegrantes, repoDefectos),
 		dashboard:     service.NuevoDashboard(repoProyectos, repoSprints, repoHistorias, repoEstimaciones, repoRegistros, repoDefectos),
 	}
 }

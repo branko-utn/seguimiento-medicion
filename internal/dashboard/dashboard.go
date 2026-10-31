@@ -17,11 +17,11 @@ const (
 
 // PuntoSprint es el valor de un sprint cerrado en las series de los gráficos (RN-28.1 y RN-28.2).
 type PuntoSprint struct {
-	Sprint            domain.SprintID
-	SPPlanificados    int
-	SPCompletados     int
-	HorasEstimadas    float64
-	HorasReales       float64
+	Sprint             domain.SprintID
+	SPPlanificados     int
+	SPCompletados      int
+	HorasEstimadas     float64
+	HorasReales        float64
 	DefectosDetectados int
 	DefectosResueltos  int
 }
@@ -43,16 +43,16 @@ type Dashboard struct {
 	Estado        string
 	DiasRestantes int
 
-	SprintActivo           domain.SprintID
-	Velocidad              float64
-	PorcentajeCompletadas  float64
-	HorasEstimadas         float64
-	HorasReales            float64
-	Desviacion             float64
-	DesviacionCalculable   bool
-	DefectosDetectados     int
-	DefectosResueltos      int
-	DefectosAbiertos       int
+	SprintActivo          domain.SprintID
+	Velocidad             float64
+	PorcentajeCompletadas float64
+	HorasEstimadas        float64
+	HorasReales           float64
+	Desviacion            float64
+	DesviacionCalculable  bool
+	DefectosDetectados    int
+	DefectosResueltos     int
+	DefectosAbiertos      int
 
 	Puntos   []PuntoSprint
 	Mensajes Mensajes

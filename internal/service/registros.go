@@ -31,11 +31,13 @@ type Registros struct {
 	registros   RepoRegistros
 	integrantes BuscadorIntegrantes
 	historias   RepoHistorias
+	proyectos   RepoProyectos // HU-21: el resumen es de un proyecto que tiene que existir
 }
 
-// NuevoRegistros crea el servicio. Usa los integrantes (épica E1) y las historias (épica E2) para validar el registro.
-func NuevoRegistros(registros RepoRegistros, integrantes BuscadorIntegrantes, historias RepoHistorias) *Registros {
-	return &Registros{registros: registros, integrantes: integrantes, historias: historias}
+// NuevoRegistros crea el servicio. Usa los integrantes (épica E1) y las historias (épica E2) para validar el registro,
+// y los proyectos (épica E1) para el resumen de esfuerzo de un proyecto (HU-21).
+func NuevoRegistros(registros RepoRegistros, integrantes BuscadorIntegrantes, historias RepoHistorias, proyectos RepoProyectos) *Registros {
+	return &Registros{registros: registros, integrantes: integrantes, historias: historias, proyectos: proyectos}
 }
 
 // Registrar guarda las horas que un integrante trabajó en una historia (HU-20). Verifica que el integrante y la

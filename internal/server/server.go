@@ -20,7 +20,7 @@ type Servicios struct {
 	Defectos     *service.Defectos      // E6: HU-22, 23
 	Poker        *service.PlanningPoker // E4: HU-16, HU-17
 	Reportes     *service.Reportes      // E9: HU-29
-	Dashboard    *service.Dashboard    // E8: HU-28
+	Dashboard    *service.Dashboard     // E8: HU-28
 }
 
 // NewRouter arma el enrutador con todas las rutas de la aplicación.
@@ -35,7 +35,7 @@ func NewRouter(svc Servicios) (http.Handler, error) {
 	mux.Handle("GET /static/", http.FileServerFS(web.FS))
 	mux.HandleFunc("GET /{$}", a.inicio)
 	for _, s := range secciones {
-		if s.EnConstruccion && s.Ruta != "/dashboard" {
+		if s.EnConstruccion {
 			mux.HandleFunc("GET "+s.Ruta, a.enConstruccion(s))
 		}
 	}
@@ -47,17 +47,8 @@ func NewRouter(svc Servicios) (http.Handler, error) {
 	a.rutasAccionesSprint(mux) // HU-12 y HU-13: completar historias y cerrar el sprint
 	a.rutasDefectos(mux)       // HU-22 y HU-23: lista y alta de defectos, cambiar estado y resolver
 	a.rutasEsfuerzo(mux)       // HU-19 y HU-20: horas estimadas y registro de esfuerzo
-	a.rutasReportes(mux)       // HU-29: reporte de sprint
-	if a.svc.Dashboard != nil {
-		a.rutasDashboard(mux) // HU-28: dashboard del proyecto
-	} else {
-		// Si no hay servicio, dejarlo en construcción si está marcado
-		for _, s := range secciones {
-			if s.Ruta == "/dashboard" && s.EnConstruccion {
-				mux.HandleFunc("GET "+s.Ruta, a.enConstruccion(s))
-			}
-		}
-	}
+	a.rutasReportes(mux)       // HU-29 y HU-30: reportes de sprint y de proyecto
+	a.rutasDashboard(mux)      // HU-28: dashboard del proyecto
 
 	return mux, nil
 }

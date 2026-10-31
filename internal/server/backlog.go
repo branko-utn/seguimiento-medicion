@@ -11,44 +11,71 @@ import (
 	"github.com/branko-utn/seguimiento-medicion/internal/domain/project"
 )
 
-// rutasBacklog registra las rutas de la sección Backlog (épica E2, TEC-16): la lista y el alta de historias (HU-05)
-// y el detalle con sus criterios (HU-07), su estado (HU-08) y su estimación en Story Points (HU-15).
+// rutasBacklog registra las rutas de la sección Backlog (épica E2, TEC-16): la lista y el alta de historias (HU-05),
+// la edición y la eliminación (HU-06) y el detalle con sus criterios (HU-07), su estado (HU-08) y su estimación en
+// Story Points (HU-15).
 func (a *app) rutasBacklog(mux *http.ServeMux) {
 	mux.HandleFunc("GET /backlog", a.listarBacklog)
 	mux.HandleFunc("GET /backlog/nueva", a.nuevaHistoria)
 	mux.HandleFunc("POST /backlog", a.crearHistoria)
 	mux.HandleFunc("GET /backlog/{historia}", a.verHistoria)
+	mux.HandleFunc("POST /backlog/{historia}/editar", a.editarHistoria)
+	mux.HandleFunc("POST /backlog/{historia}/eliminar", a.eliminarHistoria)
 	mux.HandleFunc("POST /backlog/{historia}/criterios", a.agregarCriterio)
 	mux.HandleFunc("POST /backlog/{historia}/criterios/{numero}/quitar", a.quitarCriterio)
 	mux.HandleFunc("POST /backlog/{historia}/estimacion", a.estimarStoryPoints)
 	mux.HandleFunc("POST /backlog/{historia}/estado", a.cambiarEstadoHistoria)
 }
 
-// datosBacklog es lo que recibe la plantilla del backlog.
+// datosBacklog es lo que recibe la plantilla del backlog: un grupo por proyecto con historias, en el orden de HU-09,
+// y el desplegable del filtro por estado.
 type datosBacklog struct {
-	Historias []backlog.Historia
-	Proyectos map[string]string
+	Grupos       []grupoBacklog
+	Estados      []backlog.Estado
+	EstadoActual string // "" es "Todos"
 }
 
+// grupoBacklog es el backlog de un proyecto en la pantalla.
+type grupoBacklog struct {
+	ID, Nombre string
+	Historias  []backlog.Historia
+}
+
+// listarBacklog muestra el backlog de cada proyecto ordenado por prioridad e identificador (HU-09) y, con
+// ?estado=…, solo las historias de ese estado. Los proyectos sin historias para mostrar no aparecen. Un estado que
+// no existe responde 400 con el mensaje de la spec.
 func (a *app) listarBacklog(w http.ResponseWriter, r *http.Request) {
-	var historias []backlog.Historia
-	if a.svc.Backlog != nil {
-		if h, err := a.svc.Backlog.Listar(); err == nil {
-			historias = h
-		} else {
+	datos := datosBacklog{Estados: estadosHistoria, EstadoActual: r.URL.Query().Get("estado")}
+	var estado *backlog.Estado
+	if datos.EstadoActual != "" {
+		e := estadoDesdeTexto(datos.EstadoActual)
+		// Se valida acá y no solo en DelProyecto, para responder el error aunque no haya proyectos.
+		if err := backlog.ValidarEstado(e); err != nil {
+			a.renderError(w, r, http.StatusBadRequest, err.Error())
+			return
+		}
+		estado = &e
+	}
+	if a.svc.Backlog == nil || a.svc.Proyectos == nil {
+		a.render(w, r, "backlog.html", datos)
+		return
+	}
+	proyectos, err := a.svc.Proyectos.Listar()
+	if err != nil {
+		a.renderError(w, r, http.StatusInternalServerError, "No se pudieron cargar las historias.")
+		return
+	}
+	for _, p := range proyectos {
+		historias, err := a.svc.Backlog.DelProyecto(p.ID, estado)
+		if err != nil {
 			a.renderError(w, r, http.StatusInternalServerError, "No se pudieron cargar las historias.")
 			return
 		}
-	}
-	nombres := make(map[string]string)
-	if a.svc.Proyectos != nil {
-		if ps, err := a.svc.Proyectos.Listar(); err == nil {
-			for _, p := range ps {
-				nombres[string(p.ID)] = p.Nombre
-			}
+		if len(historias) > 0 {
+			datos.Grupos = append(datos.Grupos, grupoBacklog{ID: string(p.ID), Nombre: p.Nombre, Historias: historias})
 		}
 	}
-	a.render(w, r, "backlog.html", datosBacklog{Historias: historias, Proyectos: nombres})
+	a.render(w, r, "backlog.html", datos)
 }
 
 // prioridades son las prioridades que se ofrecen en el formulario, en el orden de la spec HU-05.
@@ -101,16 +128,18 @@ func (a *app) mostrarFormHistoria(w http.ResponseWriter, r *http.Request, codigo
 }
 
 // datosHistoria es lo que recibe historia.html. Los criterios van numerados desde 1, como los quita HU-07, y
-// EstadoActual es el texto del estado para marcarlo en el desplegable. Error es el mensaje de la última acción que
-// falló.
+// EstadoActual es el texto del estado para marcarlo en el desplegable; Prioridades y PrioridadActual, lo mismo para
+// el formulario de edición (HU-06). Error es el mensaje de la última acción que falló.
 type datosHistoria struct {
-	Historia     backlog.Historia
-	Proyecto     string
-	Criterios    []criterioNumerado
-	Escala       []int
-	Estados      []string
-	EstadoActual string
-	Error        string
+	Historia        backlog.Historia
+	Proyecto        string
+	Criterios       []criterioNumerado
+	Escala          []int
+	Estados         []string
+	EstadoActual    string
+	Prioridades     []string
+	PrioridadActual string
+	Error           string
 }
 
 type criterioNumerado struct {
@@ -120,6 +149,23 @@ type criterioNumerado struct {
 
 func (a *app) verHistoria(w http.ResponseWriter, r *http.Request) {
 	a.mostrarHistoria(w, r, http.StatusOK, "")
+}
+
+// editarHistoria cambia el título, la descripción y la prioridad de la historia (HU-06) y vuelve a su detalle.
+func (a *app) editarHistoria(w http.ResponseWriter, r *http.Request) {
+	id := domain.HistoriaID(r.PathValue("historia"))
+	err := a.svc.Backlog.Editar(id, r.FormValue("titulo"), r.FormValue("descripcion"), prioridadDesdeTexto(r.FormValue("prioridad")))
+	a.responderHistoria(w, r, err)
+}
+
+// eliminarHistoria saca la historia del backlog (HU-06) y vuelve a la lista. Si no se puede eliminar, muestra el
+// detalle con el mensaje de la spec (o el 404 si no existe), igual que las demás acciones del detalle.
+func (a *app) eliminarHistoria(w http.ResponseWriter, r *http.Request) {
+	if err := a.svc.Backlog.Eliminar(domain.HistoriaID(r.PathValue("historia"))); err != nil {
+		a.responderHistoria(w, r, err)
+		return
+	}
+	http.Redirect(w, r, "/backlog", http.StatusSeeOther)
 }
 
 // agregarCriterio agrega un criterio de aceptación a la historia (HU-07).
@@ -175,7 +221,8 @@ func (a *app) mostrarHistoria(w http.ResponseWriter, r *http.Request, codigo int
 		a.renderError(w, r, http.StatusInternalServerError, "No se pudo cargar la historia.")
 		return
 	}
-	datos := datosHistoria{Historia: h, Escala: estimation.Escala, EstadoActual: h.Estado.String(), Error: mensaje}
+	datos := datosHistoria{Historia: h, Escala: estimation.Escala, EstadoActual: h.Estado.String(),
+		PrioridadActual: h.Prioridad.String(), Error: mensaje}
 	for i, c := range h.Criterios {
 		datos.Criterios = append(datos.Criterios, criterioNumerado{Numero: i + 1, Texto: c.Texto})
 	}
@@ -184,6 +231,9 @@ func (a *app) mostrarHistoria(w http.ResponseWriter, r *http.Request, codigo int
 	}
 	for _, e := range estadosHistoria {
 		datos.Estados = append(datos.Estados, e.String())
+	}
+	for _, p := range prioridades {
+		datos.Prioridades = append(datos.Prioridades, p.String())
 	}
 	a.renderConCodigo(w, r, codigo, "historia.html", datos)
 }

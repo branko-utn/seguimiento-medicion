@@ -33,16 +33,18 @@ func (a *app) dashboard(w http.ResponseWriter, r *http.Request) {
 	}
 
 	type seriesData struct {
-		Puntos   []dashboard.PuntoSprint `json:"puntos"`
-		Mensajes dashboard.Mensajes      `json:"mensajes"`
+		Puntos    []dashboard.PuntoSprint `json:"puntos"`
+		Mensajes  dashboard.Mensajes      `json:"mensajes"`
+		Velocidad float64                 `json:"velocidad"` // línea de referencia del gráfico de velocidad
 	}
 	puntos := d.Puntos
 	if puntos == nil {
 		puntos = []dashboard.PuntoSprint{}
 	}
 	series := seriesData{
-		Puntos:   puntos,
-		Mensajes: d.Mensajes,
+		Puntos:    puntos,
+		Mensajes:  d.Mensajes,
+		Velocidad: d.Velocidad,
 	}
 	raw, err := json.Marshal(series)
 	if err != nil {

@@ -246,4 +246,3 @@ func TestDashboard_Del_proyectoInexistente(t *testing.T) {
 		t.Fatalf("error=%v", err)
 	}
 }
-

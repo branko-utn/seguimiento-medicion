@@ -22,11 +22,12 @@ Característica: Base web
       | Dashboard      | /dashboard      |
       | Reportes       | /reportes       |
 
+  # Con HU-28 ya no queda ninguna sección en construcción: el aviso lo cubre TestSeccionEnConstruccion_avisaElSprint.
   @CA-TEC03.2 @alternativo
-  Escenario: una sección en construcción avisa cuándo llega
+  Escenario: el dashboard ya no está en construcción
     Cuando hago un pedido "GET" a "/dashboard"
     Entonces la respuesta tiene código 200
-    Y la página contiene "Sprint 3"
+    Y la página contiene "Dashboard"
 
   @CA-TEC03.3 @normal
   Escenario: los recursos estáticos se sirven sin internet

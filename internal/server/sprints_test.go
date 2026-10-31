@@ -42,7 +42,7 @@ func nuevoServidorSprints(t *testing.T) entornoSprints {
 	svc := Servicios{
 		Proyectos: service.NuevoProyectos(repoProyectos),
 		Sprints:   sprints,
-		Backlog:   service.NuevoBacklog(repoHistorias, repoProyectos, sprints),
+		Backlog:   service.NuevoBacklog(repoHistorias, repoProyectos, sprints, nil, nil),
 	}
 	for _, nombre := range []string{"Demo", "Otro"} {
 		if _, err := svc.Proyectos.Crear(nombre, "", fechaDeFormulario("2026-10-21"), fechaDeFormulario("2026-11-02")); err != nil {

@@ -66,5 +66,31 @@
   </form>
 </section>
 
+<section>
+  <h2>Editar</h2>
+  <form method="post" action="/backlog/{{.Datos.Historia.ID}}/editar">
+    <label>
+      Título
+      <input name="titulo" value="{{.Datos.Historia.Titulo}}" required>
+    </label>
+    <label>
+      Descripción (opcional)
+      <textarea name="descripcion" rows="3">{{.Datos.Historia.Descripcion}}</textarea>
+    </label>
+    <label>
+      Prioridad
+      <select name="prioridad" required>
+        {{- range .Datos.Prioridades}}
+        <option{{if eq . $.Datos.PrioridadActual}} selected{{end}}>{{.}}</option>
+        {{- end}}
+      </select>
+    </label>
+    <button type="submit">Guardar cambios</button>
+  </form>
+  <form method="post" action="/backlog/{{.Datos.Historia.ID}}/eliminar">
+    <button type="submit" class="secondary outline">Eliminar</button>
+  </form>
+</section>
+
 <p><a href="/backlog">Volver al backlog</a></p>
 {{end}}

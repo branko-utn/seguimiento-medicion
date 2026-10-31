@@ -32,7 +32,7 @@ func TestBacklog_conHistorias(t *testing.T) {
 
 	sprintsSvc := service.NuevoSprints(repoSprints, repoProyectos, repoHistorias)
 	proyectosSvc := service.NuevoProyectos(repoProyectos)
-	backlogSvc := service.NuevoBacklog(repoHistorias, repoProyectos, sprintsSvc)
+	backlogSvc := service.NuevoBacklog(repoHistorias, repoProyectos, sprintsSvc, nil, nil)
 
 	p, err := proyectosSvc.Crear("Proyecto Alpha", "Desc", time.Now(), time.Now().Add(24*time.Hour))
 	if err != nil {

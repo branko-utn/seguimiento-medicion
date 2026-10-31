@@ -38,11 +38,11 @@ func (s *Dashboard) Del(proyectoID domain.ProyectoID, hoy time.Time) (dashboard.
 	}
 
 	res := dashboard.Dashboard{
-		ProyectoID: p.ID,
-		Nombre:     p.Nombre,
-		Inicio:     p.Inicio,
-		Fin:        p.Fin,
-		Estado:     p.EstadoAl(hoy).String(),
+		ProyectoID:    p.ID,
+		Nombre:        p.Nombre,
+		Inicio:        p.Inicio,
+		Fin:           p.Fin,
+		Estado:        p.EstadoAl(hoy).String(),
 		DiasRestantes: p.DiasRestantes(hoy),
 	}
 

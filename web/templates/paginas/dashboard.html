@@ -71,6 +71,13 @@ document.addEventListener("DOMContentLoaded", function() {
               data: puntos.map(function(p) { return p.SPCompletados; }),
               borderColor: "#3b82f6",
               fill: false
+            }, {
+              label: "Velocidad promedio",
+              data: puntos.map(function() { return data.velocidad; }),
+              borderColor: "#9ca3af",
+              borderDash: [6, 4],
+              pointRadius: 0,
+              fill: false
             }]
           }
         });
