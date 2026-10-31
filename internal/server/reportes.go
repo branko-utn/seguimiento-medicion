@@ -10,10 +10,12 @@ import (
 	"github.com/branko-utn/seguimiento-medicion/internal/report"
 )
 
-// rutasReportes registra la sección Reportes (épica E9): la lista de reportes disponibles y el reporte de sprint (HU-29).
+// rutasReportes registra la sección Reportes (épica E9): la lista de reportes disponibles, el reporte de sprint (HU-29)
+// y el de proyecto (HU-30).
 func (a *app) rutasReportes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /reportes", a.listarReportes)
 	mux.HandleFunc("GET /reportes/sprints/{sprint}", a.verReporteSprint)
+	mux.HandleFunc("GET /reportes/proyecto", a.verReporteProyecto)
 }
 
 // grupoReportes es un proyecto con los sprints que tienen reporte: los activos y los cerrados (RN-29.1).
@@ -106,4 +108,54 @@ func (a *app) verReporteSprint(w http.ResponseWriter, r *http.Request) {
 		datos.Totales = append(datos.Totales, totalReporte{Integrante: t.Integrante, Horas: unDecimal(t.Horas)})
 	}
 	a.render(w, r, "reporte_sprint.html", datos)
+}
+
+// datosReporteProyecto es lo que recibe reporte_proyecto.html: el reporte y los números ya formateados con un decimal.
+type datosReporteProyecto struct {
+	report.ReporteProyecto
+	Filas           []filaResumen
+	Velocidad       string
+	Porcentaje      string
+	HorasEstimadas  string
+	HorasReales     string
+	Desviacion      string // vacío si no es calculable
+	SprintsCerrados int
+}
+
+// filaResumen es una fila del resumen de sprints, con los números formateados.
+type filaResumen struct {
+	report.ReporteSprint
+	Porcentaje, HorasEstimadas, HorasReales string
+}
+
+// verReporteProyecto muestra el reporte imprimible del proyecto elegido (?proyecto=P1, HU-30). Si el proyecto no
+// existe, da 404.
+func (a *app) verReporteProyecto(w http.ResponseWriter, r *http.Request) {
+	rep, err := a.svc.Reportes.Proyecto(domain.ProyectoID(r.URL.Query().Get("proyecto")), hoy())
+	switch {
+	case errors.Is(err, project.ErrNoExiste):
+		a.renderError(w, r, http.StatusNotFound, err.Error())
+		return
+	case err != nil:
+		a.renderError(w, r, http.StatusInternalServerError, "No se pudo armar el reporte del proyecto.")
+		return
+	}
+	datos := datosReporteProyecto{
+		ReporteProyecto: rep,
+		Velocidad:       unDecimal(rep.Velocidad),
+		Porcentaje:      unDecimal(rep.Porcentaje),
+		HorasEstimadas:  unDecimal(rep.HorasEstimadas),
+		HorasReales:     unDecimal(rep.HorasReales),
+	}
+	if rep.DesviacionCalculable {
+		datos.Desviacion = unDecimal(rep.Desviacion)
+	}
+	for _, s := range rep.Sprints {
+		datos.Filas = append(datos.Filas, filaResumen{ReporteSprint: s, Porcentaje: unDecimal(s.Porcentaje),
+			HorasEstimadas: unDecimal(s.HorasEstimadas), HorasReales: unDecimal(s.HorasReales)})
+		if !s.Parcial {
+			datos.SprintsCerrados++
+		}
+	}
+	a.render(w, r, "reporte_proyecto.html", datos)
 }
