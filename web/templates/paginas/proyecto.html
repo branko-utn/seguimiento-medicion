@@ -2,34 +2,36 @@
 
 {{define "contenido"}}
 {{- with .Datos.Proyecto}}
-<hgroup>
-  <h1>{{.Nombre}}</h1>
-  <p>{{$.Datos.Resumen.Estado}} · del {{.Inicio.Format "02/01/2006"}} al {{.Fin.Format "02/01/2006"}}</p>
-</hgroup>
+<div class="encabezado">
+  <hgroup>
+    <h1>{{.Nombre}}</h1>
+    <p><span class="insignia {{$.Datos.Tono}}">{{$.Datos.Resumen.Estado}}</span> del {{.Inicio.Format "02/01/2006"}} al {{.Fin.Format "02/01/2006"}}</p>
+  </hgroup>
+  <div class="acciones"><a href="/proyectos/{{.ID}}/editar" role="button" class="secondary">Editar proyecto</a></div>
+</div>
 {{- if .Descripcion}}
 <p>{{.Descripcion}}</p>
 {{- end}}
-<p><a href="/proyectos/{{.ID}}/editar" role="button" class="secondary">Editar proyecto</a></p>
 {{- end}}
 
-<article>
-  <header><strong>Estado del proyecto</strong></header>
-  <ul>
-    <li>{{.Datos.Resumen.DiasRestantes}} días restantes</li>
+<section>
+  <h2>Estado del proyecto</h2>
+  <div class="tarjetas">
+    <article class="tarjeta-metrica"><span class="valor">{{.Datos.Resumen.DiasRestantes}}</span><span class="etiqueta">días restantes</span></article>
     {{- with .Datos.Resumen.SprintActivo}}
-    <li>Sprint activo: <a href="/sprints/{{.ID}}">{{.ID}} · {{.Goal}}</a></li>
+    <article class="tarjeta-metrica"><span class="valor"><a href="/sprints/{{.ID}}">{{.ID}} · {{.Goal}}</a></span><span class="etiqueta">sprint activo</span></article>
     {{- else}}
-    <li>Sin sprint activo</li>
+    <article class="tarjeta-metrica"><span class="valor">Ninguno</span><span class="etiqueta">sprint activo</span></article>
     {{- end}}
-    <li>{{.Datos.Porcentaje}} % de historias completadas</li>
-  </ul>
-</article>
+    <article class="tarjeta-metrica"><span class="valor">{{.Datos.Porcentaje}} %</span><span class="etiqueta">historias completadas</span></article>
+  </div>
+</section>
 
 <section>
   <h2>Integrantes</h2>
   {{- if .Datos.Integrantes}}
   <div class="overflow-auto">
-    <table>
+    <table class="tabla">
       <thead>
         <tr><th>Nombre</th><th>Rol</th></tr>
       </thead>
@@ -44,7 +46,10 @@
     </table>
   </div>
   {{- else}}
-  <p>Todavía no hay integrantes.</p>
+  <div class="vacio">
+    <p>Todavía no hay integrantes.</p>
+    <p>Registrá el primero con el formulario de abajo.</p>
+  </div>
   {{- end}}
 
   <form method="post" action="/proyectos/{{.Datos.Proyecto.ID}}/integrantes">

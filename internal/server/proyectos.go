@@ -3,7 +3,6 @@ package server
 import (
 	"errors"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/branko-utn/seguimiento-medicion/internal/domain"
@@ -69,7 +68,8 @@ type formIntegrante struct {
 type datosDetalle struct {
 	Proyecto    project.Proyecto
 	Resumen     service.ResumenProyecto // HU-04: estado, días restantes, sprint activo y porcentaje
-	Porcentaje  string                  // el porcentaje con un decimal, como en las métricas del sprint
+	Tono        string                  // tono de la insignia del estado (TEC-21, HU-32.1)
+	Porcentaje  string                  // el porcentaje con un decimal y coma (RN-32.3)
 	Integrantes []project.Integrante
 	Roles       []string
 	Form        formIntegrante
@@ -123,7 +123,8 @@ func (a *app) mostrarDetalle(w http.ResponseWriter, r *http.Request, codigo int,
 	a.renderConCodigo(w, r, codigo, "proyecto.html", datosDetalle{
 		Proyecto:    p,
 		Resumen:     resumen,
-		Porcentaje:  strconv.FormatFloat(resumen.PorcentajeCompletadas, 'f', 1, 64),
+		Tono:        tonoEstado(resumen.Estado),
+		Porcentaje:  unDecimal(resumen.PorcentajeCompletadas),
 		Integrantes: integrantes,
 		Roles:       roles,
 		Form:        form,
@@ -173,6 +174,7 @@ type formProyecto struct {
 type filaProyecto struct {
 	Proyecto project.Proyecto
 	Estado   project.Estado
+	Tono     string // tono de la insignia del estado (TEC-21, HU-32.1)
 }
 
 func (a *app) listarProyectos(w http.ResponseWriter, r *http.Request) {
@@ -183,7 +185,8 @@ func (a *app) listarProyectos(w http.ResponseWriter, r *http.Request) {
 	}
 	filas := make([]filaProyecto, 0, len(proyectos))
 	for _, p := range proyectos {
-		filas = append(filas, filaProyecto{Proyecto: p, Estado: p.EstadoAl(hoy())})
+		estado := p.EstadoAl(hoy())
+		filas = append(filas, filaProyecto{Proyecto: p, Estado: estado, Tono: tonoEstado(estado)})
 	}
 	a.render(w, r, "proyectos.html", filas)
 }

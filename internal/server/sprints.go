@@ -32,6 +32,7 @@ func (a *app) rutasSprints(mux *http.ServeMux) {
 // falló y Elegida la historia que se había elegido, para volver a seleccionarla.
 type datosSprint struct {
 	Sprint         sprint.Sprint
+	Tono           string // tono de la insignia del estado (TEC-21, HU-32.1)
 	Proyecto       project.Proyecto
 	Historias      []backlog.Historia
 	Completadas    map[domain.HistoriaID]bool
@@ -107,6 +108,7 @@ func (a *app) mostrarSprint(w http.ResponseWriter, r *http.Request, codigo int, 
 
 	datos := datosSprint{
 		Sprint:       sp,
+		Tono:         tonoEstado(sp.Estado),
 		Proyecto:     p,
 		PuedeIniciar: sp.Estado == sprint.Planificado,
 		PuedeAsignar: sp.Estado != sprint.Cerrado,
@@ -190,11 +192,18 @@ func unDecimal(v float64) string {
 	return strings.Replace(strconv.FormatFloat(v, 'f', 1, 64), ".", ",", 1)
 }
 
+// filaSprint es un sprint de la lista con el tono de la insignia de su estado (TEC-21, HU-32.1). Embebe el sprint, así
+// la plantilla sigue usando .ID, .Goal y sus fechas.
+type filaSprint struct {
+	sprint.Sprint
+	Tono string
+}
+
 // grupoSprints es un proyecto con todos sus sprints, en el orden en que se crearon, y sus cerrados para el
 // historial (HU-14).
 type grupoSprints struct {
 	Proyecto project.Proyecto
-	Sprints  []sprint.Sprint
+	Sprints  []filaSprint
 	Cerrados []sprint.Sprint
 }
 
@@ -224,7 +233,11 @@ func (a *app) listarSprints(w http.ResponseWriter, r *http.Request) {
 			a.renderError(w, r, http.StatusInternalServerError, "No se pudieron cargar los sprints cerrados.")
 			return
 		}
-		grupos = append(grupos, grupoSprints{Proyecto: p, Sprints: sprints, Cerrados: cerrados})
+		filas := make([]filaSprint, 0, len(sprints))
+		for _, sp := range sprints {
+			filas = append(filas, filaSprint{Sprint: sp, Tono: tonoEstado(sp.Estado)})
+		}
+		grupos = append(grupos, grupoSprints{Proyecto: p, Sprints: filas, Cerrados: cerrados})
 	}
 	a.render(w, r, "sprints.html", grupos)
 }

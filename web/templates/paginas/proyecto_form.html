@@ -1,7 +1,12 @@
 {{define "titulo"}}{{.Datos.Titulo}}{{end}}
 
 {{define "contenido"}}
-<h1>{{.Datos.Titulo}}</h1>
+<div class="encabezado">
+  <hgroup>
+    <h1>{{.Datos.Titulo}}</h1>
+    <p>Nombre, descripción y fechas del proyecto.</p>
+  </hgroup>
+</div>
 
 <form method="post" action="{{.Datos.Accion}}">
   {{- with .Datos.Error}}
