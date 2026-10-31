@@ -75,7 +75,8 @@ Se suman dos ítems, armados como en el Sprint 3 para que nadie dependa de otro:
 | Ignacio Bianchi | HU-32.2 · Interfaz del backlog y del Planning Poker — **recortable** | 2 | TEC-21 |
 | Agustín Lara | HU-32.3 · Interfaz de esfuerzo y defectos — **recortable** | 2 | TEC-21 |
 | Agustín Giorlando | HU-32.4 · Interfaz del dashboard (resuelve el defecto del punto decimal) — **recortable** | 2 | TEC-21 |
-| | **Total del Sprint 4** | **23** | |
+| Todo el equipo | TEC-22 · Presentación final y demo (entregable 13) | 3 | — |
+| | **Total del Sprint 4** | **26** | |
 
 - **Cada parte toca solo las plantillas y los handlers de su épica** (tabla en `specs/HU-32-*.md`): no hay
   conflictos entre personas.
@@ -93,3 +94,24 @@ parejos, entre 27 y 29 SP.
 - `specs/HU-32-interfaz-clara-y-consistente.md`, con cuatro features, una por parte.
 - TEC-07: `docs/manual-de-usuario.md`, con una sección por épica y su responsable.
 - TEC-08: `docs/informe-de-metricas.md`, con las tablas a completar y de dónde sale cada dato.
+
+## Corrección: HU-31 genera el PDF en el sistema (31/10)
+
+Al revisar la consigna punto por punto aparecieron tres cambios:
+
+1. **HU-31 genera el archivo PDF en Go.** La consigna dice "el sistema permitirá exportar un informe del proyecto
+   **a un archivo en formato PDF**". La impresión del navegador no alcanza, porque el PDF lo hace el navegador, no
+   nuestro sistema. Además, el ADR 0001 ya preveía `github.com/go-pdf/fpdf` para el Sprint 4: la decisión de arriba
+   ("sin bibliotecas de PDF") era un error de lectura. Los reportes suman "Descargar PDF"
+   (`/reportes/proyecto.pdf` y `/reportes/sprints/{sprint}/pdf`), y la impresión queda como alternativa. Siguen siendo
+   5 SP.
+2. **TEC-22 · Presentación final (entregable 13).** No había un ítem para prepararla. Incluye:
+   - las diapositivas;
+   - el guion de la demo con `make demo`;
+   - el recorrido completo de una funcionalidad que pide la consigna (historia → spec → criterios → BDD → tests →
+     código Go). Se propone HU-13 (cerrar sprint), que tiene los commits RED → GREEN más claros;
+   - cada integrante presenta su épica.
+
+   Se ensaya el domingo 1/11.
+3. **Dailies:** se reconstruyeron las de los Sprints 1 a 3 (`docs/scrum/sprint-N/dailies.md`) a partir de los
+   commits y PRs de cada día. Desde el Sprint 4, el Agile Enabler las vuelca el mismo día.

@@ -10,28 +10,26 @@ Característica: Exportar reporte a PDF
     Y el proyecto tiene las historias:
       | historia | título         | story points |
       | HU-1     | Crear proyecto | 3            |
-    Y hoy es "2026-10-31"
     Y existe un sprint activo "S1" con las historias "HU-1"
 
   @CA-31.1 @normal
-  Esquema del escenario: las páginas de reporte se pueden exportar
-    Cuando hago un pedido "GET" a "<ruta>"
+  Escenario: descargar el informe del proyecto en PDF
+    Cuando hago un pedido "GET" a "/reportes/proyecto.pdf?proyecto=P1"
     Entonces la respuesta tiene código 200
-    Y la página contiene "Imprimir o guardar como PDF"
-    Y la página contiene "no-imprimir"
+    Y la respuesta es un PDF llamado "reporte-proyecto-P1.pdf"
 
-    Ejemplos:
-      | ruta                           |
-      | /reportes/sprints/S1           |
-      | /reportes/proyecto?proyecto=P1 |
-      | /dashboard?proyecto=P1         |
+  @CA-31.1 @alternativo
+  Escenario: descargar el informe de un sprint en PDF
+    Cuando hago un pedido "GET" a "/reportes/sprints/S1/pdf"
+    Entonces la respuesta tiene código 200
+    Y la respuesta es un PDF llamado "reporte-sprint-S1.pdf"
 
   @CA-31.1 @normal
-  Escenario: la exportación muestra la fecha de generación
+  Escenario: los reportes ofrecen la descarga
     Cuando hago un pedido "GET" a "/reportes/proyecto?proyecto=P1"
-    Entonces la página contiene "Generado el"
+    Entonces la página contiene "Descargar PDF"
 
   @error
-  Escenario: sin reporte no hay exportación
-    Cuando hago un pedido "GET" a "/reportes/sprints/S9"
+  Escenario: sin reporte no hay PDF
+    Cuando hago un pedido "GET" a "/reportes/proyecto.pdf?proyecto=P9"
     Entonces la respuesta tiene código 404
