@@ -1,12 +1,13 @@
 {{define "titulo"}}Backlog{{end}}
 
 {{define "contenido"}}
-<hgroup>
-  <h1>Backlog</h1>
-  <p>Historias con prioridad, estado, Story Points y criterios de aceptación.</p>
-</hgroup>
-
-<p><a href="/backlog/nueva" role="button">Nueva historia</a></p>
+<div class="encabezado">
+  <hgroup>
+    <h1>Backlog</h1>
+    <p>Historias con prioridad, estado, Story Points y criterios de aceptación.</p>
+  </hgroup>
+  <p class="acciones"><a href="/backlog/nueva" role="button">Nueva historia</a></p>
+</div>
 
 <form method="get" action="/backlog" role="group">
   <select name="estado" aria-label="Filtrar por estado">
@@ -22,7 +23,7 @@
 <section id="backlog-{{.ID}}">
   <h2>{{.Nombre}}</h2>
   <div class="overflow-auto">
-    <table>
+    <table class="tabla">
       <thead>
         <tr>
           <th>ID</th>
@@ -38,10 +39,10 @@
         <tr>
           <td>{{.ID}}</td>
           <td><a href="/backlog/{{.ID}}">{{.Titulo}}</a></td>
-          <td>{{.Prioridad}}</td>
-          <td>{{.Estado}}</td>
-          <td>{{if .StoryPoints}}{{.StoryPoints}}{{else}}—{{end}}</td>
-          <td>{{len .Criterios}}</td>
+          <td><span class="insignia {{.TonoPrioridad}}">{{.Prioridad}}</span></td>
+          <td><span class="insignia {{.TonoEstado}}">{{.Estado}}</span></td>
+          <td class="num">{{if .StoryPoints}}{{.StoryPoints}}{{else}}—{{end}}</td>
+          <td class="num">{{len .Criterios}}</td>
         </tr>
         {{- end}}
       </tbody>
@@ -49,6 +50,9 @@
   </div>
 </section>
 {{else}}
-<p>No hay historias en el backlog.</p>
+<div class="vacio">
+  <p>No hay historias en el backlog.</p>
+  <p><a href="/backlog/nueva">Crear la primera historia</a></p>
+</div>
 {{end}}
 {{end}}

@@ -4,7 +4,7 @@
 {{- with .Datos.Historia}}
 <hgroup>
   <h1>{{.ID}} · {{.Titulo}}</h1>
-  <p>{{$.Datos.Proyecto}} · Prioridad {{.Prioridad}} · {{.Estado}} · {{if .StoryPoints}}{{.StoryPoints}} Story Points{{else}}Sin estimar{{end}}
+  <p>{{$.Datos.Proyecto}} · Prioridad <span class="insignia {{$.Datos.TonoPrioridad}}">{{.Prioridad}}</span> · <span class="insignia {{$.Datos.TonoEstado}}">{{.Estado}}</span> · {{if .StoryPoints}}{{.StoryPoints}} Story Points{{else}}Sin estimar{{end}}
     {{- if .SprintID}} · Sprint <a href="/sprints/{{.SprintID}}">{{.SprintID}}</a>{{end}}</p>
 </hgroup>
 {{- if .Descripcion}}
