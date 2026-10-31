@@ -42,6 +42,15 @@ func (h *Historia) Completar() error {
 	return h.CambiarEstado(Completada)
 }
 
+// ValidarEstado devuelve ErrEstadoInvalido si el estado no es Pendiente, En progreso ni Completada (RN-08.1). Lo usa
+// el filtro por estado del backlog (HU-09).
+func ValidarEstado(e Estado) error {
+	if !estadoValido(e) {
+		return ErrEstadoInvalido
+	}
+	return nil
+}
+
 // estadoValido informa si el estado pertenece a los tres de la spec (RN-08.1).
 func estadoValido(e Estado) bool {
 	switch e {

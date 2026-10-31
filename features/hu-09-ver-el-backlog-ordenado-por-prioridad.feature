@@ -1,5 +1,5 @@
 # language: es
-@HU-09 @pendiente
+@HU-09
 Característica: Ver el backlog ordenado por prioridad
   Como integrante del equipo
   Quiero ver el backlog ordenado por prioridad

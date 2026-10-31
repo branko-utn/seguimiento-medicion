@@ -34,7 +34,7 @@ func nuevoServicioBacklog(t *testing.T) *Backlog {
 		}
 	}
 	sprints := NuevoSprints(repoSprints, repoProyectos, repoHistorias)
-	return NuevoBacklog(repoHistorias, repoProyectos, sprints)
+	return NuevoBacklog(repoHistorias, repoProyectos, sprints, nil, nil)
 }
 
 func TestBacklog_Crear(t *testing.T) {
@@ -346,7 +346,7 @@ func nuevoServicioConHistoriaCompletada(t *testing.T) *Backlog {
 	if err != nil {
 		t.Fatal(err)
 	}
-	s := NuevoBacklog(repoHistorias, repoProyectos, NuevoSprints(repoSprints, repoProyectos, repoHistorias))
+	s := NuevoBacklog(repoHistorias, repoProyectos, NuevoSprints(repoSprints, repoProyectos, repoHistorias), nil, nil)
 	if _, err := s.Crear("P1", "Login", "", backlog.PrioridadAlta); err != nil {
 		t.Fatal(err)
 	}
@@ -482,7 +482,7 @@ func nuevoServicioBacklogConSprint(t *testing.T) (*Backlog, *Sprints) {
 		t.Fatal(err)
 	}
 	sprints := NuevoSprints(repoSprints, repoProyectos, repoHistorias)
-	s := NuevoBacklog(repoHistorias, repoProyectos, sprints)
+	s := NuevoBacklog(repoHistorias, repoProyectos, sprints, nil, nil)
 
 	if _, err := s.Crear("P1", "Login", "", backlog.PrioridadAlta); err != nil {
 		t.Fatal(err)

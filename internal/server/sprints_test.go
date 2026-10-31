@@ -42,7 +42,7 @@ func nuevoServidorSprints(t *testing.T) entornoSprints {
 	svc := Servicios{
 		Proyectos: service.NuevoProyectos(repoProyectos),
 		Sprints:   sprints,
-		Backlog:   service.NuevoBacklog(repoHistorias, repoProyectos, sprints),
+		Backlog:   service.NuevoBacklog(repoHistorias, repoProyectos, sprints, nil, nil),
 	}
 	for _, nombre := range []string{"Demo", "Otro"} {
 		if _, err := svc.Proyectos.Crear(nombre, "", fechaDeFormulario("2026-10-21"), fechaDeFormulario("2026-11-02")); err != nil {
@@ -422,4 +422,114 @@ func TestSprints_asignarEnSprintInexistente(t *testing.T) {
 		t.Fatalf("código = %d, se esperaba 404", rec.Code)
 	}
 	contieneTodo(t, rec.Body.String(), "el sprint no existe")
+}
+
+// habilitarHistoriasParaCerrar completa HU-2 y HU-3 con Story Points y criterios, para poder asignarlas a un sprint.
+func (e entornoSprints) habilitarHistoriasParaCerrar(t *testing.T) {
+	t.Helper()
+	for _, id := range []domain.HistoriaID{"HU-2", "HU-3"} {
+		h, err := e.repoHistorias.Buscar(id)
+		if err != nil {
+			t.Fatal(err)
+		}
+		h.StoryPoints = 5
+		h.Criterios = []backlog.Criterio{{Texto: "Funciona"}}
+		if err := e.repoHistorias.Guardar(h); err != nil {
+			t.Fatal(err)
+		}
+	}
+}
+
+// cerrarSprint asigna las historias, inicia el sprint, completa las indicadas y lo cierra con los casos de uso.
+func (e entornoSprints) cerrarSprint(t *testing.T, sprintID string, historias, completadas []string) {
+	t.Helper()
+	id := domain.SprintID(sprintID)
+	for _, h := range historias {
+		if err := e.svc.Sprints.Asignar(id, domain.HistoriaID(h)); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := e.svc.Sprints.Iniciar(id); err != nil {
+		t.Fatal(err)
+	}
+	for _, h := range completadas {
+		if err := e.svc.Sprints.CompletarHistoria(id, domain.HistoriaID(h)); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := e.svc.Sprints.CerrarSprint(id); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestSprints_listaConSprintsCerrados(t *testing.T) {
+	e := nuevoServidorSprints(t)
+	e.crearPrimerMVP(t)
+	e.cargarHistorias(t)
+	e.cerrarSprint(t, "S1", []string{"HU-1"}, []string{"HU-1"})
+	// RN-14.3: el listado muestra los SP fijados al cerrar, aunque la historia cambie después.
+	h, _ := e.repoHistorias.Buscar("HU-1")
+	h.StoryPoints = 99
+	if err := e.repoHistorias.Guardar(h); err != nil {
+		t.Fatal(err)
+	}
+	// S2 sigue activo: no debe aparecer en el listado de cerrados (RN-14.1).
+	if _, err := e.svc.Sprints.Crear("P1", "Interfaz", fechaDeFormulario("2026-10-26"), fechaDeFormulario("2026-10-27")); err != nil {
+		t.Fatal(err)
+	}
+	if err := e.svc.Sprints.Iniciar("S2"); err != nil {
+		t.Fatal(err)
+	}
+
+	rec := servir(e.router, httptest.NewRequest(http.MethodGet, "/sprints", nil))
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("código = %d, se esperaba 200", rec.Code)
+	}
+	cuerpo := rec.Body.String()
+	contieneTodo(t, cuerpo, "Sprints cerrados", "<h2>Demo</h2>", `<a href="/sprints/S1">Primer MVP</a>`,
+		"23/10/2026", "25/10/2026", "Story Points planificados", "Story Points completados",
+		"Todavía no hay sprints cerrados")
+	if strings.Count(cuerpo, "<td>3</td>") < 2 {
+		t.Error("el listado debe mostrar 3 SP planificados y 3 completados del sprint cerrado")
+	}
+}
+
+func TestSprints_listaSinSprintsCerrados(t *testing.T) {
+	e := nuevoServidorSprints(t)
+	e.crearPrimerMVP(t)
+	if err := e.svc.Sprints.Iniciar("S1"); err != nil {
+		t.Fatal(err)
+	}
+
+	rec := servir(e.router, httptest.NewRequest(http.MethodGet, "/sprints", nil))
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("código = %d, se esperaba 200", rec.Code)
+	}
+	contieneTodo(t, rec.Body.String(), "Sprints cerrados", "Todavía no hay sprints cerrados")
+}
+
+func TestSprints_detalleDeSprintCerrado(t *testing.T) {
+	e := nuevoServidorSprints(t)
+	e.crearPrimerMVP(t)
+	e.cargarHistorias(t)
+	e.habilitarHistoriasParaCerrar(t)
+	e.cerrarSprint(t, "S1", []string{"HU-1", "HU-2"}, []string{"HU-1"})
+	// RN-14.3: las métricas del sprint cerrado no se recalculan con los SP actuales de las historias.
+	h, _ := e.repoHistorias.Buscar("HU-2")
+	h.StoryPoints = 99
+	if err := e.repoHistorias.Guardar(h); err != nil {
+		t.Fatal(err)
+	}
+
+	rec := servir(e.router, httptest.NewRequest(http.MethodGet, "/sprints/S1", nil))
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("código = %d, se esperaba 200", rec.Code)
+	}
+	contieneTodo(t, rec.Body.String(),
+		"<h1>Primer MVP</h1>", "<td>HU-1</td>", "<td>Crear proyecto</td>", "✔ Completada",
+		"<td>HU-2</td>", "<td>Crear sprint</td>", "No completada",
+		"8 Story Points planificados", "3 Story Points completados")
 }

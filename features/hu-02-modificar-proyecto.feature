@@ -7,6 +7,8 @@ Característica: Modificar proyecto
 
   Antecedentes:
     Dado que existe un proyecto "Demo" del "2026-10-21" al "2026-11-02"
+    # Desde HU-04 el estado sale de las fechas: fijamos hoy para que el escenario no dependa del día en que corre.
+    Y hoy es "2026-10-27"
 
   @CA-02.1 @normal
   Escenario: modificar un proyecto

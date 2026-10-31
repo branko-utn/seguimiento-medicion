@@ -54,7 +54,7 @@ func nuevoServicioPoker(t *testing.T) (*PlanningPoker, *memory.Historias) {
 		t.Fatal(err)
 	}
 
-	back := NuevoBacklog(repoHistorias, repoProyectos, NuevoSprints(repoSprints, repoProyectos, repoHistorias))
+	back := NuevoBacklog(repoHistorias, repoProyectos, NuevoSprints(repoSprints, repoProyectos, repoHistorias), nil, nil)
 	if _, err := back.Crear("P1", "Login", "", backlog.PrioridadAlta); err != nil {
 		t.Fatal(err)
 	}

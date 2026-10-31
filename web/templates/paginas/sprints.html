@@ -30,6 +30,31 @@
   {{- else}}
   <p>Todavía no hay sprints.</p>
   {{- end}}
+
+  <h3>Sprints cerrados</h3>
+  {{- if .Cerrados}}
+  <div class="overflow-auto">
+    <table>
+      <thead>
+        <tr><th>Sprint Goal</th><th>Inicio</th><th>Fin</th><th>Story Points planificados</th><th>Story Points completados</th></tr>
+      </thead>
+      <tbody>
+        {{- range .Cerrados}}
+        <tr>
+          <td><a href="/sprints/{{.ID}}">{{.Goal}}</a></td>
+          <td>{{.Inicio.Format "02/01/2006"}}</td>
+          <td>{{.Fin.Format "02/01/2006"}}</td>
+          <td>{{.SPPlanificados}}</td>
+          <td>{{.SPCompletados}}</td>
+        </tr>
+        {{- end}}
+      </tbody>
+    </table>
+  </div>
+  {{- else}}
+  <p>Todavía no hay sprints cerrados.</p>
+  {{- end}}
+
   <p><a href="/sprints/nuevo?proyecto={{.Proyecto.ID}}" role="button">Nuevo sprint</a></p>
 </section>
 {{else}}

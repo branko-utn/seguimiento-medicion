@@ -39,7 +39,7 @@ func nuevoServicioRegistros(t *testing.T) *Registros {
 	proy := NuevoProyectos(repoProy)
 	integrantes := NuevoIntegrantes(repoInt, repoProy)
 	sprints := NuevoSprints(repoSpr, repoProy, repoHist)
-	hist := NuevoBacklog(repoHist, repoProy, sprints)
+	hist := NuevoBacklog(repoHist, repoProy, sprints, nil, nil)
 	for _, nombre := range []string{"Demo", "Otro"} {
 		if _, err := proy.Crear(nombre, "", inicio, fin); err != nil {
 			t.Fatal(err)
@@ -54,7 +54,7 @@ func nuevoServicioRegistros(t *testing.T) *Registros {
 	if _, err := hist.Crear("P1", "Crear proyecto", "", backlog.PrioridadAlta); err != nil {
 		t.Fatal(err)
 	}
-	return NuevoRegistros(repoReg, repoInt, repoHist)
+	return NuevoRegistros(repoReg, repoInt, repoHist, repoProy)
 }
 
 func TestRegistros_Registrar(t *testing.T) {

@@ -3,12 +3,13 @@
 {{define "contenido"}}
 <hgroup>
   <h1>Reportes</h1>
-  <p>Reporte de un sprint para la Sprint Review, listo para imprimir o guardar como PDF.</p>
+  <p>Reporte de cada proyecto y de cada sprint, listos para imprimir o guardar como PDF.</p>
 </hgroup>
 
 {{range .Datos}}
 <section>
   <h2>{{.Proyecto.Nombre}}</h2>
+  <p><a href="/reportes/proyecto?proyecto={{.Proyecto.ID}}" role="button" class="secondary">Reporte del proyecto</a></p>
   {{- if .Sprints}}
   <div class="overflow-auto">
     <table>

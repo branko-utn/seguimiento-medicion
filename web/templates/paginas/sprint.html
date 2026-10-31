@@ -34,6 +34,7 @@
           <td>{{.StoryPoints}}</td>
           <td>
             {{- if index $.Datos.Completadas .ID}}✔ Completada
+            {{- else if $.Datos.Cerrado}}No completada
             {{- else if $.Datos.PuedeCerrar}}
             <form method="post" action="/sprints/{{$.Datos.Sprint.ID}}/historias/{{.ID}}/completar">
               <button type="submit" class="secondary">Completar</button>

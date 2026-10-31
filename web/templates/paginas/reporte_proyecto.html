@@ -1,0 +1,89 @@
+{{define "titulo"}}Reporte · {{.Datos.Nombre}}{{end}}
+
+{{define "contenido"}}
+{{- with .Datos}}
+<hgroup>
+  <h1>Reporte del proyecto</h1>
+  <p><strong>{{.Nombre}}</strong> · {{.Estado}} · del {{.Inicio.Format "02/01/2006"}} al {{.Fin.Format "02/01/2006"}} · {{.DiasRestantes}} días restantes</p>
+</hgroup>
+
+<p class="no-imprimir">
+  <button type="button" onclick="window.print()">Imprimir o guardar como PDF</button>
+  <a href="/reportes">Volver a Reportes</a>
+</p>
+
+<section>
+  <h2>Resumen de sprints</h2>
+  {{- if .Filas}}
+  <div class="overflow-auto">
+    <table>
+      <thead>
+        <tr>
+          <th>Sprint</th><th>Estado</th><th>SP planificados</th><th>SP completados</th><th>% completadas</th>
+          <th>Horas estimadas</th><th>Horas reales</th><th>Defectos detectados</th><th>Defectos resueltos</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{- range .Filas}}
+        <tr>
+          <td><a href="/reportes/sprints/{{.SprintID}}">{{.Goal}}</a></td>
+          <td>{{.Estado}}</td>
+          <td>{{.SPPlanificados}}</td>
+          <td>{{.SPCompletados}}</td>
+          <td>{{.Porcentaje}} %</td>
+          <td>{{.HorasEstimadas}}</td>
+          <td>{{.HorasReales}}</td>
+          <td>{{.Detectados}}</td>
+          <td>{{.Resueltos}}</td>
+        </tr>
+        {{- end}}
+      </tbody>
+    </table>
+  </div>
+  {{- else}}
+  <p>Todavía no hay sprints con resultado.</p>
+  {{- end}}
+</section>
+
+<section>
+  <h2>Métricas acumuladas</h2>
+  <ul>
+    <li><strong>Velocidad: {{.Velocidad}} Story Points por sprint
+      {{- if eq .SprintsCerrados 0}} (sin sprints cerrados todavía)
+      {{- else if eq .SprintsCerrados 1}} (1 sprint cerrado)
+      {{- else}} ({{.SprintsCerrados}} sprints cerrados){{end}}</strong></li>
+    <li><strong>{{.SPCompletados}} Story Points completados</strong></li>
+    <li><strong>{{.Porcentaje}} % de historias completadas ({{.Completadas}} de {{.Historias}})</strong></li>
+    <li><strong>{{.HorasEstimadas}} horas estimadas · {{.HorasReales}} horas reales · {{if .Desviacion}}desviación de {{.Desviacion}} %{{else}}desviación no calculable (sin horas estimadas){{end}}</strong></li>
+  </ul>
+  <p><small>Las horas reales incluyen todo el esfuerzo del proyecto, también el registrado fuera de un sprint.</small></p>
+</section>
+
+<section>
+  <h2>Defectos</h2>
+  <p><strong>{{.Detectados}} detectado{{if ne .Detectados 1}}s{{end}} · {{.Resueltos}} resuelto{{if ne .Resueltos 1}}s{{end}} · {{.Abiertos}} abierto{{if ne .Abiertos 1}}s{{end}}</strong></p>
+  {{- if .DefectosAbiertos}}
+  <div class="overflow-auto">
+    <table>
+      <thead>
+        <tr><th>ID</th><th>Descripción</th><th>Severidad</th><th>Estado</th><th>Historia</th></tr>
+      </thead>
+      <tbody>
+        {{- range .DefectosAbiertos}}
+        <tr>
+          <td>{{.ID}}</td>
+          <td>{{.Descripcion}}</td>
+          <td>{{.Severidad}}</td>
+          <td>{{.Estado}}</td>
+          <td>{{.HistoriaID}}</td>
+        </tr>
+        {{- end}}
+      </tbody>
+    </table>
+  </div>
+  {{- else}}
+  <p>No hay defectos abiertos.</p>
+  {{- end}}
+</section>
+{{- end}}
+{{end}}

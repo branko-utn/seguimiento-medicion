@@ -68,6 +68,9 @@ var (
 
 	// Errores de HU-13 (cerrar sprint).
 	ErrNoActivo = errors.New("solo se puede cerrar un sprint activo")
+
+	// Errores de HU-14 (consultar sprints anteriores).
+	ErrNoCerrado = errors.New("el sprint todavía no está cerrado")
 )
 
 // Nuevo crea un sprint válido en estado Planificado y sin historias (RN-10.1, RN-10.2 y RN-10.5).
