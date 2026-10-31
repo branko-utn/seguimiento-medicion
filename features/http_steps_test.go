@@ -68,8 +68,16 @@ func paginaContiene(ctx context.Context, texto string) error {
 	return nil
 }
 
-// paginaNoContiene verifica que un texto no aparezca en la página (TEC-21). Todavía sin implementar (RED).
+// paginaNoContiene verifica que un texto no aparezca en la página (TEC-21), por ejemplo `style="` (RN-32.5). Sin un
+// pedido previo falla, para no dar por buena una página que nunca se pidió.
 func paginaNoContiene(ctx context.Context, texto string) error {
+	rec, err := respuesta(ctx)
+	if err != nil {
+		return err
+	}
+	if strings.Contains(rec.Body.String(), texto) {
+		return fmt.Errorf("la página contiene %q y no debería", texto)
+	}
 	return nil
 }
 
