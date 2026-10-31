@@ -35,6 +35,18 @@ make run    # http://localhost:8080
 
 Sin `make` (por ejemplo en Windows): `go test ./...` y `go run ./cmd/server`.
 
+### Datos de demo
+
+`make demo` (o `go run ./cmd/demo`) carga nuestro propio proyecto en `data/`:
+- los 5 integrantes y las 31 historias del Product Backlog, con sus Story Points y responsables del tablero y un
+  criterio de aceptación de su spec;
+- los Sprints 1 a 3 cerrados (44, 23 y 35 SP) y el 4 en curso;
+- 9 defectos reales encontrados en las revisiones de PRs (uno sigue abierto).
+
+Las horas no se registraron durante el proyecto: las estimadas se cargan a 2 horas por Story Point, y las reales con
+una variación por historia (`cmd/demo/datos.go`). Si el proyecto ya está cargado, el comando no lo duplica. Para
+empezar de cero, borrá la carpeta `data/`.
+
 ## Documentación
 
 | Documento | Qué tiene |
