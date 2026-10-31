@@ -7,7 +7,59 @@
 
 ## 1. Primeros pasos — Branko Almeira
 
-<!-- Cómo levantar la app (make run / make demo), la navegación y qué hay en la portada. -->
+**Software Metrics & Estimation** es una aplicación web para seguir un proyecto ágil de punta a punta: el Product
+Backlog, la estimación con Planning Poker, los sprints, las horas trabajadas, los defectos y las métricas que salen
+de todo eso (velocidad, porcentaje completado, desviación de horas). Al final, arma los reportes para la Sprint Review
+y para el cierre del proyecto.
+
+### Levantar la aplicación
+
+Hace falta **Go 1.22 o posterior** y una terminal en la carpeta del repositorio.
+
+1. **(Opcional) Cargar datos de ejemplo:** `make demo` carga nuestro propio proyecto (el backlog real, los Sprints 1
+   a 3 cerrados y el 4 en curso, horas y defectos). Sirve para recorrer la aplicación con datos ya cargados.
+2. **Levantar la aplicación:** `make run`.
+3. Abrir **http://localhost:8080** en el navegador.
+
+Los datos se guardan en archivos JSON en la carpeta `data/` y siguen ahí la próxima vez que se levanta la app.
+Para trabajar con otra carpeta (por ejemplo, una limpia para una demo): `DATA_DIR=otra make run`. Para usar otro
+puerto: `PORT=9090 make run`.
+
+> **No hay usuarios ni contraseñas.** Cuando una pantalla necesita saber quién actúa (por ejemplo, para votar en
+> el Planning Poker o registrar horas), elegís tu nombre de la lista de integrantes del proyecto. Por eso, antes que
+> nada, cargá el proyecto y sus integrantes (sección 2).
+
+### La portada y la navegación
+
+La **portada** muestra una tarjeta por sección con su ícono y una descripción corta. Tocá cualquiera para entrar.
+Arriba de todas las pantallas está la **barra de navegación**, con la sección en la que estás resaltada:
+
+| Sección | Para qué sirve | Ver |
+|---|---|---|
+| **Proyectos** | Alta y modificación de proyectos, sus fechas, su estado y sus integrantes | Sección 2 |
+| **Backlog** | Las historias de usuario con prioridad, estado, Story Points y criterios de aceptación | Sección 3 |
+| **Sprints** | Sprint Goal, historias asignadas, inicio, cierre e historial de sprints | Sección 4 |
+| **Planning Poker** | Estimar una historia con votos ocultos y llegar a un acuerdo | Sección 5 |
+| **Esfuerzo** | Las horas trabajadas por integrante, historia y actividad | Sección 6 |
+| **Defectos** | Los defectos con su severidad, su estado y en qué sprint se detectaron y resolvieron | Sección 7 |
+| **Dashboard** | Las métricas del proyecto con gráficos | Sección 8 |
+| **Reportes** | El reporte de un sprint o del proyecto, para imprimir o descargar en PDF | Sección 9 |
+
+### El recorrido típico
+
+```text
+Proyecto e integrantes → Historias del backlog → Estimación (Planning Poker) → Sprint (asignar, iniciar)
+→ Registrar horas y defectos → Completar historias → Cerrar el sprint → Dashboard y reportes
+```
+
+### Convenciones de las pantallas
+
+- **Colores de los estados:** gris = todavía no empezó; azul = en curso; verde = terminado. En los defectos, rojo =
+  abierto o crítico y ámbar = en progreso o de severidad alta.
+- **Números:** los decimales se escriben con coma (por ejemplo, `25,0 %`).
+- **Errores:** si un formulario no cumple una regla, vuelve con lo que escribiste y el motivo arriba, en rojo. Cada
+  sección lista sus reglas y los mensajes exactos.
+- **Listas vacías:** cuando todavía no hay nada cargado, la pantalla lo dice y ofrece el botón para crear el primero.
 
 ## 2. Proyectos e integrantes (E1) — Federico Sosa
 
@@ -309,6 +361,136 @@ adelante hay que re-estimarla.
 
 ## Anexo · Documentación técnica — Branko Almeira
 
-<!-- Arquitectura (ADR 0001 a 0004), estructura de paquetes, cómo correr, cómo probar (make test, make cover,
-     BDD), CI, cómo contribuir: SDD → BDD → TDD, resolución de conflictos en los archivos compartidos y chequeo de
-     `Closes #N` antes de abrir un PR (acciones pendientes de las retros). -->
+Esta parte es para quien tenga que mantener o extender la aplicación. Las reglas completas de trabajo están en
+[`CONTRIBUTING.md`](../CONTRIBUTING.md) y las decisiones de diseño en [`docs/adr/`](adr/).
+
+### A.1 Arquitectura
+
+Una aplicación web **en Go, sin un segundo stack**: el servidor arma el HTML y el navegador solo lo muestra.
+
+| Pieza | Tecnología | Decisión |
+|---|---|---|
+| Lenguaje y servidor | Go 1.22, `net/http` de la biblioteca estándar (rutas `GET /sprints/{sprint}`) | [ADR 0001](adr/0001-arquitectura.md) |
+| Pantallas | `html/template` + Pico CSS + HTMX; gráficos con Chart.js | ADR 0001 |
+| Persistencia | Repositorios en memoria que se guardan en archivos JSON (`data/`) | ADR 0001 |
+| BDD | Gherkin en español con [godog](https://github.com/cucumber/godog) | ADR 0001 |
+| Exportación a PDF | `github.com/go-pdf/fpdf` (HU-31) | ADR 0001 |
+| Contratos entre épicas | Cada épica guarda **IDs** de las demás, nunca copias; las reglas que cruzan épicas las coordina un servicio | [ADR 0002](adr/0002-contratos-de-dominio.md) |
+| Enumeradores | `int` con `iota + 1` y `String()`; el cero es "sin valor". Las plantillas no comparan textos de estado: el handler decide (por ejemplo, el color de una insignia con `tonoEstado`) | [ADR 0003](adr/0003-enumeradores-del-dominio.md) |
+| Identidad | Sin autenticación: quien actúa elige su nombre de la lista de integrantes | [ADR 0004](adr/0004-identidad-sin-autenticacion.md) |
+
+Pico CSS, HTMX y Chart.js están **incluidos en el repositorio** (`web/static/vendor/`), así la app funciona sin
+internet, por ejemplo durante una presentación.
+
+### A.2 Estructura de paquetes
+
+Las dependencias van en un solo sentido: de afuera (HTTP) hacia adentro (dominio). El dominio no depende de
+ninguna otra capa.
+
+```text
+cmd/server ─► internal/app ─► internal/server ─► internal/service ─► internal/domain/<épica>
+                   │                                   │
+                   └─► internal/store/memory           ├─► internal/report ─► internal/metrics
+                         (repositorios JSON)           └─► internal/dashboard
+```
+
+`internal/metrics` no importa a ningún otro paquete del proyecto: recibe números y fechas y devuelve resultados, así
+se prueba sin armar entidades.
+
+| Paquete | Responsabilidad |
+|---|---|
+| `internal/domain/{project,backlog,sprint,estimation,effort,defect}` | Entidades y reglas de negocio de cada épica, con sus errores. Acá se hace TDD |
+| `internal/metrics` | Cálculo de métricas como funciones puras: SP planificados y completados, velocidad, porcentaje, desviación, defectos, horas en un período |
+| `internal/report` | Arma el reporte de sprint (HU-29) y el de proyecto (HU-30) a partir de los datos que recibe; no accede a repositorios |
+| `internal/dashboard` | Arma los datos del dashboard (HU-28) |
+| `internal/service` | Casos de uso: buscan en los repositorios, aplican las reglas del dominio y guardan |
+| `internal/store/memory` | Repositorios en memoria con persistencia a JSON (una ruta vacía = sin archivo, para los tests) |
+| `internal/server` | Handlers HTTP, rutas y plantillas. Error de formulario → 400 con el formulario; recurso inexistente → 404; éxito → 303 |
+| `internal/app` | Arma la aplicación: crea los repositorios y los servicios y se los pasa al servidor |
+| `cmd/server`, `cmd/demo` | La aplicación (`make run`) y la carga de datos de ejemplo (`make demo`) |
+| `features` | Escenarios BDD (`*.feature`) y sus pasos |
+| `tools/checkcoverage` | Verifica el umbral de cobertura en el CI |
+
+### A.3 Cómo correr y configurar
+
+| Quiero… | Comando |
+|---|---|
+| Levantar la app | `make run` → http://localhost:8080 |
+| Cargar los datos de ejemplo | `make demo` |
+| Usar otra carpeta de datos / otro puerto | `DATA_DIR=otra make run` / `PORT=9090 make run` |
+| Empezar de cero | Borrar la carpeta de datos (o usar una nueva con `DATA_DIR`) |
+
+### A.4 Cómo probar
+
+| Quiero… | Comando |
+|---|---|
+| Todo: `go vet`, tests unitarios con detector de carreras y BDD | `make test` |
+| Solo los tests unitarios | `make unit` |
+| Solo los escenarios BDD | `make bdd` |
+| Cobertura total y reporte HTML (`coverage.html`) | `make cover` |
+| Formatear | `make fmt` |
+
+- **Tests unitarios:** en cada paquete (`*_test.go`), con tablas de casos. Los handlers se prueban con `httptest`.
+- **BDD:** cada historia tiene su `features/hu-XX-*.feature`, en español, y sus pasos en `features/huXX_steps_test.go`.
+  Los pasos comunes (por ejemplo, `la página contiene "…"` o `la página no contiene "…"`) están en
+  `features/http_steps_test.go`. Un escenario con la etiqueta `@pendiente` no se corre.
+
+### A.5 Integración continua
+
+Cada PR y cada push a `main` corren [`.github/workflows/ci.yml`](../.github/workflows/ci.yml):
+
+1. Formato (`gofmt`): falla si algún archivo no está formateado.
+2. Análisis estático (`go vet`).
+3. Tests unitarios con `-race` y cobertura.
+4. **Umbral de cobertura:** `internal/domain` e `internal/metrics` en **80 % o más**, ponderado por sentencias
+   (`tools/checkcoverage`).
+5. Escenarios BDD.
+
+Además, [`revisor.yml`](../.github/workflows/revisor.yml) le pide la revisión del PR a quien le toca según la
+rotación (Sosa → Bianchi → Lara → Giorlando → Branko → Sosa). `main` está protegida: solo entra un PR con el CI en
+verde y una aprobación.
+
+### A.6 Cómo contribuir: SDD → BDD → TDD
+
+Cada historia recorre la misma cadena, con el mismo ID en todos los artefactos:
+
+```text
+Issue HU-XX → specs/HU-XX-*.md → criterios CA-XX.n → features/hu-xx-*.feature → *_test.go → código Go
+```
+
+1. **SDD:** la spec (`specs/_plantilla.md`) define entradas, salidas, reglas de negocio (RN), casos límite, errores
+   con su mensaje exacto y criterios de aceptación (CA). Es la fuente de verdad.
+2. **BDD:** cada criterio tiene al menos un escenario en el `.feature`.
+3. **TDD:** un commit por fase: `test(HU-XX): RED - …` (el test falla), `feat(HU-XX): GREEN - …` (el código mínimo
+   que lo hace pasar) y, si hace falta, `refactor(HU-XX): …`. Por eso los PRs se mergean sin *squash*.
+4. **PR:** rama `feature/HU-XX-…`, plantilla con la tabla de trazabilidad y una fila en
+   [`docs/ia/registro.md`](ia/registro.md) si se usó IA.
+
+Para agregar una pantalla, seguí la sección 6 de `CONTRIBUTING.md`.
+
+### A.7 Antes de abrir un PR (acciones de las retrospectivas)
+
+**`Closes #N` solo si el PR termina el ítem.** `Closes` cierra el issue al mergear y lo mueve a *Done* en el
+tablero. Para un PR que hace una parte, usá `Parte de #N`. Antes de abrirlo, confirmá el número:
+
+```bash
+gh issue view N    # ¿es el ítem correcto? ¿este PR lo termina?
+```
+
+**Conflictos en los archivos compartidos: quedarse con los dos lados.** Varios PRs agregan líneas a los mismos
+archivos al mismo tiempo. En un conflicto, **nunca se elige un lado**: se conservan las líneas de `main` y después
+las de la rama.
+
+| Archivo | Qué agrega cada PR | Cómo resolver |
+|---|---|---|
+| `docs/ia/registro.md` | Una fila de la tabla | Las dos filas, primero la de `main` |
+| `features/features_test.go`, `features/mundo_test.go` | El registro de sus pasos y sus campos del mundo | Los dos bloques |
+| `internal/app/app.go`, `internal/server/server.go` | Su servicio, sus repositorios y sus rutas | Los dos bloques; si cambió la firma de un constructor en `main`, usar la nueva |
+| `web/static/app.css` | Sus clases, al final y bajo un comentario con su ítem (`/* HU-32.3 */`) | Los dos bloques |
+
+```bash
+git switch <rama> && git fetch origin && git merge origin/main
+# resolver cada conflicto conservando los dos lados, sin dejar marcas <<<<<<< ======= >>>>>>>
+grep -rn '^<<<<<<<\|^>>>>>>>' . && echo "quedan marcas"
+make test && git commit && git push
+```
