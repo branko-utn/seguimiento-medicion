@@ -7,6 +7,9 @@ type seccion struct {
 	Descripcion string
 	Epica       string
 	Sprint      int
+	// Icono es el dibujo SVG de la sección en la portada (el atributo d de un <path>, en una grilla de 24×24).
+	// TEC-21: así la plantilla no tiene que comparar textos para elegirlo. Todavía sin dibujos (RED).
+	Icono string
 	// EnConstruccion muestra una página de aviso en Ruta. Al implementar la sección, ponerlo en false
 	// y registrar las rutas reales en NewRouter (si no, la ruta queda registrada dos veces y el servidor no arranca).
 	EnConstruccion bool
