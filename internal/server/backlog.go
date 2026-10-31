@@ -78,6 +78,11 @@ func (a *app) listarBacklog(w http.ResponseWriter, r *http.Request) {
 	a.render(w, r, "backlog.html", datos)
 }
 
+// tonoPrioridad es un stub para que compile el RED: siempre neutro.
+func tonoPrioridad(p backlog.Prioridad) string {
+	return tonoNeutro
+}
+
 // prioridades son las prioridades que se ofrecen en el formulario, en el orden de la spec HU-05.
 var prioridades = []backlog.Prioridad{backlog.PrioridadAlta, backlog.PrioridadMedia, backlog.PrioridadBaja}
 

@@ -4,11 +4,13 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/branko-utn/seguimiento-medicion/internal/domain/backlog"
+	"github.com/branko-utn/seguimiento-medicion/internal/domain/estimation"
 	"github.com/branko-utn/seguimiento-medicion/internal/domain/project"
 	"github.com/branko-utn/seguimiento-medicion/internal/service"
 	"github.com/branko-utn/seguimiento-medicion/internal/store/memory"
@@ -292,5 +294,41 @@ func TestPlanningPoker_historiaCompletadaNoSeVota(t *testing.T) {
 	}
 	if strings.Contains(cuerpo, "Abrir votación") {
 		t.Error("la historia completada ofrece abrir una votación (RN-16.5)")
+	}
+}
+
+// TestPlanningPoker_sinEstilosEnLinea verifica RN-32.5 en la pantalla con más formularios a la vista:
+// votación abierta y ronda ya revelada. Los estilos van en app.css (TEC-21), no en la plantilla.
+func TestPlanningPoker_sinEstilosEnLinea(t *testing.T) {
+	router, _ := nuevoServidorPoker(t)
+
+	router.ServeHTTP(httptest.NewRecorder(), pedidoFormulario(http.MethodPost, "/planning-poker/abrir", url.Values{"historia": {"HU-1"}}))
+	router.ServeHTTP(httptest.NewRecorder(), pedidoFormulario(http.MethodPost, "/planning-poker/votar",
+		url.Values{"historia": {"HU-1"}, "integrante": {"I1"}, "carta": {"5"}}))
+	router.ServeHTTP(httptest.NewRecorder(), pedidoFormulario(http.MethodPost, "/planning-poker/revelar",
+		url.Values{"historia": {"HU-1"}, "revelo": {"I3"}}))
+
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/planning-poker", nil))
+	if rec.Code != http.StatusOK {
+		t.Fatalf("código = %d, se esperaba 200", rec.Code)
+	}
+	if strings.Contains(rec.Body.String(), `style="`) {
+		t.Error("la página tiene estilos en línea: van en app.css (TEC-21)")
+	}
+}
+
+// TestPlanningPoker_cartasComoBotones: las cartas de la escala son botones, no un desplegable (spec HU-32.2).
+func TestPlanningPoker_cartasComoBotones(t *testing.T) {
+	router, _ := nuevoServidorPoker(t)
+	router.ServeHTTP(httptest.NewRecorder(), pedidoFormulario(http.MethodPost, "/planning-poker/abrir", url.Values{"historia": {"HU-1"}}))
+
+	cuerpo := servir(router, httptest.NewRequest(http.MethodGet, "/planning-poker", nil)).Body.String()
+
+	for _, carta := range estimation.Escala {
+		boton := `name="carta" value="` + strconv.Itoa(carta) + `"`
+		if !strings.Contains(cuerpo, boton) {
+			t.Errorf("la página no tiene la carta %d como botón (%s)", carta, boton)
+		}
 	}
 }
