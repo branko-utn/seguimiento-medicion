@@ -9,6 +9,12 @@ import (
 
 // TEC-21: los componentes visuales comunes que usan las cuatro partes de HU-32.
 
+// tarjeta devuelve el HTML del valor y la etiqueta de una tarjeta de métrica (.tarjeta-metrica), para que los tests
+// de las pantallas verifiquen sus métricas sin repetir el marcado.
+func tarjeta(valor, etiqueta string) string {
+	return `<span class="valor">` + valor + `</span><span class="etiqueta">` + etiqueta + `</span>`
+}
+
 func TestAppCSS_componentes(t *testing.T) {
 	rec := pedir(t, http.MethodGet, "/static/app.css")
 

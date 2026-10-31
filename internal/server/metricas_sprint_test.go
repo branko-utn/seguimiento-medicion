@@ -42,8 +42,8 @@ func TestSprints_metricas(t *testing.T) {
 	}
 
 	t.Run("sprint sin historias", func(t *testing.T) {
-		contieneTodo(t, ver(t, "S1"), "Métricas del sprint", "0 Story Points planificados", "0 Story Points completados",
-			"0,0 % de historias completadas (0 de 0)", "Velocidad del equipo: 0,0 Story Points por sprint (sin sprints cerrados todavía)")
+		contieneTodo(t, ver(t, "S1"), "Métricas del sprint", tarjeta("0", "Story Points planificados"), tarjeta("0", "Story Points completados"),
+			tarjeta("0,0 %", "historias completadas (0 de 0)"), tarjeta("0,0", "velocidad del equipo en SP por sprint (sin sprints cerrados todavía)"))
 	})
 
 	for _, id := range []string{"HU-1", "HU-3"} {
@@ -54,15 +54,15 @@ func TestSprints_metricas(t *testing.T) {
 	accion(t, "/sprints/S1/iniciar")
 	accion(t, "/sprints/S1/historias/HU-1/completar")
 	t.Run("activo con una de dos historias completadas", func(t *testing.T) {
-		contieneTodo(t, ver(t, "S1"), "8 Story Points planificados", "3 Story Points completados",
-			"50,0 % de historias completadas (1 de 2)", "(sin sprints cerrados todavía)")
+		contieneTodo(t, ver(t, "S1"), tarjeta("8", "Story Points planificados"), tarjeta("3", "Story Points completados"),
+			tarjeta("50,0 %", "historias completadas (1 de 2)"), "(sin sprints cerrados todavía)")
 	})
 
 	accion(t, "/sprints/S1/cerrar")
 	t.Run("cerrado: cuenta para la velocidad", func(t *testing.T) {
 		cuerpo := ver(t, "S1")
-		contieneTodo(t, cuerpo, "8 Story Points planificados", "3 Story Points completados",
-			"50,0 % de historias completadas (1 de 2)", "Velocidad del equipo: 3,0 Story Points por sprint (1 sprint cerrado)")
+		contieneTodo(t, cuerpo, tarjeta("8", "Story Points planificados"), tarjeta("3", "Story Points completados"),
+			tarjeta("50,0 %", "historias completadas (1 de 2)"), tarjeta("3,0", "velocidad del equipo en SP por sprint (1 sprint cerrado)"))
 	})
 
 	// Segundo sprint con HU-3, que volvió al backlog al cerrar S1: la velocidad pasa a (3 + 5) / 2.
@@ -75,11 +75,11 @@ func TestSprints_metricas(t *testing.T) {
 	accion(t, "/sprints/S2/iniciar")
 	accion(t, "/sprints/S2/historias/HU-3/completar")
 	t.Run("activo: todavía no cuenta para la velocidad", func(t *testing.T) {
-		contieneTodo(t, ver(t, "S2"), "100,0 % de historias completadas (1 de 1)", "Velocidad del equipo: 3,0 Story Points por sprint (1 sprint cerrado)")
+		contieneTodo(t, ver(t, "S2"), tarjeta("100,0 %", "historias completadas (1 de 1)"), tarjeta("3,0", "velocidad del equipo en SP por sprint (1 sprint cerrado)"))
 	})
 	accion(t, "/sprints/S2/cerrar")
 	t.Run("dos sprints cerrados", func(t *testing.T) {
-		contieneTodo(t, ver(t, "S2"), "Velocidad del equipo: 4,0 Story Points por sprint (2 sprints cerrados)")
+		contieneTodo(t, ver(t, "S2"), tarjeta("4,0", "velocidad del equipo en SP por sprint (2 sprints cerrados)"))
 	})
 
 	// La velocidad es por proyecto: un sprint de Otro no ve los sprints cerrados de Demo.
