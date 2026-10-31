@@ -58,10 +58,10 @@ func TestEsfuerzo_resumenConTotales(t *testing.T) {
 
 	// Demo: totales por historia y por integrante, con un decimal, y el total del proyecto.
 	demo := resumenDe(t, cuerpo, "P1")
-	contiene(t, demo, "Demo", "9,5 horas",
-		`<a href="/backlog/HU-1">HU-1</a>`, "<td>5,5</td>",
-		`<a href="/backlog/HU-2">HU-2</a>`, "<td>4,0</td>",
-		"<td>Ana Pérez</td>", "<td>9,5</td>")
+	contiene(t, demo, "Demo", tarjeta("9,5", "horas registradas"),
+		`<a href="/backlog/HU-1">HU-1</a>`, `<td class="num">5,5</td>`,
+		`<a href="/backlog/HU-2">HU-2</a>`, `<td class="num">4,0</td>`,
+		"<td>Ana Pérez</td>", `<td class="num">9,5</td>`)
 	if strings.Contains(demo, "Todavía no hay esfuerzo registrado") {
 		t.Error("Demo tiene esfuerzo registrado: no debería mostrar el mensaje de vacío")
 	}
