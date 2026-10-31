@@ -21,6 +21,7 @@ func registrarPasosHTTP(sc *godog.ScenarioContext, m *mundo) {
 	sc.Step(`^la respuesta tiene código (\d+)$`, respuestaTieneCodigo)
 	sc.Step(`^el cuerpo es el JSON (.+)$`, cuerpoEsJSON)
 	sc.Step(`^la página contiene "([^"]*)"$`, paginaContiene)
+	sc.Step(`^la página no contiene "([^"]*)"$`, paginaNoContiene) // TEC-21: lo usan los escenarios de HU-32
 	sc.Step(`^la página contiene un enlace a "([^"]*)" con el texto "([^"]*)"$`, paginaContieneEnlace)
 }
 
@@ -63,6 +64,19 @@ func paginaContiene(ctx context.Context, texto string) error {
 	}
 	if !strings.Contains(rec.Body.String(), texto) {
 		return fmt.Errorf("la página no contiene %q", texto)
+	}
+	return nil
+}
+
+// paginaNoContiene verifica que un texto no aparezca en la página (TEC-21), por ejemplo `style="` (RN-32.5). Sin un
+// pedido previo falla, para no dar por buena una página que nunca se pidió.
+func paginaNoContiene(ctx context.Context, texto string) error {
+	rec, err := respuesta(ctx)
+	if err != nil {
+		return err
+	}
+	if strings.Contains(rec.Body.String(), texto) {
+		return fmt.Errorf("la página contiene %q y no debería", texto)
 	}
 	return nil
 }

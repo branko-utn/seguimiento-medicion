@@ -2,7 +2,7 @@
 
 {{define "contenido"}}
 <article class="error">
-  <header><h1>{{.Datos.Codigo}} · {{.Datos.Texto}}</h1></header>
+  <header><h1><span class="insignia tono-peligro">{{.Datos.Codigo}}</span> {{.Datos.Texto}}</h1></header>
   <p>{{.Datos.Mensaje}}</p>
   <footer><a href="/">Volver al inicio</a></footer>
 </article>

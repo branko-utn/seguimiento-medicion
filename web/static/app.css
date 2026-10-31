@@ -1,14 +1,79 @@
 /* Ajustes propios sobre Pico CSS (https://picocss.com). */
-:root { --pico-font-size: 100%; }
+
+/* ---------- TEC-21 · Paleta: un color de marca, éxito, alerta y peligro, con contraste AA sobre fondo claro. ---------- */
+:root {
+  --pico-font-size: 100%;
+  --sme-marca: #1d4ed8;
+  --sme-marca-suave: #dbeafe;
+  --sme-exito: #166534;
+  --sme-exito-suave: #dcfce7;
+  --sme-alerta: #92400e;
+  --sme-alerta-suave: #fef3c7;
+  --sme-peligro: #991b1b;
+  --sme-peligro-suave: #fee2e2;
+  --sme-neutro: #374151;
+  --sme-neutro-suave: #f3f4f6;
+  --sme-borde: #e5e7eb;
+  --pico-primary: var(--sme-marca);
+  --pico-primary-background: var(--sme-marca);
+  --pico-primary-border: var(--sme-marca);
+  --pico-primary-hover: #1e40af;
+  --pico-primary-hover-background: #1e40af;
+}
+
+/* ---------- Cabecera: la marca y la navegación; la sección activa resaltada con aria-current. ---------- */
+header.container { border-bottom: 1px solid var(--sme-borde); margin-bottom: 1.5rem; }
 header.container nav { flex-wrap: wrap; }
-.marca { white-space: nowrap; }
+.marca { white-space: nowrap; display: inline-flex; align-items: center; gap: .5rem; color: var(--sme-marca); }
+.marca .logo { width: 1.6rem; height: 1.6rem; flex: none; stroke: var(--sme-marca); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+header.container nav a[aria-current="page"] { color: var(--sme-marca); font-weight: bold; border-bottom: 2px solid var(--sme-marca); border-radius: 0; }
+
+/* ---------- Encabezado de página: título y subtítulo a la izquierda, acciones a la derecha. ---------- */
+.encabezado { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 1rem; margin-bottom: 1.5rem; }
+.encabezado hgroup { margin: 0; }
+.encabezado .acciones { margin: 0; }
+
+/* ---------- Tarjetas de métricas: números grandes con su etiqueta. Una columna en pantallas angostas. ---------- */
+.tarjetas { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+.tarjeta-metrica { margin: 0; padding: 1rem 1.25rem; border-left: 4px solid var(--sme-marca); }
+.tarjeta-metrica .valor { display: block; font-size: 1.9rem; font-weight: bold; line-height: 1.2; color: var(--sme-marca); }
+.tarjeta-metrica .etiqueta { display: block; color: var(--pico-muted-color); font-size: .9em; }
+
+/* ---------- Insignias: el tono lo decide el handler con tonoEstado / tonoSeveridad (ADR 0003). ---------- */
+.insignia { display: inline-block; padding: .1rem .6rem; border-radius: 999px; font-size: .85em; font-weight: 600; white-space: nowrap; }
+.tono-neutro { background: var(--sme-neutro-suave); color: var(--sme-neutro); }
+.tono-info { background: var(--sme-marca-suave); color: var(--sme-marca); }
+.tono-exito { background: var(--sme-exito-suave); color: var(--sme-exito); }
+.tono-alerta { background: var(--sme-alerta-suave); color: var(--sme-alerta); }
+.tono-peligro { background: var(--sme-peligro-suave); color: var(--sme-peligro); }
+
+/* ---------- Estado vacío: "Todavía no hay …", con un enlace a la acción que lo resuelve. ---------- */
+.vacio { text-align: center; padding: 2rem 1rem; border: 1px dashed var(--sme-borde); border-radius: var(--pico-border-radius); color: var(--pico-muted-color); }
+.vacio p:last-child { margin-bottom: 0; }
+
+/* ---------- Tablas: rayadas, con el encabezado fijo y los números alineados a la derecha. ---------- */
+table.tabla thead th { position: sticky; top: 0; background: var(--sme-neutro-suave); }
+table.tabla tbody tr:nth-child(even) { background: #f9fafb; }
+table.tabla .num { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* ---------- Acciones en línea: botones dentro de tablas y grupos de botones. ---------- */
+.acciones { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+form.en-linea { display: inline; margin: 0 0 0 .5rem; }
+form.en-linea button { padding: .1rem .6rem; font-size: .85em; margin: 0; width: auto; }
+
+/* ---------- Portada: las secciones como tarjetas con un ícono SVG simple. ---------- */
+.tarjetas-secciones { display: grid; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); gap: 1rem; }
+.tarjetas-secciones article { margin: 0; }
+.tarjetas-secciones header { display: flex; align-items: center; gap: .6rem; }
+.icono { width: 1.75rem; height: 1.75rem; flex: none; stroke: var(--sme-marca); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ---------- Ajustes anteriores a TEC-21 ---------- */
 .grilla { display: grid; grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr)); gap: 1rem; }
 .grilla article { margin: 0; }
 article.error header h1 { color: var(--pico-del-color); margin: 0; }
 .error-formulario { color: var(--pico-del-color); font-weight: bold; }
 footer.container { margin-top: 2rem; color: var(--pico-muted-color); }
-form.en-linea { display: inline; margin: 0 0 0 .5rem; }
-form.en-linea button { padding: .1rem .6rem; font-size: .85em; margin: 0; width: auto; }
+
 /* Impresión (HU-29): el reporte se guarda como PDF desde el navegador, sin la navegación ni los botones. */
 @media print {
   header.container, footer.container, .no-imprimir { display: none; }

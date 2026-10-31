@@ -1,18 +1,23 @@
 {{define "titulo"}}Inicio{{end}}
 
 {{define "contenido"}}
-<hgroup>
-  <h1>Software Metrics &amp; Estimation</h1>
-  <p>Estimación, planificación, seguimiento y calidad de proyectos de software.</p>
-</hgroup>
+<div class="encabezado">
+  <hgroup>
+    <h1>Software Metrics &amp; Estimation</h1>
+    <p>Estimación, planificación, seguimiento y calidad de proyectos de software.</p>
+  </hgroup>
+</div>
 
-<div class="grilla">
+<div class="tarjetas-secciones">
   {{- range .Secciones}}
   <article>
-    <header><a href="{{.Ruta}}"><strong>{{.Nombre}}</strong></a></header>
+    <header>
+      <svg class="icono" viewBox="0 0 24 24" aria-hidden="true"><path d="{{.Icono}}"/></svg>
+      <a href="{{.Ruta}}"><strong>{{.Nombre}}</strong></a>
+    </header>
     <p>{{.Descripcion}}</p>
     {{- if .EnConstruccion}}
-    <footer><small>En construcción · Sprint {{.Sprint}}</small></footer>
+    <footer><span class="insignia tono-alerta">En construcción · Sprint {{.Sprint}}</span></footer>
     {{- end}}
   </article>
   {{- end}}
