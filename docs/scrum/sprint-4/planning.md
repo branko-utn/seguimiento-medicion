@@ -109,7 +109,7 @@ Al revisar la consigna punto por punto aparecieron tres cambios:
    - las diapositivas;
    - el guion de la demo con `make demo`;
    - el recorrido completo de una funcionalidad que pide la consigna (historia → spec → criterios → BDD → tests →
-     código Go). Se propone HU-13 (cerrar sprint), que tiene los commits RED → GREEN más claros;
+     código Go). Se propuso HU-13; ver la actualización de abajo: lo presenta Bianchi con HU-16;
    - cada integrante presenta su épica.
 
    Se ensaya el domingo 1/11.
@@ -134,7 +134,7 @@ Sus dos ítems pasan a los Product Builders, y Giorlando, que venía con menos t
 | Agustín Giorlando | HU-31 · Exportar reporte a PDF (5) + HU-32.4 · Dashboard (2) | 7 | **31** |
 | Federico Sosa | TEC-21 · Base visual (2, **entra primero**) + HU-32.1 · Proyectos y sprints (2) | 4 | **31** |
 | Agustín Lara | TEC-08 · Informe de métricas (3, vuelve a Lara) + HU-32.3 · Esfuerzo y defectos (2) | 5 | **30** |
-| Ignacio Bianchi | HU-32.2 · Backlog y Planning Poker (2) + las diapositivas de TEC-22 | 2 | **28** |
+| Ignacio Bianchi | HU-32.2 · Backlog y Planning Poker (2) | 2 | **28** |
 | Todo el equipo | TEC-07 · Manual (5) y TEC-22 · Presentación (3) | 8 | — |
 | | **Total del Sprint 4** | **26** | |
 
@@ -144,3 +144,13 @@ Sus dos ítems pasan a los Product Builders, y Giorlando, que venía con menos t
 - **TEC-21 bloquea las cuatro partes de HU-32.** Sosa la sube a primera hora. Mientras tanto, cada uno avanza con su
   sección del manual.
 - Las partes de HU-32 siguen siendo recortables una por una.
+
+## Actualización: quién prepara la presentación (31/10)
+
+- **Branko Almeira (Agile Enabler)** arma las diapositivas, el guion de la demo y coordina el ensayo del domingo 1/11.
+  Es facilitación, no un ítem de producto, así que no cambia el reparto de arriba.
+- **Cada integrante presenta su épica.**
+- **Ignacio Bianchi** hace además el recorrido completo que pide la consigna con una historia propia: **HU-16 · Votar
+  en Planning Poker con votos ocultos** (historia → spec → criterios → BDD → tests → código Go). Reemplaza a HU-13, que
+  es del Agile Enabler: cada uno defiende su propio trabajo.
+- La carga de Bianchi no cambia: las diapositivas no estaban sumadas en sus Story Points.
