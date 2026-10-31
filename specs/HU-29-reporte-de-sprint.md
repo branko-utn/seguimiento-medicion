@@ -53,8 +53,8 @@ Un reporte con:
 - Un servicio nuevo, `service.Reportes`, con `Sprint(sprintID) (report.ReporteSprint, error)`, busca el sprint, sus
   historias, horas, registros y defectos, y se los pasa a `internal/report`.
 - Pantalla: `GET /reportes/sprints/{sprint}`, desde la sección **Reportes**. Una hoja de estilos `@media print` oculta la
-  navegación y el botón "Imprimir o guardar como PDF" (`window.print()`). Sin bibliotecas de PDF: solo biblioteca
-  estándar (ADR 0001). El PDF lo genera el navegador al imprimir.
+  navegación y el botón "Imprimir o guardar como PDF" (`window.print()`). El archivo PDF generado por el sistema
+  llega en HU-31, con la biblioteca que prevé el ADR 0001 (`go-pdf/fpdf`).
 
 ## Casos límite
 

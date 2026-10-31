@@ -62,3 +62,85 @@ cronograma ya ponía el informe de métricas en la épica de Giorlando (E7).
   tarde queda para la documentación.
 - **Sin tiempo para corregir después de la demo.** Mitigación: el ensayo del domingo usa `make demo` sobre una
   carpeta `data/` limpia, igual que en la presentación.
+
+## Cambio de alcance: mejora de la interfaz (31/10, a pedido del equipo)
+
+Después de ver la demo con nuestros datos, el equipo coincidió en que la interfaz se ve básica para la presentación.
+Se suman dos ítems, armados como en el Sprint 3 para que nadie dependa de otro:
+
+| Responsable | Ítem | SP | Depende de |
+|---|---|---|---|
+| Branko Almeira | TEC-21 · Base visual: paleta, tarjetas, insignias, estados vacíos, portada (**entra primero**) | 2 | — |
+| Federico Sosa | HU-32.1 · Interfaz de proyectos y sprints — **recortable** | 2 | TEC-21 |
+| Ignacio Bianchi | HU-32.2 · Interfaz del backlog y del Planning Poker — **recortable** | 2 | TEC-21 |
+| Agustín Lara | HU-32.3 · Interfaz de esfuerzo y defectos — **recortable** | 2 | TEC-21 |
+| Agustín Giorlando | HU-32.4 · Interfaz del dashboard (resuelve el defecto del punto decimal) — **recortable** | 2 | TEC-21 |
+| Todo el equipo | TEC-22 · Presentación final y demo (entregable 13) | 3 | — |
+| | **Total del Sprint 4** | **26** | |
+
+- **Cada parte toca solo las plantillas y los handlers de su épica** (tabla en `specs/HU-32-*.md`): no hay
+  conflictos entre personas.
+- **Las partes son recortables una por una:** no cambian comportamiento, así que si una no llega antes del freeze,
+  esa pantalla queda como está.
+- **Orden de Branko:** TEC-21 a primera hora, después HU-31, que usa la misma base.
+
+**Carga final con el cambio:** Sosa 29, Bianchi 28, Lara 27, Giorlando 29. Los cuatro Product Builders siguen
+parejos, entre 27 y 29 SP.
+
+### Specs y plantillas del Sprint 4
+
+- `specs/HU-31-exportar-reporte-a-pdf.md` y su feature.
+- `specs/TEC-21-base-visual.md`.
+- `specs/HU-32-interfaz-clara-y-consistente.md`, con cuatro features, una por parte.
+- TEC-07: `docs/manual-de-usuario.md`, con una sección por épica y su responsable.
+- TEC-08: `docs/informe-de-metricas.md`, con las tablas a completar y de dónde sale cada dato.
+
+## Corrección: HU-31 genera el PDF en el sistema (31/10)
+
+Al revisar la consigna punto por punto aparecieron tres cambios:
+
+1. **HU-31 genera el archivo PDF en Go.** La consigna dice "el sistema permitirá exportar un informe del proyecto
+   **a un archivo en formato PDF**". La impresión del navegador no alcanza, porque el PDF lo hace el navegador, no
+   nuestro sistema. Además, el ADR 0001 ya preveía `github.com/go-pdf/fpdf` para el Sprint 4: la decisión de arriba
+   ("sin bibliotecas de PDF") era un error de lectura. Los reportes suman "Descargar PDF"
+   (`/reportes/proyecto.pdf` y `/reportes/sprints/{sprint}/pdf`), y la impresión queda como alternativa. Siguen siendo
+   5 SP.
+2. **TEC-22 · Presentación final (entregable 13).** No había un ítem para prepararla. Incluye:
+   - las diapositivas;
+   - el guion de la demo con `make demo`;
+   - el recorrido completo de una funcionalidad que pide la consigna (historia → spec → criterios → BDD → tests →
+     código Go). Se propone HU-13 (cerrar sprint), que tiene los commits RED → GREEN más claros;
+   - cada integrante presenta su épica.
+
+   Se ensaya el domingo 1/11.
+3. **Dailies:** se reconstruyeron las de los Sprints 1 a 3 (`docs/scrum/sprint-N/dailies.md`) a partir de los
+   commits y PRs de cada día. Desde el Sprint 4, el Agile Enabler las vuelca el mismo día.
+
+## Reparto final: el Agile Enabler no ejecuta en el Sprint 4 (31/10)
+
+Branko es quien más código, tests y PRs sumó en los Sprints 1 a 3, entre lo suyo y lo que tomó de otros. Para que el
+producto final sea de los Product Builders y la carga quede pareja, **en este sprint no ejecuta ítems de producto**.
+Su trabajo es el del rol:
+- facilitar y volcar la daily;
+- auditar y mergear los PRs;
+- las actas finales;
+- coordinar la presentación;
+- escribir el anexo técnico del manual.
+
+Sus dos ítems pasan a los Product Builders, y Giorlando, que venía con menos trabajo entregado, es el que más suma.
+
+| Product Builder | Ítems del Sprint 4 | SP | Total del proyecto |
+|---|---|---|---|
+| Agustín Giorlando | HU-31 · Exportar reporte a PDF (5) + HU-32.4 · Dashboard (2) | 7 | **31** |
+| Federico Sosa | TEC-21 · Base visual (2, **entra primero**) + HU-32.1 · Proyectos y sprints (2) | 4 | **31** |
+| Agustín Lara | TEC-08 · Informe de métricas (3, vuelve a Lara) + HU-32.3 · Esfuerzo y defectos (2) | 5 | **30** |
+| Ignacio Bianchi | HU-32.2 · Backlog y Planning Poker (2) + las diapositivas de TEC-22 | 2 | **28** |
+| Todo el equipo | TEC-07 · Manual (5) y TEC-22 · Presentación (3) | 8 | — |
+| | **Total del Sprint 4** | **26** | |
+
+**Riesgos y cortes:**
+- **HU-31 es lo único del sprint que pide la consigna de forma explícita.** Si a las 18:00 no hay un PR en borrador,
+  pasa a Lara. El Agile Enabler no la toma.
+- **TEC-21 bloquea las cuatro partes de HU-32.** Sosa la sube a primera hora. Mientras tanto, cada uno avanza con su
+  sección del manual.
+- Las partes de HU-32 siguen siendo recortables una por una.
