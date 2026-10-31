@@ -28,7 +28,6 @@ type filaPoker struct {
 	Historia    backlog.Historia
 	Abierta     bool
 	Revelada    bool
-	Cerrada     bool
 	Completada  bool
 	RondaActual int
 	Votaron     string
@@ -111,11 +110,11 @@ func (a *app) listarPlanningPoker(w http.ResponseWriter, r *http.Request) {
 			fila.ConVotos = len(votantes) > 0
 			// Cargar la ronda actual y el historial desde el servicio (HU-18)
 			rondaActual, err := a.svc.Poker.RondaActual(h.ID)
-			if err == nil {
-				fila.RondaActual = rondaActual
-			} else {
-				fila.RondaActual = 1
+			if err != nil {
+				a.renderError(w, r, http.StatusInternalServerError, "No se pudo cargar la ronda de la votación.")
+				return
 			}
+			fila.RondaActual = rondaActual
 			rondas, err := a.svc.Poker.Rondas(h.ID)
 			if err == nil && len(rondas) > 0 {
 				fila.Historial = make([]vistaRonda, 0, len(rondas))

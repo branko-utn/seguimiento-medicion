@@ -134,7 +134,7 @@
         <th>Historia</th>
         <th>Estado</th>
         <th>Story Points</th>
-        <th>Historial</th>
+        <th></th>
       </thead>
       <tbody>
         {{range .Datos.Completadas}}
@@ -143,29 +143,7 @@
           <td>{{.Historia.Estado}}</td>
           <td>{{.Historia.StoryPoints}} SP</td>
           <td>
-            {{if .Historial}}
-            <details>
-              <summary>📜 Historial ({{len .Historial}} rondas)</summary>
-              {{range .Historial}}
-              <article style="margin:0.5rem 0; padding:0.5rem; border:1px solid #ddd; border-radius:4px;">
-                <h4 style="margin:0 0 0.5rem;">Ronda {{.Numero}}</h4>
-                <table style="width:100%; border-collapse:collapse;">
-                  <thead><tr><th>Integrante</th><th>Carta</th></tr></thead>
-                  <tbody>
-                    {{range .Votos}}<tr><td>{{.Integrante}}</td><td>{{.Carta}}</td></tr>{{end}}
-                  </tbody>
-                </table>
-                {{if .Consenso}}
-                <p style="margin:0.5rem 0; color:#2a7;">✓ Consenso en {{.Maximo}} SP</p>
-                {{else}}
-                <p style="margin:0.5rem 0; color:#c50;">No hay consenso: más alto {{.Maximo}} ({{.VotaronMax}}), más bajo {{.Minimo}} ({{.VotaronMin}})</p>
-                {{end}}
-              </article>
-              {{end}}
-            </details>
-            {{else}}
             <p style="color:#666;">La historia está completada: no se vota.</p>
-            {{end}}
           </td>
         </tr>
         {{end}}

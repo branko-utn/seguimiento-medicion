@@ -34,7 +34,6 @@ type Ronda struct {
 type Sesion struct {
 	HistoriaID domain.HistoriaID
 	// Ronda es la ronda actual de la votación; una votación nueva abre en la ronda 1 (spec HU-16).
-	// Ronda = 0 significa que la votación está cerrada (estimación acordada, HU-18).
 	Ronda    int
 	revelada bool
 	// votos son los votos de la ronda actual, en el orden en que se emitieron. No está exportado: mientras la
@@ -76,7 +75,7 @@ func NuevaSesion(historiaID domain.HistoriaID) (Sesion, error) {
 
 // Votar registra el voto de un integrante en la ronda actual. Una ronda revelada no acepta votos nuevos
 // (RN-17.4); la carta tiene que ser de la escala (RN-16.3) y cada integrante vota una sola vez por
-// ronda (RN-16.2). Una votación cerrada (Ronda=0) no acepta votos (RN-18.4).
+// ronda (RN-16.2).
 func (s *Sesion) Votar(integranteID domain.IntegranteID, carta int) error {
 	if s.revelada {
 		return ErrYaRevelada
@@ -136,7 +135,7 @@ func (s *Sesion) Revelar() (Resultado, error) {
 
 // Resultado devuelve el resultado de una ronda revelada sin cambiar la sesión: lo consulta la pantalla al
 // recargar, cuando Revelar ya no puede repetirse. Mientras la votación está abierta, los valores no se
-// pueden consultar (RN-16.4). Si la votación está cerrada (Ronda=0), devuelve ErrSinVotacionAbierta.
+// pueden consultar (RN-16.4).
 func (s *Sesion) Resultado() (Resultado, error) {
 	if !s.revelada {
 		return Resultado{}, ErrVotosOcultos
@@ -150,7 +149,6 @@ func (s *Sesion) Revelada() bool {
 }
 
 // NuevaRonda archiva la ronda actual (que debe estar revelada) y abre la siguiente sin votos (HU-18, RN-18.1).
-// Si la votación está cerrada (Ronda=0), devuelve ErrSinVotacionAbierta.
 func (s *Sesion) NuevaRonda() error {
 	if !s.revelada {
 		return ErrRondaSinRevelar
