@@ -19,9 +19,9 @@ var hoy = time.Date(2026, 10, 31, 0, 0, 0, 0, time.Local)
 func dia(d int) time.Time { return time.Date(2026, 10, d, 0, 0, 0, 0, time.Local) }
 
 // enPDF escribe un texto como queda dentro del PDF: las fuentes estándar usan la codificación cp1252, así que las
-// letras con acento y la eñe ocupan un byte (RN-31.3).
+// letras con acento y la eñe ocupan un byte (RN-31.3). Además, el PDF escapa los paréntesis dentro de un texto.
 func enPDF(s string) string {
-	return strings.NewReplacer("á", "\xe1", "é", "\xe9", "í", "\xed", "ó", "\xf3", "ú", "\xfa", "ñ", "\xf1",
+	return strings.NewReplacer("(", `\(`, ")", `\)`, "á", "\xe1", "é", "\xe9", "í", "\xed", "ó", "\xf3", "ú", "\xfa", "ñ", "\xf1",
 		"Á", "\xc1", "É", "\xc9", "Í", "\xcd", "Ó", "\xd3", "Ú", "\xda", "Ñ", "\xd1").Replace(s)
 }
 
