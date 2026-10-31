@@ -115,3 +115,32 @@ Al revisar la consigna punto por punto aparecieron tres cambios:
    Se ensaya el domingo 1/11.
 3. **Dailies:** se reconstruyeron las de los Sprints 1 a 3 (`docs/scrum/sprint-N/dailies.md`) a partir de los
    commits y PRs de cada día. Desde el Sprint 4, el Agile Enabler las vuelca el mismo día.
+
+## Reparto final: el Agile Enabler no ejecuta en el Sprint 4 (31/10)
+
+Branko es quien más código, tests y PRs sumó en los Sprints 1 a 3, entre lo suyo y lo que tomó de otros. Para que el
+producto final sea de los Product Builders y la carga quede pareja, **en este sprint no ejecuta ítems de producto**.
+Su trabajo es el del rol:
+- facilitar y volcar la daily;
+- auditar y mergear los PRs;
+- las actas finales;
+- coordinar la presentación;
+- escribir el anexo técnico del manual.
+
+Sus dos ítems pasan a los Product Builders, y Giorlando, que venía con menos trabajo entregado, es el que más suma.
+
+| Product Builder | Ítems del Sprint 4 | SP | Total del proyecto |
+|---|---|---|---|
+| Agustín Giorlando | HU-31 · Exportar reporte a PDF (5) + HU-32.4 · Dashboard (2) | 7 | **31** |
+| Federico Sosa | TEC-21 · Base visual (2, **entra primero**) + HU-32.1 · Proyectos y sprints (2) | 4 | **31** |
+| Agustín Lara | TEC-08 · Informe de métricas (3, vuelve a Lara) + HU-32.3 · Esfuerzo y defectos (2) | 5 | **30** |
+| Ignacio Bianchi | HU-32.2 · Backlog y Planning Poker (2) + las diapositivas de TEC-22 | 2 | **28** |
+| Todo el equipo | TEC-07 · Manual (5) y TEC-22 · Presentación (3) | 8 | — |
+| | **Total del Sprint 4** | **26** | |
+
+**Riesgos y cortes:**
+- **HU-31 es lo único del sprint que pide la consigna de forma explícita.** Si a las 18:00 no hay un PR en borrador,
+  pasa a Lara. El Agile Enabler no la toma.
+- **TEC-21 bloquea las cuatro partes de HU-32.** Sosa la sube a primera hora. Mientras tanto, cada uno avanza con su
+  sección del manual.
+- Las partes de HU-32 siguen siendo recortables una por una.

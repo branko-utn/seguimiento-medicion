@@ -28,8 +28,8 @@ Cada uno toca **solo las plantillas y los handlers de su épica**. Así no hay c
 | HU-32.3 · Esfuerzo y defectos | Agustín Lara | `esfuerzo`, `defectos` | `esfuerzo.go`, `defectos.go` |
 | HU-32.4 · Dashboard | Agustín Giorlando | `dashboard`, `dashboard_seleccionar` | `dashboard.go` |
 
-La portada, la cabecera, los reportes, la página de error y la de "en construcción" los hace Branko en TEC-21 y
-HU-31.
+La portada, la cabecera, la página de error y la de "en construcción" los hace Sosa en TEC-21. Los reportes suman
+el botón "Descargar PDF" en HU-31 (Giorlando).
 
 ## Reglas de negocio
 

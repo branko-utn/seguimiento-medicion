@@ -1,6 +1,6 @@
 # Informe de métricas y cobertura de pruebas
 
-> Plantilla de TEC-08 · Responsable: Agustín Giorlando. Los números salen de la app con `make demo` (dashboard y
+> Plantilla de TEC-08 · Responsable: Agustín Lara. Los números salen de la app con `make demo` (dashboard y
 > reporte de proyecto), del tablero y de `make cover`. Cada tabla dice de dónde sale cada dato.
 
 ## 1. Resumen

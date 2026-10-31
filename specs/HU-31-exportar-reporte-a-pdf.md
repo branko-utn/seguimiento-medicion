@@ -1,6 +1,6 @@
 # HU-31 · Exportar reporte a PDF
 
-- **Issue:** #38 · **Épica:** E9 Reportes · **Responsable:** Branko Almeira · **Story Points:** 5
+- **Issue:** #38 · **Épica:** E9 Reportes · **Responsable:** Agustín Giorlando · **Story Points:** 5
 - **Escenarios BDD:** [`features/hu-31-exportar-reporte-a-pdf.feature`](../features/hu-31-exportar-reporte-a-pdf.feature)
 - **Redactada por:** Branko Almeira (Agile Enabler) · **Validada por:** el equipo al aprobar el PR de las specs del Sprint 4
 - **Depende de:** solo código en `main`: HU-29 y HU-30 (`report.ReporteSprint` y `report.ReporteProyecto`)

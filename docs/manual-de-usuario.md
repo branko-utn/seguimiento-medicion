@@ -40,7 +40,7 @@
 <!-- Qué significa cada métrica (SP, velocidad, %, horas, desviación, defectos) y cómo leer el dashboard
      (HU-24 a HU-28). -->
 
-## 9. Reportes y exportación a PDF (E9) — Branko Almeira
+## 9. Reportes y exportación a PDF (E9) — Agustín Giorlando
 
 <!-- Reporte de sprint y de proyecto, y cómo guardarlos como PDF (HU-29 a HU-31). -->
 

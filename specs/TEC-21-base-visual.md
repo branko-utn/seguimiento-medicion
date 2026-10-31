@@ -1,6 +1,6 @@
 # TEC-21 · Base visual
 
-- **Issue:** a crear con la aprobación · **Responsable:** Branko Almeira · **Story Points:** 2
+- **Issue:** a crear con la aprobación · **Responsable:** Federico Sosa · **Story Points:** 2
 - **Redactada por:** Branko Almeira (Agile Enabler) · **Validada por:** el equipo al aprobar el PR de las specs del Sprint 4
 - **Depende de:** nada
 - **Estado:** aprobada para el Sprint 4. **Entra a `main` antes de que arranque HU-32.**
