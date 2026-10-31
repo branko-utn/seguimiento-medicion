@@ -42,6 +42,7 @@ type datosSprint struct {
 	PuedeIniciar   bool
 	PuedeAsignar   bool
 	PuedeCerrar    bool // también habilita completar historias (HU-12): las dos acciones son de un sprint activo
+	Cerrado        bool // muestra "No completada" en las historias que volvieron al backlog (HU-14)
 	Error          string
 	Elegida        string
 }
@@ -110,6 +111,7 @@ func (a *app) mostrarSprint(w http.ResponseWriter, r *http.Request, codigo int, 
 		PuedeIniciar: sp.Estado == sprint.Planificado,
 		PuedeAsignar: sp.Estado != sprint.Cerrado,
 		PuedeCerrar:  sp.Estado == sprint.Activo,
+		Cerrado:      sp.Estado == sprint.Cerrado,
 		Completadas:  make(map[domain.HistoriaID]bool, len(sp.Completadas)),
 		Error:        mensaje,
 		Elegida:      elegida,
@@ -133,8 +135,14 @@ func (a *app) mostrarSprint(w http.ResponseWriter, r *http.Request, codigo int, 
 		datos.Historias = append(datos.Historias, h)
 		entradas = append(entradas, metrics.HistoriaSprint{StoryPoints: h.StoryPoints, Completada: slices.Contains(sp.Completadas, id)})
 	}
-	datos.SPPlanificados = metrics.SPPlanificados(entradas)
-	datos.SPCompletados = metrics.SPCompletados(entradas)
+	if sp.Estado == sprint.Cerrado {
+		// RN-14.3: un sprint cerrado muestra los SP que quedaron fijos al cerrarlo.
+		datos.SPPlanificados = sp.SPPlanificados
+		datos.SPCompletados = sp.SPCompletados
+	} else {
+		datos.SPPlanificados = metrics.SPPlanificados(entradas)
+		datos.SPCompletados = metrics.SPCompletados(entradas)
+	}
 	datos.Metricas, err = a.metricasSprint(sp)
 	if err != nil {
 		a.renderError(w, r, http.StatusInternalServerError, "No se pudieron calcular las métricas del sprint.")
@@ -182,10 +190,12 @@ func unDecimal(v float64) string {
 	return strings.Replace(strconv.FormatFloat(v, 'f', 1, 64), ".", ",", 1)
 }
 
-// grupoSprints es un proyecto con sus sprints, en el orden en que se crearon.
+// grupoSprints es un proyecto con todos sus sprints, en el orden en que se crearon, y sus cerrados para el
+// historial (HU-14).
 type grupoSprints struct {
 	Proyecto project.Proyecto
 	Sprints  []sprint.Sprint
+	Cerrados []sprint.Sprint
 }
 
 // formSprint es lo que recibe sprint_form.html. Los campos guardan el texto tal como se escribió, para volver a
@@ -209,7 +219,12 @@ func (a *app) listarSprints(w http.ResponseWriter, r *http.Request) {
 			a.renderError(w, r, http.StatusInternalServerError, "No se pudieron cargar los sprints.")
 			return
 		}
-		grupos = append(grupos, grupoSprints{Proyecto: p, Sprints: sprints})
+		cerrados, err := a.svc.Sprints.Cerrados(p.ID)
+		if err != nil {
+			a.renderError(w, r, http.StatusInternalServerError, "No se pudieron cargar los sprints cerrados.")
+			return
+		}
+		grupos = append(grupos, grupoSprints{Proyecto: p, Sprints: sprints, Cerrados: cerrados})
 	}
 	a.render(w, r, "sprints.html", grupos)
 }
