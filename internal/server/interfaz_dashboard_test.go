@@ -64,12 +64,16 @@ func (e entornoDashboard) crearDemo(t *testing.T) domain.ProyectoID {
 	return p.ID
 }
 
-// cargarSprintCerrado deja a Demo con un sprint cerrado: HU-1 (3 SP, 4 h estimadas, 5 h reales) completada y HU-2
-// (5 SP, 6 h estimadas) sin completar. Velocidad 3, 37,5 % completadas, 10 h estimadas, 5 h reales, desviación -50 %.
+// cargarSprintCerrado deja a Demo con un sprint cerrado: HU-1 (3 SP, 4 h estimadas, 5 h reales) completada, HU-2
+// (5 SP, 6 h estimadas) sin completar y HU-3 fuera del sprint. Velocidad 3, 33,3 % de historias completadas (1 de 3),
+// 10 h estimadas, 5 h reales, desviación -50 %.
 func (e entornoDashboard) cargarSprintCerrado(t *testing.T, pid domain.ProyectoID) {
 	t.Helper()
 	h1, _ := e.repoHistorias.Agregar(backlog.Historia{ProyectoID: pid, Titulo: "Crear proyecto", StoryPoints: 3, Estado: backlog.Pendiente, Criterios: []backlog.Criterio{{Texto: "ok"}}})
 	h2, _ := e.repoHistorias.Agregar(backlog.Historia{ProyectoID: pid, Titulo: "Crear sprint", StoryPoints: 5, Estado: backlog.Pendiente, Criterios: []backlog.Criterio{{Texto: "ok"}}})
+	if _, err := e.repoHistorias.Agregar(backlog.Historia{ProyectoID: pid, Titulo: "Registrar defecto", StoryPoints: 2, Estado: backlog.Pendiente, Criterios: []backlog.Criterio{{Texto: "ok"}}}); err != nil {
+		t.Fatal(err)
+	}
 	for _, est := range []effort.EstimacionHoras{{HistoriaID: h1.ID, Horas: 4}, {HistoriaID: h2.ID, Horas: 6}} {
 		if err := e.repoEstim.Guardar(est); err != nil {
 			t.Fatal(err)
@@ -126,7 +130,7 @@ func TestHU32_4_resumenEnTarjetasConComaDecimal(t *testing.T) {
 
 	contieneTodo(t, cuerpo, `<div class="tarjetas">`,
 		`<span class="valor">3,0</span><span class="etiqueta">velocidad del proyecto</span>`,
-		`<span class="valor">37,5 %</span><span class="etiqueta">historias completadas</span>`,
+		`<span class="valor">33,3 %</span><span class="etiqueta">historias completadas</span>`,
 		`<span class="valor">10,0</span><span class="etiqueta">horas estimadas</span>`,
 		`<span class="valor">5,0</span><span class="etiqueta">horas reales</span>`,
 		`<span class="valor">-50,0 %</span><span class="etiqueta">desviación</span>`,
@@ -136,7 +140,7 @@ func TestHU32_4_resumenEnTarjetasConComaDecimal(t *testing.T) {
 		t.Errorf("hay %d tarjetas, se esperaban al menos 8 (una por métrica del resumen)", n)
 	}
 	// RN-32.3: ningún número con punto decimal.
-	for _, conPunto := range []string{"3.0", "37.5", "10.0", "5.0", "-50.0"} {
+	for _, conPunto := range []string{"3.0", "33.3", "10.0", "5.0", "-50.0"} {
 		if strings.Contains(cuerpo, conPunto) {
 			t.Errorf("la página muestra %q con punto decimal (RN-32.3)", conPunto)
 		}

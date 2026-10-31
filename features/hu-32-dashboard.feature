@@ -8,9 +8,10 @@ Característica: Interfaz del dashboard
   Antecedentes:
     Dado que existe un proyecto "Demo" del "2026-10-21" al "2026-11-02"
     Y el proyecto tiene las historias:
-      | historia | título         | story points |
-      | HU-1     | Crear proyecto | 3            |
-      | HU-2     | Crear sprint   | 5            |
+      | historia | título            | story points |
+      | HU-1     | Crear proyecto    | 3            |
+      | HU-2     | Crear sprint      | 5            |
+      | HU-3     | Registrar defecto | 2            |
     Y existe un sprint activo "S1" con las historias "HU-1, HU-2"
     Y que la historia "HU-1" ya está completada en el sprint "S1"
     Y cierro el sprint "S1"
@@ -25,8 +26,8 @@ Característica: Interfaz del dashboard
   @CA-32.2 @limite
   Escenario: un porcentaje con decimales se muestra con coma
     Cuando hago un pedido "GET" a "/dashboard?proyecto=P1"
-    Entonces la página contiene "37,5 %"
-    Y la página no contiene "37.5"
+    Entonces la página contiene "33,3 %"
+    Y la página no contiene "33.3"
 
   @CA-32.1 @normal
   Escenario: el estado del proyecto se ve con una insignia
