@@ -51,7 +51,7 @@ y un estilo comunes, sin pisarse con los demás y sin depender de internet duran
 | ID | Criterio | Escenario BDD / test |
 |---|---|---|
 | CA-TEC03.1 | La página de inicio muestra la navegación a todas las secciones | `Esquema del escenario: la navegación lleva a cada sección` |
-| CA-TEC03.2 | Una sección en construcción avisa en qué sprint llega | `Escenario: una sección en construcción avisa cuándo llega` |
+| CA-TEC03.2 | Una sección en construcción avisa en qué sprint llega | `TestSeccionEnConstruccion_avisaElSprint` (desde HU-28 no queda ninguna sección en construcción; el escenario pasó a ser `Escenario: el dashboard ya no está en construcción`) |
 | CA-TEC03.3 | Los estilos y scripts se sirven desde la aplicación | `Escenario: los recursos estáticos se sirven sin internet` |
 | CA-TEC03.4 | Una ruta inexistente responde 404 | `Escenario: ruta inexistente` |
 | CA-TEC03.5 | Los errores se muestran en una página propia, escapados | `TestRenderError` |

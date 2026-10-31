@@ -20,6 +20,7 @@ type Servicios struct {
 	Defectos     *service.Defectos      // E6: HU-22, 23
 	Poker        *service.PlanningPoker // E4: HU-16, HU-17
 	Reportes     *service.Reportes      // E9: HU-29
+	Dashboard    *service.Dashboard     // E8: HU-28
 }
 
 // NewRouter arma el enrutador con todas las rutas de la aplicación.
@@ -46,7 +47,8 @@ func NewRouter(svc Servicios) (http.Handler, error) {
 	a.rutasAccionesSprint(mux) // HU-12 y HU-13: completar historias y cerrar el sprint
 	a.rutasDefectos(mux)       // HU-22 y HU-23: lista y alta de defectos, cambiar estado y resolver
 	a.rutasEsfuerzo(mux)       // HU-19 y HU-20: horas estimadas y registro de esfuerzo
-	a.rutasReportes(mux)       // HU-29: reporte de sprint
+	a.rutasReportes(mux)       // HU-29 y HU-30: reportes de sprint y de proyecto
+	a.rutasDashboard(mux)      // HU-28: dashboard del proyecto
 
 	return mux, nil
 }

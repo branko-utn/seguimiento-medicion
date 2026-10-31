@@ -1,5 +1,5 @@
 # language: es
-@HU-28 @pendiente
+@HU-28
 Característica: Dashboard del proyecto
   Como integrante del equipo
   Quiero un dashboard con el estado del proyecto y gráficos

@@ -29,20 +29,23 @@ func TestInicio_muestraLayoutYNavegacion(t *testing.T) {
 	}
 }
 
+// TestSeccionEnConstruccion_avisaElSprint prueba la página de aviso (CA-TEC03.2) con una sección de ejemplo: desde
+// HU-28 ninguna sección real está en construcción, pero el mecanismo queda para las que se agreguen.
 func TestSeccionEnConstruccion_avisaElSprint(t *testing.T) {
-	for _, s := range secciones {
-		if !s.EnConstruccion {
-			continue
+	a, err := nuevaApp(Servicios{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	s := seccion{Ruta: "/nueva", Nombre: "Sección nueva", Descripcion: "Algo que todavía no está.", Epica: "E9", Sprint: 4, EnConstruccion: true}
+	rec := httptest.NewRecorder()
+	a.enConstruccion(s)(rec, httptest.NewRequest(http.MethodGet, s.Ruta, nil))
+	if rec.Code != http.StatusOK {
+		t.Fatalf("código = %d, se esperaba 200", rec.Code)
+	}
+	for _, texto := range []string{s.Nombre, "Sprint 4"} {
+		if !strings.Contains(rec.Body.String(), texto) {
+			t.Errorf("la página de aviso no contiene %q", texto)
 		}
-		t.Run(s.Ruta, func(t *testing.T) {
-			rec := pedir(t, http.MethodGet, s.Ruta)
-			if rec.Code != http.StatusOK {
-				t.Fatalf("código = %d, se esperaba 200", rec.Code)
-			}
-			if !strings.Contains(rec.Body.String(), s.Nombre) {
-				t.Errorf("la página no menciona la sección %q", s.Nombre)
-			}
-		})
 	}
 }
 

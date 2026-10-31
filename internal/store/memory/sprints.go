@@ -82,6 +82,17 @@ func (r *Sprints) DelProyecto(id domain.ProyectoID) []sprint.Sprint {
 	return delProyecto
 }
 
+// Listar devuelve todos los sprints.
+func (r *Sprints) Listar() []sprint.Sprint {
+	var lista []sprint.Sprint
+	r.store.View(func(l []sprint.Sprint) {
+		for _, s := range l {
+			lista = append(lista, copiarSprint(s))
+		}
+	})
+	return lista
+}
+
 // copiarSprint copia también las listas de historias, así el sprint guardado y el que se devuelve no las comparten.
 func copiarSprint(s sprint.Sprint) sprint.Sprint {
 	s.Historias = slices.Clone(s.Historias)
