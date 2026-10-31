@@ -62,3 +62,34 @@ cronograma ya ponía el informe de métricas en la épica de Giorlando (E7).
   tarde queda para la documentación.
 - **Sin tiempo para corregir después de la demo.** Mitigación: el ensayo del domingo usa `make demo` sobre una
   carpeta `data/` limpia, igual que en la presentación.
+
+## Cambio de alcance: mejora de la interfaz (31/10, a pedido del equipo)
+
+Después de ver la demo con nuestros datos, el equipo coincidió en que la interfaz se ve básica para la presentación.
+Se suman dos ítems, armados como en el Sprint 3 para que nadie dependa de otro:
+
+| Responsable | Ítem | SP | Depende de |
+|---|---|---|---|
+| Branko Almeira | TEC-21 · Base visual: paleta, tarjetas, insignias, estados vacíos, portada (**entra primero**) | 2 | — |
+| Federico Sosa | HU-32.1 · Interfaz de proyectos y sprints — **recortable** | 2 | TEC-21 |
+| Ignacio Bianchi | HU-32.2 · Interfaz del backlog y del Planning Poker — **recortable** | 2 | TEC-21 |
+| Agustín Lara | HU-32.3 · Interfaz de esfuerzo y defectos — **recortable** | 2 | TEC-21 |
+| Agustín Giorlando | HU-32.4 · Interfaz del dashboard (resuelve el defecto del punto decimal) — **recortable** | 2 | TEC-21 |
+| | **Total del Sprint 4** | **23** | |
+
+- **Cada parte toca solo las plantillas y los handlers de su épica** (tabla en `specs/HU-32-*.md`): no hay
+  conflictos entre personas.
+- **Las partes son recortables una por una:** no cambian comportamiento, así que si una no llega antes del freeze,
+  esa pantalla queda como está.
+- **Orden de Branko:** TEC-21 a primera hora, después HU-31, que usa la misma base.
+
+**Carga final con el cambio:** Sosa 29, Bianchi 28, Lara 27, Giorlando 29. Los cuatro Product Builders siguen
+parejos, entre 27 y 29 SP.
+
+### Specs y plantillas del Sprint 4
+
+- `specs/HU-31-exportar-reporte-a-pdf.md` y su feature.
+- `specs/TEC-21-base-visual.md`.
+- `specs/HU-32-interfaz-clara-y-consistente.md`, con cuatro features, una por parte.
+- TEC-07: `docs/manual-de-usuario.md`, con una sección por épica y su responsable.
+- TEC-08: `docs/informe-de-metricas.md`, con las tablas a completar y de dónde sale cada dato.
