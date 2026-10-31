@@ -1,7 +1,10 @@
-.PHONY: run test unit bdd cover fmt vet
+.PHONY: run demo test unit bdd cover fmt vet
 
 run: ## Levanta la aplicación en http://localhost:8080
 	go run ./cmd/server
+
+demo: ## Carga los datos de nuestro proyecto en data/ (TEC-06)
+	go run ./cmd/demo
 
 test: vet ## Tests unitarios + escenarios BDD
 	go test -race ./...
