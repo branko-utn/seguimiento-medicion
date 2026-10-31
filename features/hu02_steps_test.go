@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/branko-utn/seguimiento-medicion/internal/domain"
-	"github.com/branko-utn/seguimiento-medicion/internal/domain/project"
 	"github.com/cucumber/godog"
 )
 
@@ -30,20 +29,20 @@ func (m *mundo) modificoElProyecto(proyecto, nombre, inicio, fin string) error {
 	if actual, err := m.repoProyectos.Buscar(id); err == nil {
 		descripcion = actual.Descripcion
 	}
-	p, err := m.proyectos.Modificar(id, nombre, descripcion, i, f)
+	p, err := m.proyectos.Modificar(id, nombre, descripcion, i, f, m.hoy)
 	if err == nil {
 		m.recordar("proyecto", p.Nombre, string(p.ID))
 	}
 	return m.resultado(err)
 }
 
-// queElProyectoEstaFinalizado deja el proyecto en estado Finalizado directamente en el repositorio ("Dado"). Es
-// preparación del escenario: todavía no hay un caso de uso que finalice un proyecto.
+// queElProyectoEstaFinalizado deja el proyecto finalizado ("Dado"). El estado se calcula con las fechas (HU-04,
+// RN-04.1: después del fin está Finalizado), así que el paso mueve el "hoy" del escenario al día siguiente al fin.
 func (m *mundo) queElProyectoEstaFinalizado(proyecto string) error {
 	p, err := m.repoProyectos.Buscar(domain.ProyectoID(m.id("proyecto", proyecto)))
 	if err != nil {
 		return fmt.Errorf("proyecto %q: %w", proyecto, err)
 	}
-	p.Estado = project.Finalizado
-	return m.repoProyectos.Actualizar(p)
+	m.hoy = p.Fin.AddDate(0, 0, 1)
+	return nil
 }

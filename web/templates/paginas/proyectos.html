@@ -15,9 +15,9 @@
     <tbody>
       {{- range .Datos}}
       <tr>
-        <td><a href="/proyectos/{{.ID}}">{{.Nombre}}</a></td>
-        <td>{{.Inicio.Format "02/01/2006"}}</td>
-        <td>{{.Fin.Format "02/01/2006"}}</td>
+        <td><a href="/proyectos/{{.Proyecto.ID}}">{{.Proyecto.Nombre}}</a></td>
+        <td>{{.Proyecto.Inicio.Format "02/01/2006"}}</td>
+        <td>{{.Proyecto.Fin.Format "02/01/2006"}}</td>
         <td>{{.Estado}}</td>
       </tr>
       {{- end}}

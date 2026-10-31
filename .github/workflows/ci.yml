@@ -41,6 +41,9 @@ jobs:
       - name: Tests unitarios con race detector y cobertura
         run: go test -race -covermode=atomic -coverprofile=coverage.out $(go list ./... | grep -v /features)
 
+      - name: Umbral de cobertura (internal/domain y internal/metrics >= 80%)
+        run: go run ./tools/checkcoverage -profile=coverage.out
+
       - name: Escenarios BDD (godog)
         run: go test ./features/ -v
 

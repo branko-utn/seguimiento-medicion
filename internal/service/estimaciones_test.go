@@ -30,7 +30,7 @@ func nuevoServicioEstimaciones(t *testing.T) *Estimaciones {
 	}
 	proy := NuevoProyectos(repoProy)
 	sprints := NuevoSprints(repoSpr, repoProy, repoHist)
-	hist := NuevoBacklog(repoHist, repoProy, sprints)
+	hist := NuevoBacklog(repoHist, repoProy, sprints, nil, nil)
 	if _, err := proy.Crear("Demo", "", inicio, fin); err != nil {
 		t.Fatal(err)
 	}
