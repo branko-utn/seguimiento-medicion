@@ -9,14 +9,14 @@ import (
 	"github.com/branko-utn/seguimiento-medicion/internal/domain/backlog"
 )
 
-// resumenDe devuelve el resumen de un proyecto en la pantalla de esfuerzo: desde su id hasta el cierre del artículo.
+// resumenDe devuelve el resumen de un proyecto en la pantalla de esfuerzo: desde su id hasta el cierre de su sección.
 func resumenDe(t *testing.T, cuerpo, proyecto string) string {
 	t.Helper()
 	inicio := strings.Index(cuerpo, `id="esfuerzo-`+proyecto+`"`)
 	if inicio < 0 {
 		t.Fatalf("la página no tiene el resumen de esfuerzo de %s", proyecto)
 	}
-	fin := strings.Index(cuerpo[inicio:], "</article>")
+	fin := strings.Index(cuerpo[inicio:], "</section>")
 	if fin < 0 {
 		t.Fatalf("el resumen de %s no se cierra", proyecto)
 	}
