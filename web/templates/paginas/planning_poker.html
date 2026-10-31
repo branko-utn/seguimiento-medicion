@@ -7,7 +7,7 @@
 {{if .Datos.Pendientes}}
 <section>
   <h2>Pendientes</h2>
-  <table>
+  <table class="tabla">
     <thead>
       <tr>
         <th>Historia</th>
@@ -15,35 +15,33 @@
         <th>Ronda</th>
         <th>Votaron</th>
         <th>Acciones</th>
-      </thead>
-      <tbody>
-        {{range .Datos.Pendientes}}
-        <tr>
-          <td>{{.Historia.Titulo}}</td>
-          <td>{{.Historia.Estado}}</td>
-          <td>{{.RondaActual}}</td>
-          <td>Votaron: {{.Votaron}}</td>
-          <td>
-            {{if .Abierta}}
-            <form method="post" action="/planning-poker/votar" style="display:inline;">
-              <input type="hidden" name="historia" value="{{.Historia.ID}}">
-              <label>
-                Votás como
-                <select name="integrante" required>
-                  {{range .Integrantes}}<option value="{{.ID}}">{{.Nombre}}</option>{{end}}
-                </select>
-              </label>
-              <label>
-                Carta
-                <select name="carta">
-                  {{range $.Datos.Escala}}<option>{{.}}</option>{{end}}
-                </select>
-              </label>
-              <button type="submit" style="margin-left:0.5rem;">Votar</button>
-            </form>
-            {{if .ConVotos}}
+      </tr>
+    </thead>
+    <tbody>
+      {{range .Datos.Pendientes}}
+      <tr>
+        <td>{{.Historia.Titulo}}</td>
+        <td><span class="insignia {{.Tono}}">{{.Historia.Estado}}</span></td>
+        <td>{{.RondaActual}}</td>
+        <td>Votaron: {{.Votaron}}</td>
+        <td>
+          {{if .Abierta}}
+          <form method="post" action="/planning-poker/votar" class="en-linea">
+            <input type="hidden" name="historia" value="{{.Historia.ID}}">
+            <label>
+              Votás como
+              <select name="integrante" required>
+                {{range .Integrantes}}<option value="{{.ID}}">{{.Nombre}}</option>{{end}}
+              </select>
+            </label>
+            {{- range $.Datos.Escala}}
+            <button type="submit" name="carta" value="{{.}}" aria-label="Votar {{.}}">{{.}}</button>
+            {{- end}}
+          </form>
+          {{if .ConVotos}}
+          <div class="acciones">
             {{if .Enablers}}
-            <form method="post" action="/planning-poker/revelar" style="display:inline; margin-left:0.5rem;">
+            <form method="post" action="/planning-poker/revelar" class="en-linea">
               <input type="hidden" name="historia" value="{{.Historia.ID}}">
               <label>
                 Revelo como
@@ -54,27 +52,29 @@
               <button type="submit">Revelar votos</button>
             </form>
             {{else}}
-            <span style="margin-left:0.5rem; color:#666;">Se necesita Agile Enabler</span>
+            <small>Se necesita Agile Enabler</small>
             {{end}}
-            {{end}}
-            {{else if .Revelada}}
-            <p>Los votos de la ronda:</p>
-            <table>
-              <thead><tr><th>Integrante</th><th>Carta</th></tr></thead>
-              <tbody>
-                {{range .Resultado.Votos}}<tr><td>{{.Integrante}}</td><td>{{.Carta}}</td></tr>{{end}}
-              </tbody>
-            </table>
-            {{if .Resultado.Consenso}}
-            <p>Hay consenso en {{.Resultado.Maximo}}.</p>
-            {{else}}
-            <p>No hay consenso: el voto más alto es {{.Resultado.Maximo}} ({{.Resultado.VotaronMaximo}}) y el voto más bajo es {{.Resultado.Minimo}} ({{.Resultado.VotaronMinimo}}).</p>
-            {{end}}
-            <form method="post" action="/planning-poker/nueva-ronda" style="display:inline;">
+          </div>
+          {{end}}
+          {{else if .Revelada}}
+          <p>Los votos de la ronda:</p>
+          <table class="tabla">
+            <thead><tr><th>Integrante</th><th>Carta</th></tr></thead>
+            <tbody>
+              {{range .Resultado.Votos}}<tr><td>{{.Integrante}}</td><td>{{.Carta}}</td></tr>{{end}}
+            </tbody>
+          </table>
+          {{if .Resultado.Consenso}}
+          <p><span class="insignia tono-exito">Hay consenso en {{.Resultado.Maximo}}.</span></p>
+          {{else}}
+          <p>No hay consenso: el voto más alto es {{.Resultado.Maximo}} ({{.Resultado.VotaronMaximo}}) y el voto más bajo es {{.Resultado.Minimo}} ({{.Resultado.VotaronMinimo}}).</p>
+          {{end}}
+          <div class="acciones">
+            <form method="post" action="/planning-poker/nueva-ronda" class="en-linea">
               <input type="hidden" name="historia" value="{{.Historia.ID}}">
               <button type="submit">Nueva ronda</button>
             </form>
-            <form method="post" action="/planning-poker/acordar" style="display:inline; margin-left:0.5rem;">
+            <form method="post" action="/planning-poker/acordar" class="en-linea">
               <input type="hidden" name="historia" value="{{.Historia.ID}}">
               <label>
                 Estimar
@@ -84,77 +84,86 @@
               </label>
               <button type="submit">Registrar</button>
             </form>
-            {{if .Historial}}
-            <details style="margin-top:1rem;">
-              <summary>📜 Historial de rondas ({{len .Historial}})</summary>
-              {{range .Historial}}
-              <article style="margin:0.5rem 0; padding:0.5rem; border:1px solid #ddd; border-radius:4px;">
-                <h4 style="margin:0 0 0.5rem;">Ronda {{.Numero}}</h4>
-                <table style="width:100%; border-collapse:collapse;">
-                  <thead><tr><th>Integrante</th><th>Carta</th></tr></thead>
-                  <tbody>
-                    {{range .Votos}}<tr><td>{{.Integrante}}</td><td>{{.Carta}}</td></tr>{{end}}
-                  </tbody>
-                </table>
-                {{if .Consenso}}
-                <p style="margin:0.5rem 0; color:#2a7;">✓ Consenso en {{.Maximo}} SP</p>
-                {{else}}
-                <p style="margin:0.5rem 0; color:#c50;">No hay consenso: más alto {{.Maximo}} ({{.VotaronMax}}), más bajo {{.Minimo}} ({{.VotaronMin}})</p>
-                {{end}}
-              </article>
+          </div>
+          {{if .Historial}}
+          <details>
+            <summary>Historial de rondas ({{len .Historial}})</summary>
+            {{range .Historial}}
+            <article>
+              <h4>Ronda {{.Numero}}</h4>
+              <table class="tabla">
+                <thead><tr><th>Integrante</th><th>Carta</th></tr></thead>
+                <tbody>
+                  {{range .Votos}}<tr><td>{{.Integrante}}</td><td>{{.Carta}}</td></tr>{{end}}
+                </tbody>
+              </table>
+              {{if .Consenso}}
+              <p><span class="insignia tono-exito">Consenso en {{.Maximo}} SP</span></p>
+              {{else}}
+              <p><span class="insignia tono-alerta">No hay consenso: más alto {{.Maximo}} ({{.VotaronMax}}), más bajo {{.Minimo}} ({{.VotaronMin}})</span></p>
               {{end}}
-            </details>
+            </article>
             {{end}}
-            {{else if .Historia.StoryPoints}}
-            <p style="color:#2a7;">Estimación acordada: {{.Historia.StoryPoints}} SP</p>
-            <form method="post" action="/planning-poker/abrir" style="display:inline;">
+          </details>
+          {{end}}
+          {{else if .Historia.StoryPoints}}
+          <p><span class="insignia tono-exito">Estimación acordada: {{.Historia.StoryPoints}} SP</span></p>
+          <div class="acciones">
+            <form method="post" action="/planning-poker/abrir" class="en-linea">
               <input type="hidden" name="historia" value="{{.Historia.ID}}">
               <button type="submit">Abrir nueva votación</button>
             </form>
-            {{else}}
-            <form method="post" action="/planning-poker/abrir" style="display:inline;">
+          </div>
+          {{else}}
+          <div class="acciones">
+            <form method="post" action="/planning-poker/abrir" class="en-linea">
               <input type="hidden" name="historia" value="{{.Historia.ID}}">
               <button type="submit">Abrir votación</button>
             </form>
-            {{end}}
-          </td>
-        </tr>
-        {{end}}
-      </tbody>
-    </table>
-  </section>
+          </div>
+          {{end}}
+        </td>
+      </tr>
+      {{end}}
+    </tbody>
+  </table>
+</section>
 {{end}}
 
 {{if .Datos.Completadas}}
 <section>
   <h2>Completadas</h2>
-  <table>
+  <table class="tabla">
     <thead>
       <tr>
         <th>Historia</th>
         <th>Estado</th>
         <th>Story Points</th>
         <th></th>
-      </thead>
-      <tbody>
-        {{range .Datos.Completadas}}
-        <tr>
-          <td>{{.Historia.Titulo}}</td>
-          <td>{{.Historia.Estado}}</td>
-          <td>{{.Historia.StoryPoints}} SP</td>
-          <td>
-            <p style="color:#666;">La historia está completada: no se vota.</p>
-          </td>
-        </tr>
-        {{end}}
-      </tbody>
-    </table>
-  </section>
+      </tr>
+    </thead>
+    <tbody>
+      {{range .Datos.Completadas}}
+      <tr>
+        <td>{{.Historia.Titulo}}</td>
+        <td><span class="insignia {{.Tono}}">{{.Historia.Estado}}</span></td>
+        <td class="num">{{.Historia.StoryPoints}} SP</td>
+        <td>
+          <small>La historia está completada: no se vota.</small>
+        </td>
+      </tr>
+      {{end}}
+    </tbody>
+  </table>
+</section>
 {{end}}
 
 {{if not .Datos.Pendientes}}
   {{if not .Datos.Completadas}}
-  <p>No hay historias en el backlog.</p>
+  <div class="vacio">
+    <p>No hay historias en el backlog.</p>
+    <p><a href="/backlog/nueva">Crear la primera historia</a></p>
+  </div>
   {{end}}
 {{end}}
 {{end}}

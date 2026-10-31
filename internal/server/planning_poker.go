@@ -23,12 +23,14 @@ func (a *app) rutasPlanningPoker(mux *http.ServeMux) {
 	mux.HandleFunc("POST /planning-poker/acordar", a.acordar)
 }
 
-// filaPoker es lo que se muestra de cada historia en la tabla compacta.
+// filaPoker es lo que se muestra de cada historia en la tabla compacta. Tono es el color de la insignia
+// del estado (RN-32.1), que decide el handler con tonoEstado.
 type filaPoker struct {
 	Historia    backlog.Historia
 	Abierta     bool
 	Revelada    bool
 	Completada  bool
+	Tono        string
 	RondaActual int
 	Votaron     string
 	ConVotos    bool
@@ -93,6 +95,7 @@ func (a *app) listarPlanningPoker(w http.ResponseWriter, r *http.Request) {
 		fila := filaPoker{
 			Historia:    h,
 			Completada:  h.Estado == backlog.Completada,
+			Tono:        tonoEstado(h.Estado),
 			Integrantes: integrantes,
 			Enablers:    enablers(integrantes),
 		}

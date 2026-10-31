@@ -38,7 +38,28 @@ type datosBacklog struct {
 // grupoBacklog es el backlog de un proyecto en la pantalla.
 type grupoBacklog struct {
 	ID, Nombre string
-	Historias  []backlog.Historia
+	Historias  []filaBacklog
+}
+
+// filaBacklog es lo que se muestra de cada historia en la lista: la historia y el tono de sus insignias
+// (RN-32.1), que decide el handler con tonoPrioridad y tonoEstado; la plantilla no compara textos.
+type filaBacklog struct {
+	backlog.Historia
+	TonoPrioridad string
+	TonoEstado    string
+}
+
+// filasBacklog arma la fila de cada historia con los tonos de sus insignias.
+func filasBacklog(historias []backlog.Historia) []filaBacklog {
+	filas := make([]filaBacklog, 0, len(historias))
+	for _, h := range historias {
+		filas = append(filas, filaBacklog{
+			Historia:      h,
+			TonoPrioridad: tonoPrioridad(h.Prioridad),
+			TonoEstado:    tonoEstado(h.Estado),
+		})
+	}
+	return filas
 }
 
 // listarBacklog muestra el backlog de cada proyecto ordenado por prioridad e identificador (HU-09) y, con
@@ -72,14 +93,22 @@ func (a *app) listarBacklog(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if len(historias) > 0 {
-			datos.Grupos = append(datos.Grupos, grupoBacklog{ID: string(p.ID), Nombre: p.Nombre, Historias: historias})
+			datos.Grupos = append(datos.Grupos, grupoBacklog{ID: string(p.ID), Nombre: p.Nombre, Historias: filasBacklog(historias)})
 		}
 	}
 	a.render(w, r, "backlog.html", datos)
 }
 
-// tonoPrioridad es un stub para que compile el RED: siempre neutro.
+// tonoPrioridad devuelve el tono de la insignia de la prioridad de una historia (RN-32.1): alerta si es
+// urgente, info la media y neutro la baja, de más urgente a menos igual que tonoSeveridad. El cero no es
+// una prioridad (ADR 0003) y queda en neutro.
 func tonoPrioridad(p backlog.Prioridad) string {
+	switch p {
+	case backlog.PrioridadAlta:
+		return tonoAlerta
+	case backlog.PrioridadMedia:
+		return tonoInfo
+	}
 	return tonoNeutro
 }
 
@@ -134,7 +163,8 @@ func (a *app) mostrarFormHistoria(w http.ResponseWriter, r *http.Request, codigo
 
 // datosHistoria es lo que recibe historia.html. Los criterios van numerados desde 1, como los quita HU-07, y
 // EstadoActual es el texto del estado para marcarlo en el desplegable; Prioridades y PrioridadActual, lo mismo para
-// el formulario de edición (HU-06). Error es el mensaje de la última acción que falló.
+// el formulario de edición (HU-06). TonoPrioridad y TonoEstado son el tono de las insignias del encabezado
+// (RN-32.1). Error es el mensaje de la última acción que falló.
 type datosHistoria struct {
 	Historia        backlog.Historia
 	Proyecto        string
@@ -144,6 +174,8 @@ type datosHistoria struct {
 	EstadoActual    string
 	Prioridades     []string
 	PrioridadActual string
+	TonoPrioridad   string
+	TonoEstado      string
 	Error           string
 }
 
@@ -227,7 +259,8 @@ func (a *app) mostrarHistoria(w http.ResponseWriter, r *http.Request, codigo int
 		return
 	}
 	datos := datosHistoria{Historia: h, Escala: estimation.Escala, EstadoActual: h.Estado.String(),
-		PrioridadActual: h.Prioridad.String(), Error: mensaje}
+		PrioridadActual: h.Prioridad.String(), TonoPrioridad: tonoPrioridad(h.Prioridad),
+		TonoEstado: tonoEstado(h.Estado), Error: mensaje}
 	for i, c := range h.Criterios {
 		datos.Criterios = append(datos.Criterios, criterioNumerado{Numero: i + 1, Texto: c.Texto})
 	}
