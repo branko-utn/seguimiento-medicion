@@ -7,7 +7,59 @@
 
 ## 1. Primeros pasos — Branko Almeira
 
-<!-- Cómo levantar la app (make run / make demo), la navegación y qué hay en la portada. -->
+**Software Metrics & Estimation** es una aplicación web para seguir un proyecto ágil de punta a punta: el Product
+Backlog, la estimación con Planning Poker, los sprints, las horas trabajadas, los defectos y las métricas que salen
+de todo eso (velocidad, porcentaje completado, desviación de horas). Al final, arma los reportes para la Sprint Review
+y para el cierre del proyecto.
+
+### Levantar la aplicación
+
+Hace falta **Go 1.22 o posterior** y una terminal en la carpeta del repositorio.
+
+1. **(Opcional) Cargar datos de ejemplo:** `make demo` carga nuestro propio proyecto (el backlog real, los Sprints 1
+   a 3 cerrados y el 4 en curso, horas y defectos). Sirve para recorrer la aplicación con datos ya cargados.
+2. **Levantar la aplicación:** `make run`.
+3. Abrir **http://localhost:8080** en el navegador.
+
+Los datos se guardan en archivos JSON en la carpeta `data/` y siguen ahí la próxima vez que se levanta la app.
+Para trabajar con otra carpeta (por ejemplo, una limpia para una demo): `DATA_DIR=otra make run`. Para usar otro
+puerto: `PORT=9090 make run`.
+
+> **No hay usuarios ni contraseñas.** Cuando una pantalla necesita saber quién actúa (por ejemplo, para votar en
+> el Planning Poker o registrar horas), elegís tu nombre de la lista de integrantes del proyecto. Por eso, antes que
+> nada, cargá el proyecto y sus integrantes (sección 2).
+
+### La portada y la navegación
+
+La **portada** muestra una tarjeta por sección con su ícono y una descripción corta. Tocá cualquiera para entrar.
+Arriba de todas las pantallas está la **barra de navegación**, con la sección en la que estás resaltada:
+
+| Sección | Para qué sirve | Ver |
+|---|---|---|
+| **Proyectos** | Alta y modificación de proyectos, sus fechas, su estado y sus integrantes | Sección 2 |
+| **Backlog** | Las historias de usuario con prioridad, estado, Story Points y criterios de aceptación | Sección 3 |
+| **Sprints** | Sprint Goal, historias asignadas, inicio, cierre e historial de sprints | Sección 4 |
+| **Planning Poker** | Estimar una historia con votos ocultos y llegar a un acuerdo | Sección 5 |
+| **Esfuerzo** | Las horas trabajadas por integrante, historia y actividad | Sección 6 |
+| **Defectos** | Los defectos con su severidad, su estado y en qué sprint se detectaron y resolvieron | Sección 7 |
+| **Dashboard** | Las métricas del proyecto con gráficos | Sección 8 |
+| **Reportes** | El reporte de un sprint o del proyecto, para imprimir o descargar en PDF | Sección 9 |
+
+### El recorrido típico
+
+```text
+Proyecto e integrantes → Historias del backlog → Estimación (Planning Poker) → Sprint (asignar, iniciar)
+→ Registrar horas y defectos → Completar historias → Cerrar el sprint → Dashboard y reportes
+```
+
+### Convenciones de las pantallas
+
+- **Colores de los estados:** gris = todavía no empezó; azul = en curso; verde = terminado. En los defectos, rojo =
+  abierto o crítico y ámbar = en progreso o de severidad alta.
+- **Números:** los decimales se escriben con coma (por ejemplo, `25,0 %`).
+- **Errores:** si un formulario no cumple una regla, vuelve con lo que escribiste y el motivo arriba, en rojo. Cada
+  sección lista sus reglas y los mensajes exactos.
+- **Listas vacías:** cuando todavía no hay nada cargado, la pantalla lo dice y ofrece el botón para crear el primero.
 
 ## 2. Proyectos e integrantes (E1) — Federico Sosa
 
@@ -137,9 +189,43 @@ es el tamaño de la historia y alimenta las métricas de los sprints (E7).
 - Una completada no: si lo intentás, la pantalla avisa "no se puede re-estimar una historia completada".
 - También se puede acordar el valor con el equipo en el Planning Poker (sección 5): es la misma operación de fondo.
 
-<!--
-Lara: editar y eliminar, backlog ordenado y filtro por estado (HU-06, HU-09).
--->
+### Editar y eliminar una historia (HU-06) — Agustín Lara
+
+Al final del detalle de la historia, la sección **Editar** trae el formulario con el título, la descripción y la
+prioridad que tiene hoy.
+
+- **Editar:** cambiá lo que necesites y tocá **Guardar cambios**. Solo se editan esos tres datos: el estado, los
+  Story Points y los criterios tienen su propia sección. Valen las reglas del alta: el título es obligatorio y la
+  prioridad es Alta, Media o Baja. Una historia asignada a un sprint se puede editar mientras no esté completada.
+- **Eliminar:** tocá **Eliminar** y volvés al backlog, donde la historia ya no aparece. La app **no pide
+  confirmación**: revisá antes de tocarlo. El ID de una historia eliminada no se vuelve a usar (si borrás la HU-3,
+  la próxima historia nueva no es la HU-3).
+
+| Regla | Mensaje |
+|---|---|
+| El título es obligatorio | "el título es obligatorio" |
+| La prioridad es Alta, Media o Baja | "la prioridad debe ser Alta, Media o Baja" |
+| Una historia completada no se edita: ya es parte del resultado de un sprint | "una historia completada no se puede editar" |
+| No se elimina una historia completada | "no se puede eliminar una historia completada" |
+| No se elimina una historia asignada a un sprint (primero hay que quitarla del sprint) | "no se puede eliminar una historia asignada a un sprint" |
+| No se elimina una historia con horas o defectos cargados: quedarían registros sin historia | "no se puede eliminar una historia con esfuerzo o defectos registrados" |
+
+### Ver el backlog ordenado y filtrar por estado (HU-09) — Agustín Lara
+
+La pantalla **Backlog** muestra el backlog de cada proyecto en el orden en que conviene trabajarlo, para saber qué
+sigue:
+
+1. Primero por **prioridad**: Alta, después Media y al final Baja.
+2. A igual prioridad, por **número de historia**: HU-2 va antes que HU-10.
+
+Arriba de la lista, el desplegable **Todos / Pendiente / En progreso / Completada** con el botón **Filtrar** deja
+solo las historias de ese estado, en el mismo orden. Por ejemplo, **Pendiente** muestra lo que todavía no se empezó.
+Para volver a ver todo, elegí **Todos**.
+
+- Un proyecto sin historias, o sin ninguna en el estado elegido, no aparece en la lista. Si no queda ninguno, la
+  pantalla dice "No hay historias en el backlog." con un enlace para crear la primera.
+- Si la dirección trae un estado que no existe (por ejemplo, un enlace mal copiado), la app avisa "el estado debe ser
+  Pendiente, En progreso o Completada".
 
 ## 4. Sprints (E3) — Federico Sosa
 
@@ -292,16 +378,197 @@ adelante hay que re-estimarla.
 
 ## 6. Esfuerzo (E5) — Agustín Lara
 
-<!-- Horas estimadas, registro de horas trabajadas y consulta del esfuerzo (HU-19 a HU-21). -->
+La pantalla **Esfuerzo** (`/esfuerzo`) junta todo lo que tiene que ver con horas: el formulario para cargar las
+horas trabajadas, la lista de lo cargado, el esfuerzo de cada proyecto y las horas estimadas de cada historia. Las
+horas se escriben y se muestran con coma decimal (1,5 es una hora y media), aunque los formularios también aceptan
+punto.
+
+### Registrar horas trabajadas (HU-20)
+
+1. En **Registrar horas trabajadas**, elegí el **integrante** (al lado del nombre figura su proyecto) y la
+   **historia** en la que trabajó.
+2. Completá la **fecha** (viene cargada la de hoy), la **actividad** (por ejemplo, Desarrollo, Tests o Revisión de
+   PR) y las **horas**. Se aceptan fracciones, como 0,5 o 2,5.
+3. Tocá **Registrar horas**. El registro aparece en la lista **Horas registradas**, agrupado por historia.
+
+Si algo no cumple las reglas, el formulario vuelve con lo que escribiste y el motivo:
+
+| Regla | Mensaje |
+|---|---|
+| La actividad es obligatoria | "la actividad es obligatoria" |
+| La fecha es obligatoria | "la fecha es obligatoria" |
+| Las horas son mayores que cero | "las horas deben ser mayores que cero" |
+| La fecha no puede ser futura (hoy sí vale) | "la fecha no puede ser futura" |
+| Una persona no carga más de 24 horas en un mismo día, sumando todos sus registros de ese día | "el integrante superaría las 24 horas en ese día" |
+| El integrante tiene que ser del proyecto de la historia | "el integrante no pertenece al proyecto de la historia" |
+
+### Consultar el esfuerzo de un proyecto (HU-21)
+
+En **Esfuerzo por proyecto**, cada proyecto tiene su bloque con tres tarjetas:
+
+- **Horas registradas:** el total de horas cargadas en las historias del proyecto.
+- **Historias con esfuerzo:** cuántas historias tienen al menos un registro.
+- **Integrantes con esfuerzo:** cuántas personas cargaron horas.
+
+Debajo, dos tablas con el detalle: las horas **por historia** (en orden de número, con un enlace a cada una) y las
+horas **por integrante** (en orden alfabético). Las dos suman lo mismo que la tarjeta de horas registradas. Un
+proyecto sin horas cargadas muestra "Todavía no hay esfuerzo registrado." con un enlace al formulario.
+
+![Pantalla de esfuerzo con las tarjetas y los totales de un proyecto](manual/img/esfuerzo.jpg)
+
+### Estimar las horas de una historia (HU-19)
+
+En **Horas estimadas por historia**, cada historia del backlog tiene un campo para escribir cuántas horas se calcula
+que va a llevar y el botón **Guardar**. Las que todavía no tienen estimación dicen "Sin estimar".
+
+- Una historia tiene **una sola** estimación de horas: si guardás otra, reemplaza a la anterior.
+- Las horas tienen que ser mayores que cero ("las horas deben ser mayores que cero"). El error aparece en la fila de
+  esa historia.
+- Es distinta de los Story Points: los Story Points miden el tamaño relativo (sección 3) y las horas estimadas se
+  comparan con las horas reales en las métricas (sección 8).
 
 ## 7. Defectos (E6) — Agustín Lara
 
-<!-- Registrar un defecto, cambiar su estado y resolverlo (HU-22, HU-23). -->
+La pantalla **Defectos** (`/defectos`) lista los defectos encontrados, con su severidad y su estado como insignias de
+color, y abajo tiene el formulario para registrar uno nuevo.
+
+![Lista de defectos con las insignias de severidad y estado](manual/img/defectos.jpg)
+
+### Registrar un defecto (HU-22)
+
+1. En **Registrar defecto**, escribí la **descripción** del problema.
+2. Elegí la **severidad** (Crítica, Alta, Media o Baja), la **historia** en la que apareció y el **sprint de
+   detección**, es decir, el sprint en el que se encontró.
+3. Tocá **Registrar defecto**. Aparece en la lista con un ID (`D1`, `D2`, …) y en estado **Abierto**.
+
+Se puede registrar un defecto en una historia ya completada (suele ser justo cuando aparecen) y en un sprint ya
+cerrado, si se encontró en ese sprint y se carga tarde.
+
+| Regla | Mensaje |
+|---|---|
+| La descripción es obligatoria | "la descripción es obligatoria" |
+| La severidad es una de las cuatro de la lista | "la severidad debe ser Crítica, Alta, Media o Baja" |
+| El sprint de detección es del mismo proyecto que la historia | "el sprint de detección no pertenece al proyecto de la historia" |
+
+Las insignias de severidad van de más grave a menos grave: **Crítica** en rojo, **Alta** en ámbar, **Media** en
+azul y **Baja** en gris.
+
+### Seguir y resolver un defecto (HU-23)
+
+Un defecto pasa por tres estados:
+
+| Estado | Qué significa | Insignia |
+|---|---|---|
+| **Abierto** | Se encontró y nadie lo está corrigiendo | Rojo |
+| **En progreso** | Alguien lo está corrigiendo | Ámbar |
+| **Resuelto** | Ya se corrigió, en un sprint de resolución | Verde |
+
+En la columna **Acciones** de cada defecto:
+
+- **Pasar a En progreso / Pasar a Abierto:** mueve el defecto entre esos dos estados, para cualquiera de los dos
+  lados.
+- **Resolver:** elegí el **sprint de resolución** en el desplegable y tocá **Resolver**. Se puede resolver desde
+  Abierto o desde En progreso. El desplegable solo ofrece los sprints del mismo proyecto que no empiezan antes que el
+  de detección, y puede ser el mismo sprint.
+
+**Resuelto es final:** un defecto resuelto ya no ofrece acciones y no vuelve a cambiar de estado. Si la app rechaza
+un cambio, avisa con alguno de estos mensajes:
+
+| Situación | Mensaje |
+|---|---|
+| Cambiar un defecto resuelto o pasarlo al estado que ya tiene | "no se puede pasar de Resuelto a Abierto" (con los estados que correspondan) |
+| El sprint de resolución es de otro proyecto | "el sprint de resolución no pertenece al proyecto del defecto" |
+| El sprint de resolución empieza antes que el de detección | "el sprint de resolución no puede ser anterior al de detección" |
 
 ## 8. Métricas y dashboard (E7 y E8) — Agustín Giorlando
 
-<!-- Qué significa cada métrica (SP, velocidad, %, horas, desviación, defectos) y cómo leer el dashboard
-     (HU-24 a HU-28). -->
+El **Dashboard** (`/dashboard`) junta en una sola pantalla cómo viene un proyecto: un resumen con las métricas en
+tarjetas y cuatro gráficos con la evolución sprint a sprint. Sirve para la Sprint Review o para mostrar el estado del
+proyecto sin tener que recorrer el backlog, los sprints, el esfuerzo y los defectos por separado. La pantalla solo
+muestra datos: para cambiarlos se usan las otras secciones.
+
+### Elegir el proyecto
+
+En la navegación, tocá **Dashboard**. Elegí el proyecto en el desplegable **Proyecto** y tocá **Ver dashboard**.
+Para mirar otro proyecto, usá **Cambiar de proyecto**, arriba a la derecha.
+
+Si todavía no hay proyectos, en lugar del desplegable aparece "Todavía no hay proyectos." con el enlace **Crear el
+primer proyecto** (sección 2). Si se abre la dirección de un proyecto que no existe, la app muestra "el proyecto no
+existe".
+
+### El resumen
+
+Debajo del título está el nombre del proyecto, su estado con una insignia de color (gris *Planificado*, azul
+*En curso*, verde *Finalizado*; ver sección 2) y sus fechas. Las tarjetas del resumen muestran:
+
+| Tarjeta | Qué muestra |
+|---|---|
+| Días restantes | Los días que faltan para la fecha de fin del proyecto |
+| Sprint activo | El sprint en curso, o "Ninguno" |
+| Velocidad del proyecto | El promedio de Story Points completados de los sprints **cerrados** |
+| Historias completadas | El porcentaje de historias del proyecto que están completadas |
+| Horas estimadas | La suma de las horas estimadas de todas las historias del proyecto |
+| Horas reales | La suma de todas las horas registradas en el proyecto |
+| Desviación | Cuánto se apartaron las horas reales de las estimadas, en porcentaje, o "no calculable" |
+| Defectos detectados, resueltos y abiertos | Los defectos del proyecto: los abiertos son los detectados que todavía no se resolvieron |
+
+Los números con decimales se muestran con coma y un decimal, igual que en el resto de la app (por ejemplo, 10,3).
+
+<!-- Captura: docs/manual/img/dashboard-resumen.jpg — encabezado con la insignia y las tarjetas del resumen, con los
+     datos de demo. -->
+
+### Qué significa cada métrica
+
+Las mismas métricas aparecen en el detalle del sprint (sección 4) y en los reportes (sección 9), y se calculan igual
+en todas las pantallas:
+
+- **Story Points planificados:** la suma de los SP de las historias asignadas al sprint.
+- **Story Points completados:** la suma de los SP de las historias completadas en el sprint. Al cerrar el sprint, los
+  dos valores quedan fijos.
+- **Velocidad:** el promedio de SP completados de los sprints cerrados. Sin sprints cerrados es 0, y un sprint cerrado
+  sin historias completadas también cuenta (con 10 y 0 SP completados, la velocidad es 5). El sprint en curso no
+  cuenta hasta que se cierra.
+- **Porcentaje de historias completadas:** completadas dividido el total de historias, por 100. Cuenta historias, no
+  Story Points: 1 de 3 da 33,3 %. Sin historias es 0 %.
+- **Horas reales:** la suma de las horas registradas (sección 6).
+- **Desviación:** (horas reales − horas estimadas) / horas estimadas × 100. Si es **positiva**, se trabajó más de lo
+  estimado; si es **negativa**, menos. Si no hay horas estimadas no se puede calcular, y la tarjeta dice
+  "no calculable". Con horas estimadas y ninguna hora registrada, da −100 %.
+- **Defectos detectados y resueltos:** un defecto cuenta como detectado en su sprint de detección y como resuelto en
+  su sprint de resolución (sección 7). Uno que todavía no tiene sprint de resolución no está resuelto.
+
+### Los gráficos
+
+Debajo del resumen hay cuatro gráficos, en dos columnas (en un celular o una ventana angosta pasan a una sola
+columna). Cada uno tiene un punto o una barra por **sprint cerrado**, ordenados por fecha de inicio. El sprint en
+curso no aparece porque sus valores todavía cambian: se sigue desde el resumen y desde su detalle.
+
+- **Velocidad por sprint:** los SP completados de cada sprint (línea) y, en línea punteada, la velocidad promedio del
+  proyecto. Muestra si el equipo acelera o se frena respecto de su promedio.
+- **Story Points planificados vs. completados:** una barra de cada uno por sprint. Si los completados quedan muy por
+  debajo de los planificados, el equipo se está comprometiendo de más.
+- **Horas estimadas vs. reales:** las horas estimadas de las historias planificadas en el sprint y las horas
+  registradas entre su fecha de inicio y de fin.
+- **Defectos detectados vs. resueltos:** cuántos defectos se encontraron y cuántos se resolvieron en cada sprint.
+
+Al pasar el mouse sobre un punto o una barra se ve el valor exacto. Tocá un elemento de la leyenda para ocultar o
+mostrar esa serie.
+
+<!-- Captura: docs/manual/img/dashboard-graficos.jpg — los cuatro gráficos en la grilla de dos columnas, con los
+     datos de demo. -->
+
+### Cuando todavía no hay datos
+
+Un gráfico sin datos no se dibuja vacío: en su lugar aparece un mensaje con un enlace a la sección que lo completa.
+
+| Mensaje | Cuándo aparece | Enlace |
+|---|---|---|
+| "Todavía no hay sprints cerrados para graficar" | En los cuatro gráficos, mientras el proyecto no tenga ningún sprint cerrado | **Ir a Sprints** |
+| "Todavía no hay horas registradas" | En el de horas, si los sprints cerrados no tienen horas estimadas ni registradas | **Registrar esfuerzo** |
+| "No hay defectos registrados" | En el de defectos, si los sprints cerrados no tienen defectos | **Ir a Defectos** |
+
+En un proyecto recién creado el resumen igual se ve completo: las métricas en 0, la desviación "no calculable" y los
+cuatro mensajes en lugar de los gráficos. A medida que se cierran sprints, los gráficos se van llenando.
 
 ## 9. Reportes y exportación a PDF (E9) — Agustín Giorlando
 
@@ -309,6 +576,136 @@ adelante hay que re-estimarla.
 
 ## Anexo · Documentación técnica — Branko Almeira
 
-<!-- Arquitectura (ADR 0001 a 0004), estructura de paquetes, cómo correr, cómo probar (make test, make cover,
-     BDD), CI, cómo contribuir: SDD → BDD → TDD, resolución de conflictos en los archivos compartidos y chequeo de
-     `Closes #N` antes de abrir un PR (acciones pendientes de las retros). -->
+Esta parte es para quien tenga que mantener o extender la aplicación. Las reglas completas de trabajo están en
+[`CONTRIBUTING.md`](../CONTRIBUTING.md) y las decisiones de diseño en [`docs/adr/`](adr/).
+
+### A.1 Arquitectura
+
+Una aplicación web **en Go, sin un segundo stack**: el servidor arma el HTML y el navegador solo lo muestra.
+
+| Pieza | Tecnología | Decisión |
+|---|---|---|
+| Lenguaje y servidor | Go 1.22, `net/http` de la biblioteca estándar (rutas `GET /sprints/{sprint}`) | [ADR 0001](adr/0001-arquitectura.md) |
+| Pantallas | `html/template` + Pico CSS + HTMX; gráficos con Chart.js | ADR 0001 |
+| Persistencia | Repositorios en memoria que se guardan en archivos JSON (`data/`) | ADR 0001 |
+| BDD | Gherkin en español con [godog](https://github.com/cucumber/godog) | ADR 0001 |
+| Exportación a PDF | `github.com/go-pdf/fpdf` (HU-31) | ADR 0001 |
+| Contratos entre épicas | Cada épica guarda **IDs** de las demás, nunca copias; las reglas que cruzan épicas las coordina un servicio | [ADR 0002](adr/0002-contratos-de-dominio.md) |
+| Enumeradores | `int` con `iota + 1` y `String()`; el cero es "sin valor". Las plantillas no comparan textos de estado: el handler decide (por ejemplo, el color de una insignia con `tonoEstado`) | [ADR 0003](adr/0003-enumeradores-del-dominio.md) |
+| Identidad | Sin autenticación: quien actúa elige su nombre de la lista de integrantes | [ADR 0004](adr/0004-identidad-sin-autenticacion.md) |
+
+Pico CSS, HTMX y Chart.js están **incluidos en el repositorio** (`web/static/vendor/`), así la app funciona sin
+internet, por ejemplo durante una presentación.
+
+### A.2 Estructura de paquetes
+
+Las dependencias van en un solo sentido: de afuera (HTTP) hacia adentro (dominio). El dominio no depende de
+ninguna otra capa.
+
+```text
+cmd/server ─► internal/app ─► internal/server ─► internal/service ─► internal/domain/<épica>
+                   │                                   │
+                   └─► internal/store/memory           ├─► internal/report ─► internal/metrics
+                         (repositorios JSON)           └─► internal/dashboard
+```
+
+`internal/metrics` no importa a ningún otro paquete del proyecto: recibe números y fechas y devuelve resultados, así
+se prueba sin armar entidades.
+
+| Paquete | Responsabilidad |
+|---|---|
+| `internal/domain/{project,backlog,sprint,estimation,effort,defect}` | Entidades y reglas de negocio de cada épica, con sus errores. Acá se hace TDD |
+| `internal/metrics` | Cálculo de métricas como funciones puras: SP planificados y completados, velocidad, porcentaje, desviación, defectos, horas en un período |
+| `internal/report` | Arma el reporte de sprint (HU-29) y el de proyecto (HU-30) a partir de los datos que recibe; no accede a repositorios |
+| `internal/dashboard` | Arma los datos del dashboard (HU-28) |
+| `internal/service` | Casos de uso: buscan en los repositorios, aplican las reglas del dominio y guardan |
+| `internal/store/memory` | Repositorios en memoria con persistencia a JSON (una ruta vacía = sin archivo, para los tests) |
+| `internal/server` | Handlers HTTP, rutas y plantillas. Error de formulario → 400 con el formulario; recurso inexistente → 404; éxito → 303 |
+| `internal/app` | Arma la aplicación: crea los repositorios y los servicios y se los pasa al servidor |
+| `cmd/server`, `cmd/demo` | La aplicación (`make run`) y la carga de datos de ejemplo (`make demo`) |
+| `features` | Escenarios BDD (`*.feature`) y sus pasos |
+| `tools/checkcoverage` | Verifica el umbral de cobertura en el CI |
+
+### A.3 Cómo correr y configurar
+
+| Quiero… | Comando |
+|---|---|
+| Levantar la app | `make run` → http://localhost:8080 |
+| Cargar los datos de ejemplo | `make demo` |
+| Usar otra carpeta de datos / otro puerto | `DATA_DIR=otra make run` / `PORT=9090 make run` |
+| Empezar de cero | Borrar la carpeta de datos (o usar una nueva con `DATA_DIR`) |
+
+### A.4 Cómo probar
+
+| Quiero… | Comando |
+|---|---|
+| Todo: `go vet`, tests unitarios con detector de carreras y BDD | `make test` |
+| Solo los tests unitarios | `make unit` |
+| Solo los escenarios BDD | `make bdd` |
+| Cobertura total y reporte HTML (`coverage.html`) | `make cover` |
+| Formatear | `make fmt` |
+
+- **Tests unitarios:** en cada paquete (`*_test.go`), con tablas de casos. Los handlers se prueban con `httptest`.
+- **BDD:** cada historia tiene su `features/hu-XX-*.feature`, en español, y sus pasos en `features/huXX_steps_test.go`.
+  Los pasos comunes (por ejemplo, `la página contiene "…"` o `la página no contiene "…"`) están en
+  `features/http_steps_test.go`. Un escenario con la etiqueta `@pendiente` no se corre.
+
+### A.5 Integración continua
+
+Cada PR y cada push a `main` corren [`.github/workflows/ci.yml`](../.github/workflows/ci.yml):
+
+1. Formato (`gofmt`): falla si algún archivo no está formateado.
+2. Análisis estático (`go vet`).
+3. Tests unitarios con `-race` y cobertura.
+4. **Umbral de cobertura:** `internal/domain` e `internal/metrics` en **80 % o más**, ponderado por sentencias
+   (`tools/checkcoverage`).
+5. Escenarios BDD.
+
+Además, [`revisor.yml`](../.github/workflows/revisor.yml) le pide la revisión del PR a quien le toca según la
+rotación (Sosa → Bianchi → Lara → Giorlando → Branko → Sosa). `main` está protegida: solo entra un PR con el CI en
+verde y una aprobación.
+
+### A.6 Cómo contribuir: SDD → BDD → TDD
+
+Cada historia recorre la misma cadena, con el mismo ID en todos los artefactos:
+
+```text
+Issue HU-XX → specs/HU-XX-*.md → criterios CA-XX.n → features/hu-xx-*.feature → *_test.go → código Go
+```
+
+1. **SDD:** la spec (`specs/_plantilla.md`) define entradas, salidas, reglas de negocio (RN), casos límite, errores
+   con su mensaje exacto y criterios de aceptación (CA). Es la fuente de verdad.
+2. **BDD:** cada criterio tiene al menos un escenario en el `.feature`.
+3. **TDD:** un commit por fase: `test(HU-XX): RED - …` (el test falla), `feat(HU-XX): GREEN - …` (el código mínimo
+   que lo hace pasar) y, si hace falta, `refactor(HU-XX): …`. Por eso los PRs se mergean sin *squash*.
+4. **PR:** rama `feature/HU-XX-…`, plantilla con la tabla de trazabilidad y una fila en
+   [`docs/ia/registro.md`](ia/registro.md) si se usó IA.
+
+Para agregar una pantalla, seguí la sección 6 de `CONTRIBUTING.md`.
+
+### A.7 Antes de abrir un PR (acciones de las retrospectivas)
+
+**`Closes #N` solo si el PR termina el ítem.** `Closes` cierra el issue al mergear y lo mueve a *Done* en el
+tablero. Para un PR que hace una parte, usá `Parte de #N`. Antes de abrirlo, confirmá el número:
+
+```bash
+gh issue view N    # ¿es el ítem correcto? ¿este PR lo termina?
+```
+
+**Conflictos en los archivos compartidos: quedarse con los dos lados.** Varios PRs agregan líneas a los mismos
+archivos al mismo tiempo. En un conflicto, **nunca se elige un lado**: se conservan las líneas de `main` y después
+las de la rama.
+
+| Archivo | Qué agrega cada PR | Cómo resolver |
+|---|---|---|
+| `docs/ia/registro.md` | Una fila de la tabla | Las dos filas, primero la de `main` |
+| `features/features_test.go`, `features/mundo_test.go` | El registro de sus pasos y sus campos del mundo | Los dos bloques |
+| `internal/app/app.go`, `internal/server/server.go` | Su servicio, sus repositorios y sus rutas | Los dos bloques; si cambió la firma de un constructor en `main`, usar la nueva |
+| `web/static/app.css` | Sus clases, al final y bajo un comentario con su ítem (`/* HU-32.3 */`) | Los dos bloques |
+
+```bash
+git switch <rama> && git fetch origin && git merge origin/main
+# resolver cada conflicto conservando los dos lados, sin dejar marcas <<<<<<< ======= >>>>>>>
+grep -rn '^<<<<<<<\|^>>>>>>>' . && echo "quedan marcas"
+make test && git commit && git push
+```
