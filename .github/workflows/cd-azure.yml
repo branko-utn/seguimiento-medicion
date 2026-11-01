@@ -9,7 +9,11 @@ name: CD Azure
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+      # TEMPORAL: GitHub solo deja correr a mano un workflow que ya está en main. Con esto se prueba el despliegue
+      # antes del merge, desde la rama del PR (el Environment azure la permite). Se quita antes de mergear.
+      - feature/TEC-23-24-despliegue
     paths:
       - "cmd/**"
       - "internal/**"
