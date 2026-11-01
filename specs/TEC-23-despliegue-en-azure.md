@@ -65,6 +65,68 @@ Región: `switzerlandnorth` (política de regiones permitidas y misma región qu
 - **Volver atrás:** volver a correr el workflow sobre un commit anterior, o activar la revisión anterior con
   `az containerapp revision activate`.
 
+## Cómo se trabaja (Sosa y Lara)
+
+- **Una rama y un PR para TEC-23 y TEC-24:** `feature/TEC-23-24-despliegue`. El PR dice `Closes #138` y
+  `Closes #139`. Cada uno hace commits solo sobre lo suyo; revisa el otro y audita el Agile Enabler.
+- **Orden, para no pisarse en `cd-azure.yml`:**
+  1. **Sosa** crea la rama y sube el `Dockerfile`, `deploy/containerapp.yaml` y el workflow con los jobs
+     `configuracion`, `imagen` y `desplegar`. Hasta acá el proxy puede ser un Caddy que solo reenvía.
+  2. **Lara**, sobre la misma rama, sube `deploy/proxy/` (la imagen y el Caddyfile completo), agrega al workflow el job
+     `vulnerabilidades` (que `imagen` necesita para publicar) y las pruebas de seguridad de la prueba de humo.
+  3. Después de cada `git pull`, el que sigue continúa. Si los dos tienen que tocar el workflow a la vez, se avisan por
+     el grupo.
+- **Probar el despliegue antes del merge:** el Environment `azure` permite también la rama
+  `feature/TEC-23-24-despliegue` mientras dure el PR. El workflow se corre a mano (`workflow_dispatch`) eligiendo esa
+  rama. Al mergear, el Agile Enabler quita la rama del Environment.
+- **Probar en local antes de subir** (Docker):
+
+  ```bash
+  docker build -t sme:local .
+  docker volume create sme-datos
+  docker run --rm -v sme-datos:/data -e DATA_DIR=/data --entrypoint /demo sme:local      # init container
+  docker run --rm -p 8080:8080 -v sme-datos:/data -e DATA_DIR=/data sme:local            # app
+  ```
+
+  Con el proxy, agregar una red de Docker y el contenedor de Caddy apuntando a `app:8080`. En Azure es
+  `localhost:8080` porque los contenedores de una réplica comparten la red.
+- **La clave de escritura** se la pasa el Agile Enabler a cada uno por privado. No se escribe en el repo, issues,
+  PR ni logs.
+
+## Guía técnica
+
+- **Imagen de la app:** etapa `golang:1.26` fijada por digest, `CGO_ENABLED=0 go build -trimpath -ldflags="-s -w"` de
+  `./cmd/server` y `./cmd/demo`. Etapa final `gcr.io/distroless/static-debian12:nonroot` fijada por digest, con
+  `/server` y `/demo`, `ENTRYPOINT ["/server"]` y `EXPOSE 8080`. El init container cambia el comando a `/demo`.
+  La imagen final no tiene shell para hacer `mkdir`. Por eso se copia desde la etapa de compilación una carpeta
+  `/data` vacía con `COPY --chown=65532:65532`. Si no, el usuario sin privilegios no puede escribir en un volumen
+  nuevo de Docker.
+- **`deploy/containerapp.yaml`:** formato de `az containerapp create --yaml`. Tiene `initContainers` (`cargar-demo`),
+  `containers` (`app` y `proxy`), un volumen `datos` con `storageType: EmptyDir` montado en `/data`, `ingress` con
+  `external: true`, `targetPort: 8081`, `transport: auto`, `allowInsecure: false`, y `scale` con `minReplicas: 0` y
+  `maxReplicas: 1`. Las imágenes y los secretos van como marcadores (`${IMAGEN_APP}`, `${IMAGEN_PROXY}`) que el workflow
+  reemplaza con `envsubst` en un archivo de `$RUNNER_TEMP`, que se borra al terminar. Ese archivo nunca se sube al repo
+  ni se imprime.
+- **Secretos de la Container App:** `registry-password` (de `ACR_PASSWORD`, para bajar las imágenes del registro con
+  el usuario `ingcalidad2026`) y `write-password-hash` (de `WRITE_PASSWORD_HASH`). El proxy recibe el hash como
+  variable `WRITE_PASSWORD_HASH` con `secretRef: write-password-hash`.
+- **Crear el entorno si falta:**
+
+  ```bash
+  az containerapp env show -g frsrutn -n utnapp-env >/dev/null 2>&1 || \
+    az containerapp env create -g frsrutn -n utnapp-env -l switzerlandnorth --logs-destination none
+  ```
+
+  `--logs-destination none` evita el costo de Log Analytics. Los logs se ven con `az containerapp logs show`.
+- **Crear o actualizar la app:** si existe, `az containerapp update -g frsrutn -n grupo02-seguimiento-medicion --yaml
+  …`; si no, `az containerapp create … --environment utnapp-env --yaml …`.
+- **Digest:** sale de la salida `digest` de `docker/build-push-action`. La imagen se referencia como
+  `ingcalidad2026.azurecr.io/grupo02-seguimiento-medicion@sha256:…`.
+- **Limpieza del registro:** con el usuario y la clave del registro (`az acr repository show-tags` y
+  `az acr repository delete`), solo sobre `grupo02-seguimiento-medicion` y `grupo02-proxy`.
+- **Acciones del workflow:** `actions/checkout`, `actions/setup-go`, `azure/login`, `docker/setup-buildx-action`,
+  `docker/login-action` y `docker/build-push-action`, todas fijadas por hash de commit (TEC-24, A4).
+
 ## Reglas
 
 - **Solo se crea, cambia o borra lo que empieza con `grupo02-`**, incluido el entorno `grupo02-env`. La única
