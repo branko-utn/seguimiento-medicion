@@ -68,11 +68,23 @@ jobs:
             echo "publicar=true" >> "$GITHUB_OUTPUT"
           fi
 
-  # TEC-24 (Lara): job `vulnerabilidades` con govulncheck y Go 1.26 (A6). `imagen` lo necesita para publicar.
+  # TEC-24 (A6): govulncheck con el mismo Go de la imagen. Si encuentra una vulnerabilidad que el código alcanza,
+  # falla, e `imagen` no corre: no se publica nada. No usa secretos.
+  vulnerabilidades:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
+        with:
+          go-version: "1.26.10" # el mismo que compila la imagen (Dockerfile)
+
+      - name: govulncheck
+        run: go run golang.org/x/vuln/cmd/govulncheck@v1.9.0 ./...
 
   # 2. Construye las dos imágenes y, si hay secretos, las publica. Devuelve sus digests (A5).
   imagen:
-    needs: [configuracion]
+    needs: [configuracion, vulnerabilidades]
     runs-on: ubuntu-latest
     environment: azure
     outputs:
@@ -182,7 +194,43 @@ jobs:
           echo "::error::La app no respondió /health o /backlog no muestra el proyecto de la demo en 3 minutos."
           exit 1
 
-      # TEC-24 (Lara): pruebas de seguridad de la prueba de humo (POST sin clave → 401, cabeceras, http → https).
+      # TEC-24: lo que se ve desde afuera. Corre todas las pruebas y falla al final si alguna no pasó.
+      - name: Pruebas de seguridad
+        env:
+          URL: ${{ steps.humo.outputs.url }}
+          CSP_SCRIPT_HASH: ${{ needs.imagen.outputs.csp-script-hash }}
+        run: |
+          # Cada curl termina en "|| true": si uno no conecta, se informa como falla y se siguen las demás pruebas.
+          fallas=0
+          falla() { echo "::error::$1"; fallas=$((fallas + 1)); }
+
+          # A1: sin clave, una escritura y /ingresar responden 401.
+          for ruta in /backlog /ingresar; do
+            metodo=POST; [ "$ruta" = /ingresar ] && metodo=GET
+            codigo=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 -X "$metodo" "$URL$ruta" || true)
+            [ "$codigo" = 401 ] && echo "$metodo $ruta sin clave: 401" || falla "$metodo $ruta sin clave respondió $codigo y no 401"
+          done
+
+          # A2: http:// redirige a https://.
+          redireccion=$(curl -s -o /dev/null -w '%{http_code} %{redirect_url}' --max-time 10 "http://${URL#https://}/" || true)
+          case "$redireccion" in
+            30[1278]" https://"*) echo "http:// redirige: $redireccion" ;;
+            *) falla "http:// no redirige a https:// (respondió: $redireccion)" ;;
+          esac
+
+          # A2 y A11: cabeceras de seguridad, y sin la cabecera Server.
+          cabeceras=$( (curl -s -D - -o /dev/null --max-time 10 "$URL/" || true) | tr -d '\r')
+          for esperada in \
+              "strict-transport-security: max-age=31536000" \
+              "x-content-type-options: nosniff" \
+              "x-frame-options: DENY" \
+              "referrer-policy: same-origin" \
+              "content-security-policy: default-src 'self'; script-src 'self' '$CSP_SCRIPT_HASH';"; do
+            grep -qiF "$esperada" <<<"$cabeceras" && echo "ok: ${esperada%%:*}" || falla "falta la cabecera: $esperada"
+          done
+          grep -qi "^server:" <<<"$cabeceras" && falla "la respuesta tiene cabecera Server" || echo "ok: sin cabecera Server"
+
+          [ "$fallas" -eq 0 ] || exit 1
 
       - name: Logs de la réplica si falló
         if: failure()
