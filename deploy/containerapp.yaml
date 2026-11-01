@@ -1,0 +1,82 @@
+# Plantilla de la Container App (TEC-23, ADR 0005), en el formato de `az containerapp create|update --yaml`.
+#
+# Los ${…} son marcadores: el workflow cd-azure.yml los reemplaza con envsubst en un archivo de $RUNNER_TEMP que se
+# borra al terminar. Ese archivo tiene secretos: nunca se sube al repo ni se imprime (TEC-24, A3).
+#
+#   ${ENTORNO_ID}           id del entorno utnapp-env
+#   ${IMAGEN_APP}           imagen de la app por digest: ingcalidad2026.azurecr.io/grupo02-seguimiento-medicion@sha256:…
+#   ${IMAGEN_PROXY}         imagen del proxy por digest:  ingcalidad2026.azurecr.io/grupo02-proxy@sha256:…
+#   ${CSP_SCRIPT_HASH}      hash del script del dashboard para la CSP (deploy/csp-hash.sh)
+#   ${ACR_PASSWORD}         clave del registro (secreto del Environment azure)
+#   ${WRITE_PASSWORD_HASH}  hash bcrypt de la clave de escritura (secreto del Environment azure)
+#
+# Cómo queda armada cada réplica:
+#   cargar-demo (init)  carga los datos de la demo en el volumen y termina
+#   app                 la aplicación, en localhost:8080; no tiene ingreso propio (TEC-24, A8)
+#   proxy               Caddy en 8081: el único expuesto; pide clave para escribir y agrega las cabeceras (TEC-24)
+location: switzerlandnorth
+type: Microsoft.App/containerApps
+properties:
+  managedEnvironmentId: ${ENTORNO_ID}
+  configuration:
+    activeRevisionsMode: Single
+    ingress:
+      external: true
+      targetPort: 8081 # el proxy, nunca la app (A8)
+      transport: auto
+      allowInsecure: false # solo HTTPS: http:// redirige a https:// (A2)
+    registries:
+      - server: ingcalidad2026.azurecr.io
+        username: ingcalidad2026
+        passwordSecretRef: registry-password
+    secrets:
+      - name: registry-password
+        value: '${ACR_PASSWORD}'
+      - name: write-password-hash
+        value: '${WRITE_PASSWORD_HASH}'
+  template:
+    initContainers:
+      - name: cargar-demo
+        image: ${IMAGEN_APP}
+        command: ["/demo"]
+        env:
+          - name: DATA_DIR
+            value: /data
+        resources:
+          cpu: 0.25
+          memory: 0.5Gi
+        volumeMounts:
+          - volumeName: datos
+            mountPath: /data
+    containers:
+      - name: app
+        image: ${IMAGEN_APP}
+        command: ["/server"]
+        env:
+          - name: DATA_DIR
+            value: /data
+          - name: PORT
+            value: "8080"
+        resources:
+          cpu: 0.25
+          memory: 0.5Gi
+        volumeMounts:
+          - volumeName: datos
+            mountPath: /data
+      - name: proxy
+        image: ${IMAGEN_PROXY}
+        env:
+          - name: WRITE_PASSWORD_HASH
+            secretRef: write-password-hash
+          - name: CSP_SCRIPT_HASH
+            value: '${CSP_SCRIPT_HASH}'
+        resources:
+          cpu: 0.25
+          memory: 0.5Gi
+    volumes:
+      # Volumen temporal: los datos vuelven a ser los de la demo cada vez que la app escala a cero o se redespliega.
+      - name: datos
+        storageType: EmptyDir
+    scale:
+      minReplicas: 0 # sin tráfico no consume créditos
+      maxReplicas: 1 # una sola réplica: los datos son archivos JSON de esa réplica (A10)
