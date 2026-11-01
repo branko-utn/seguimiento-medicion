@@ -34,15 +34,49 @@ al final.
 | Cabecera | Valor |
 |---|---|
 | `Strict-Transport-Security` | `max-age=31536000` |
-| `Content-Security-Policy` | `default-src 'self'; script-src 'self' 'sha256-<hash del script del dashboard>'; style-src 'self'; img-src 'self' data:; frame-ancestors 'none'; form-action 'self'; base-uri 'self'` |
+| `Content-Security-Policy` | `default-src 'self'; script-src 'self' 'sha256-<hash del script del dashboard>'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; frame-ancestors 'none'; form-action 'self'; base-uri 'self'` |
 | `X-Content-Type-Options` | `nosniff` |
 | `X-Frame-Options` | `DENY` |
 | `Referrer-Policy` | `same-origin` |
 | `Server` | se quita |
 
-El único script en línea es el del dashboard (`web/templates/paginas/dashboard.html`). Se autoriza por su hash, que el
-workflow calcula en cada build. Así no hace falta `'unsafe-inline'`. No hay estilos en línea (verificado: 0
-atributos `style=`).
+El único script en línea es el del dashboard (`web/templates/paginas/dashboard.html`). Es texto fijo, sin acciones de
+plantilla adentro, así que su hash no cambia entre pedidos. Se autoriza por ese hash, que el build del proxy calcula
+en cada corrida. Así los scripts no necesitan `'unsafe-inline'`.
+
+Los estilos sí llevan `'unsafe-inline'`. Las plantillas no tienen atributos `style=`, pero HTMX 2.0.4 agrega un
+`<style>` propio para los indicadores de carga. Bloquearlo exigiría cambiar la configuración de HTMX en las
+plantillas, que están congeladas. Un estilo inyectado no ejecuta código, así que el riesgo es bajo.
+
+## Guía técnica
+
+- **Imagen del proxy:** `deploy/proxy/Dockerfile` parte de `caddy:2` fijada por digest y copia el Caddyfile a
+  `/etc/caddy/Caddyfile`, como recomienda Microsoft para Caddy en contenedores. No se monta nada en tiempo de
+  ejecución.
+- **Caddyfile:**
+  - Bloque global con `auto_https off` (el HTTPS lo pone Container Apps) y `servers { timeouts { read_header 5s
+    read_body 10s idle 2m } }` (A9).
+  - Sitio `:8081` con `request_body { max_size 1MB }`, `header` con la tabla de cabeceras (y `-Server`), y
+    `reverse_proxy localhost:8080`.
+  - `handle /ingresar { basic_auth { equipo {$WRITE_PASSWORD_HASH} } redir / 303 }`.
+  - Un `handle` para todo lo demás, con el matcher `@escritura method POST`,
+    `basic_auth @escritura { equipo {$WRITE_PASSWORD_HASH} }` y `reverse_proxy localhost:8080`.
+  - Un Caddyfile con esta estructura pasa `caddy validate` con Caddy 2.11.7 (verificado el 01/11).
+- **Las 25 escrituras de las plantillas son formularios comunes (`method="post"`, ninguna usa `hx-post`).** El
+  navegador muestra su ventana de usuario y clave y reenvía el formulario. Después de `/ingresar`, el navegador manda
+  la clave sola en todas las rutas, porque la guarda para la raíz.
+- **Hash de la CSP:** `sha256` en base64 del texto exacto entre `<script>` y `</script>` del dashboard. Se calcula
+  en el build y se escribe en el Caddyfile. Se verifica con la consola del navegador en `/dashboard?proyecto=P1`.
+- **Job `vulnerabilidades`:** `actions/setup-go` con `go-version: '1.26.x'`, después
+  `go run golang.org/x/vuln/cmd/govulncheck@v1.9.0 ./...`. El job `imagen` declara `needs: vulnerabilidades`.
+- **Pruebas de seguridad en la prueba de humo** (con `curl`, contra la URL desplegada):
+  - `POST` sin clave a una ruta que escribe (por ejemplo `/backlog`) → `401`.
+  - `GET /ingresar` sin clave → `401`.
+  - `curl -I` de la portada → las cabeceras de la tabla, sin `Server` de Caddy.
+  - `http://` → redirección a `https://`.
+  - Con la clave no se prueba en el workflow, para no tener la clave en claro en GitHub. Esa prueba se hace a mano
+    (criterio de terminado).
+- **Usuario sin privilegios:** se verifica con `docker run --rm --entrypoint sh sme:local`, que tiene que fallar.
 
 ### La clave de escritura
 
