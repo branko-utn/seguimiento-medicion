@@ -29,6 +29,8 @@ type datosDefectos struct {
 // filaDefecto es un defecto de la lista con lo que la pantalla puede ofrecer para él.
 type filaDefecto struct {
 	defect.Defecto
+	// TonoSeveridad y TonoEstado son las clases de las insignias (HU-32.3, RN-32.1): las decide el handler.
+	TonoSeveridad, TonoEstado string
 	// Siguiente es el estado al que pasa con CambiarEstado (Abierto ↔ En progreso); el cero si está resuelto.
 	Siguiente defect.Estado
 	// Sprints son los sprints donde se puede resolver: del mismo proyecto y que no empiezan antes que el de detección
@@ -83,7 +85,7 @@ func (a *app) mostrarDefectos(w http.ResponseWriter, r *http.Request, codigo int
 		datos.Severidades = append(datos.Severidades, s.String())
 	}
 	for _, d := range a.svc.Defectos.Listar() {
-		fila := filaDefecto{Defecto: d}
+		fila := filaDefecto{Defecto: d, TonoSeveridad: tonoSeveridad(d.Severidad), TonoEstado: tonoEstado(d.Estado)}
 		switch d.Estado {
 		case defect.Abierto:
 			fila.Siguiente = defect.EnProgreso

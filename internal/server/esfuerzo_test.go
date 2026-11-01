@@ -98,7 +98,7 @@ func TestEsfuerzo_registrar(t *testing.T) {
 	if n := len(svc.Registros.DeHistoria("HU-1")); n != 1 {
 		t.Fatalf("HU-1 tiene %d registros, se esperaba 1", n)
 	}
-	contiene(t, ver(router, "/esfuerzo").Body.String(), "24/10/2026", "Ana Pérez", "HU-1", "Desarrollo", "<td>3</td>")
+	contiene(t, ver(router, "/esfuerzo").Body.String(), "24/10/2026", "Ana Pérez", "HU-1", "Desarrollo", `<td class="num">3,0</td>`)
 }
 
 func TestEsfuerzo_registrarHorasConComa(t *testing.T) {

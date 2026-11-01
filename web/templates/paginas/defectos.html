@@ -4,7 +4,7 @@
 <h1>Defectos</h1>
 {{if .Datos.Filas}}
 <div class="overflow-auto">
-  <table>
+  <table class="tabla">
     <thead>
       <tr>
         <th scope="col">ID</th>
@@ -22,9 +22,9 @@
       <tr>
         <td>{{.ID}}</td>
         <td>{{.Descripcion}}</td>
-        <td>{{.Severidad}}</td>
+        <td><span class="insignia {{.TonoSeveridad}}">{{.Severidad}}</span></td>
         <td>{{.HistoriaID}}</td>
-        <td>{{.Estado}}</td>
+        <td><span class="insignia {{.TonoEstado}}">{{.Estado}}</span></td>
         <td>{{.SprintDeteccion}}</td>
         <td>{{if .SprintResolucion}}{{.SprintResolucion}}{{else}}—{{end}}</td>
         <td>
@@ -51,10 +51,13 @@
   </table>
 </div>
 {{else}}
-<p>Todavía no hay defectos registrados.</p>
+<div class="vacio">
+  <p>Todavía no hay defectos registrados.</p>
+  <p><a href="#registrar-defecto">Registrar el primero</a></p>
+</div>
 {{end}}
 
-<section>
+<section id="registrar-defecto">
   <h2>Registrar defecto</h2>
   <form method="post" action="/defectos">
     {{- with .Datos.Form.Error}}
