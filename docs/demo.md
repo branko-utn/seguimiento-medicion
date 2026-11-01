@@ -1,7 +1,7 @@
 # Guía de la demo · Presentación final (TEC-22)
 
 Cómo preparar el entorno y qué mostrar en la demo del sistema. Complementa las diapositivas y el guion general de la
-presentación, que arma el Agile Enabler (planning del Sprint 4). Cada integrante presenta su épica; el recorrido
+presentación, que arma el Agile Enabler ([`docs/scrum/sprint-4/guion-presentacion.md`](scrum/sprint-4/guion-presentacion.md)). Cada integrante presenta su épica; el recorrido
 completo de una funcionalidad (historia → spec → criterios → BDD → tests → código) lo hace Ignacio Bianchi con HU-16.
 
 ## 1. Preparar el entorno
@@ -44,8 +44,6 @@ cual pasó (ver `cmd/demo/datos.go`).
 |---|---|---|
 | `cargar la demo: ya existe un proyecto con ese nombre` | La demo ya estaba cargada en `data/` | Nada, si los datos están bien. Para empezar de cero: `rm -rf data/` y `make demo` |
 | `listen tcp :8080: bind: address already in use` | Quedó otra instancia de la app abierta | Cerrarla, o levantar en otro puerto: `PORT=8081 make run` |
-| El dashboard muestra `34.0` en vez de `34,0` | Todavía no se mergeó HU-32.4 | Mergear el PR de HU-32.4 antes de la presentación |
-| "Descargar PDF" no aparece o da 404 | Todavía no se mergeó HU-31 | Mergear HU-31; mientras tanto, usar **Imprimir o guardar como PDF** |
 
 ## 2. Verificación antes de presentar
 
@@ -60,7 +58,7 @@ Con la app levantada sobre los datos de demo, revisar que todas estas pantallas 
 - [ ] `/esfuerzo` y `/defectos`
 - [ ] `/dashboard` y `/dashboard?proyecto=P1`, con los cuatro gráficos dibujados
 - [ ] `/reportes`, `/reportes/proyecto?proyecto=P1`, `/reportes/sprints/S3` y `/reportes/sprints/S4` ("Reporte parcial")
-- [ ] La descarga en PDF de los dos reportes (cuando HU-31 esté en `main`)
+- [ ] La descarga en PDF de los dos reportes
 
 Antes de empezar: navegador en pantalla completa, zoom al 125 % para que se lea desde lejos y una pestaña ya abierta
 en `/dashboard?proyecto=P1`.
@@ -126,7 +124,7 @@ a él. Cada bloque lo presenta el responsable de la épica (ver el manual de usu
 1. **Reportes** → **Reporte del proyecto**: resumen de los sprints, métricas acumuladas y defectos abiertos.
 2. Reporte del Sprint 4: lleva la marca **Reporte parcial** porque el sprint está activo.
 3. **Descargar PDF** (HU-31) y abrir el archivo descargado: mismo contenido que en pantalla y con coma decimal.
-   Si HU-31 no está mergeada, usar **Imprimir o guardar como PDF**.
+   Plan B si la descarga falla: **Imprimir o guardar como PDF**.
 
 ### 3.7 Cierre
 
