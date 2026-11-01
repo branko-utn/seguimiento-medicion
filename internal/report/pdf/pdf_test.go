@@ -173,3 +173,11 @@ func TestSprint_tituloLargoEnVariasLineas(t *testing.T) {
 		t.Errorf("el título aparece partido de forma que se pierde texto: %d repeticiones, se esperaban 4", n)
 	}
 }
+
+// RN-31.3: los caracteres que no existen en la codificación de la fuente (guion largo, comillas tipográficas, euro,
+// emojis) no rompen las tablas. Son comunes en textos pegados desde un procesador de texto.
+func TestSprint_caracteresFueraDeCp1252(t *testing.T) {
+	r := sprintCerrado()
+	r.Historias[0].Titulo = "Guion largo — “citas” € 🚀"
+	generar(t, func(b *bytes.Buffer) error { return Sprint(b, r, hoy) })
+}
