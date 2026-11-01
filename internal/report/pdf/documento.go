@@ -113,12 +113,23 @@ func (d *documento) fuenteFila(encabezado bool) {
 
 // lineas corta el texto de una celda en las líneas que entran en su ancho, ya traducidas para el PDF.
 func (d *documento) lineas(texto string, ancho float64) []string {
-	partes := d.f.SplitText(texto, ancho-2) // 1 mm de aire a cada lado
+	// SplitText mide cada runa con la tabla de anchos de la fuente, que tiene 256 posiciones (cp1252). Por eso se
+	// traduce antes y se pasa cada byte como runa: así una runa fuera de cp1252 (—, “”, €, emojis) no la desborda.
+	t := d.tr(texto)
+	runas := make([]rune, len(t))
+	for i := 0; i < len(t); i++ {
+		runas[i] = rune(t[i])
+	}
+	partes := d.f.SplitText(string(runas), ancho-2) // 1 mm de aire a cada lado
 	if len(partes) == 0 {
 		partes = []string{""}
 	}
 	for i, p := range partes {
-		partes[i] = d.tr(p)
+		b := make([]byte, 0, len(p))
+		for _, r := range p {
+			b = append(b, byte(r))
+		}
+		partes[i] = string(b)
 	}
 	return partes
 }
