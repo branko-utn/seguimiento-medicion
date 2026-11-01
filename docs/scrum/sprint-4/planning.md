@@ -170,3 +170,16 @@ La cátedra pide desplegar la aplicación y entregó una cuenta de Azure compart
 - **Van en un solo PR**, porque la seguridad es condición para publicar: sin TEC-24 no se despliega.
 - **Riesgo:** llega sobre la presentación del 2/11. Mitigación: la demo principal sigue siendo en local (`make demo`)
   y la URL pública es un extra.
+
+## Carga final real (01/11)
+
+La tabla del "Reparto final" era el plan. Así terminó, según el campo Estimate del tablero (sin los ítems de todo el
+equipo: TEC-06, TEC-07 y TEC-22):
+
+| Integrante | Plan del reparto final | Real | Por qué cambió |
+|---|---|---|---|
+| Federico Sosa | 31 | **36** | Sumó TEC-23 · Despliegue en Azure (5) |
+| Ignacio Bianchi | 28 | **28** | — |
+| Agustín Lara | 30 | **38** | Tomó HU-31 en el corte de las 18:00 (5) y sumó TEC-24 · Seguridad del despliegue (3) |
+| Agustín Giorlando | 31 | **26** | HU-31 pasó a Lara |
+| Branko Almeira | — (no ejecuta ítems en el Sprint 4) | **38** | Todo de los Sprints 0 a 3 |

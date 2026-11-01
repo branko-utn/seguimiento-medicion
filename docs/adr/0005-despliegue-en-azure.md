@@ -1,6 +1,7 @@
 # ADR 0005 · Despliegue en Azure Container Apps con un proxy delante
 
-- **Estado:** propuesta (01/11/2026)
+- **Estado:** aceptada (01/11/2026, PR #140) e implementada (PR #142)
+- **Redactada por:** Branko Almeira (Agile Enabler) · **Actualizada por:** Federico Sosa (entorno `grupo02-env`, PR #142)
 - **Decide:** el equipo, al aprobar el PR de las specs TEC-23 y TEC-24
 
 ## Contexto

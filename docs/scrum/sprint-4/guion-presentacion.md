@@ -1,5 +1,10 @@
 # Presentación final · Guion (TEC-22)
 
+> **Cambio del 01/11: no se usan diapositivas.** Los profesores evalúan el repositorio y el tablero, con foco en la
+> gestión. La presentación se apoya en un documento general de gestión y uno por integrante, que el equipo usa para
+> prepararse (no se suben al repo). De esta guía siguen vigentes la demo, el plan B, el ensayo y las preguntas probables; la
+> tabla de diapositivas queda como orden sugerido de quién presenta qué.
+
 - **Cuándo:** lunes 2/11/2026, ante los Product Architects. **Ensayo:** domingo 1/11, con la app en una carpeta de
   datos limpia.
 - **Preparan:** Branko Almeira (Agile Enabler): diapositivas, guion de la demo y ensayo. Cada integrante presenta
