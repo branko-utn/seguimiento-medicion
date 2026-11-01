@@ -13,3 +13,6 @@ coverage.html
 
 # Datos locales de la aplicación
 /data/
+
+# Material de preparación de la presentación final: solo local, no se sube (decisión del 01/11/2026)
+docs/presentacion/

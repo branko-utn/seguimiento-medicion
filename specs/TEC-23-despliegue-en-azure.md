@@ -3,7 +3,8 @@
 - **Issue:** #138 · **Responsable:** Federico Sosa · **Story Points:** 5
 - **Redactada por:** Branko Almeira (Agile Enabler) · **Validada por:** el equipo al aprobar el PR de las specs
 - **Depende de:** ADR 0005. La seguridad del despliegue está en TEC-24, que entra en el mismo PR
-- **Estado:** propuesta (01/11/2026). **No cambia el código congelado:** solo agrega archivos de despliegue
+- **Estado:** implementada (Sprint 4, PR #142, mergeado el 01/11/2026). No cambia el código congelado: solo agrega
+  archivos de despliegue y configuración
 
 ## Objetivo
 

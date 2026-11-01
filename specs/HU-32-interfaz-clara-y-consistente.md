@@ -31,6 +31,22 @@ Cada uno toca **solo las plantillas y los handlers de su épica**. Así no hay c
 La portada, la cabecera, la página de error y la de "en construcción" los hace Sosa en TEC-21. Los reportes suman
 el botón "Descargar PDF" en HU-31 (Giorlando).
 
+## Entradas
+
+HU-32 no agrega datos nuevos: cada pantalla recibe lo mismo que ya recibía (los modelos de sus handlers). Lo único
+nuevo que entra a las plantillas es lo que el handler resuelve para mostrar:
+
+| Dato | Tipo | De dónde sale |
+|---|---|---|
+| Tono de una insignia | `string` (`tono-neutro`, `tono-info`, `tono-exito`, `tono-alerta`, `tono-peligro`) | `tonoEstado`, `tonoSeveridad` y `tonoPrioridad` a partir del enumerador (ADR 0003) |
+| Números con un decimal | `string` con coma decimal | `unDecimal` |
+
+## Salidas esperadas
+
+- Las mismas pantallas, con los componentes de TEC-21: insignias de color para estados, severidades y prioridades;
+  métricas en tarjetas; tablas `table.tabla` con números alineados; estados vacíos con un enlace a la acción.
+- Ningún cambio de comportamiento: las mismas rutas, formularios, validaciones y respuestas (RN-32.6).
+
 ## Reglas de negocio
 
 - **RN-32.1:** todo estado se muestra con `.insignia` y el tono que decide el handler con `tonoEstado` /

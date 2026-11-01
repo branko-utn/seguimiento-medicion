@@ -15,9 +15,11 @@ Mini-sprints de 2–3 días hasta la presentación final del **lunes 2/11/2026**
 |---|---|---|
 | 0 · Preparación | mié 21 – jue 22/10 | Esqueleto, reglas de trabajo y Product Backlog estimado |
 | 1 · MVP | vie 23 – dom 25/10 | Proyectos, backlog, sprints y métricas básicas |
-| 2 · Interfaz | lun 26 – mar 27/10 | Pantallas, Planning Poker, esfuerzo y defectos |
-| 3 · Funcionalidad y calidad | mié 28 – jue 29/10 | Dashboard, métricas completas, reportes, cobertura |
-| 4 · Cierre | vie 30 – sáb 31/10 | PDF, documentación, informe y presentación (code freeze sáb 31 23:59) |
+| 2 · Interfaz | lun 26 – mar 27/10 (la review se corrió al 28) | Pantallas, Planning Poker, esfuerzo y defectos |
+| 3 · Funcionalidad y calidad | jue 29 – vie 30/10 | Dashboard, métricas completas, reportes, cobertura |
+| 4 · Cierre | sáb 31/10 (+ despliegue el dom 1/11) | PDF, documentación, informe y presentación (code freeze sáb 31 23:59) |
+
+Las fechas son las reales: la planning del Sprint 3 corrió un día el calendario porque el Sprint 2 cerró tarde.
 
 **Los sprints no se estiran.** Si algo no entra, se recorta alcance (plan de recorte en el cronograma).
 

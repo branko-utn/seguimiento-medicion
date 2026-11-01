@@ -3,8 +3,8 @@
 - **Issue:** #139 · **Responsable:** Agustín Lara · **Story Points:** 3
 - **Redactada por:** Branko Almeira (Agile Enabler) · **Validada por:** el equipo al aprobar el PR de las specs
 - **Depende de:** ADR 0005 y TEC-23, que entra en el mismo PR
-- **Estado:** propuesta (01/11/2026). **No cambia el código congelado:** todo va en el proxy, la imagen, el workflow
-  y la configuración de GitHub y Azure
+- **Estado:** implementada (Sprint 4, PR #142, mergeado el 01/11/2026). No cambia el código congelado: solo agrega
+  archivos de despliegue y configuración
 
 ## Objetivo
 
