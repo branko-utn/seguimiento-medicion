@@ -2,7 +2,10 @@ module github.com/branko-utn/seguimiento-medicion
 
 go 1.22.2
 
-require github.com/cucumber/godog v0.16.0
+require (
+	github.com/cucumber/godog v0.16.0
+	github.com/go-pdf/fpdf v0.9.0
+)
 
 require (
 	github.com/cucumber/gherkin/go/v42 v42.0.0 // indirect
