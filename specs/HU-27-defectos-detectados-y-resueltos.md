@@ -4,7 +4,7 @@
 - **Escenarios BDD:** [`features/hu-27-defectos-detectados-y-resueltos.feature`](../features/hu-27-defectos-detectados-y-resueltos.feature)
 - **Depende de:** nada: función pura con tipos de entrada propios. No espera a HU-23: el servicio conecta los datos reales cuando HU-23 esté en `main`.
 - **Redactada por:** Branko Almeira (Agile Enabler) después de la planning del Sprint 2 · **Validada por:** Agustín Lara (al aprobar el PR)
-- **Estado:** aprobada para el Sprint 2
+- **Estado:** implementada (Sprint 2)
 
 ## Historia
 

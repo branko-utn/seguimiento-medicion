@@ -3,7 +3,7 @@
 - **Issue:** #99 · **Responsable:** Branko Almeira · **Story Points:** 1
 - **Redactada por:** Branko Almeira (Agile Enabler) · **Validada por:** el equipo al aprobar el PR de la planning del Sprint 3
 - **Depende de:** nada: funciones puras del dominio y de las métricas
-- **Estado:** aprobada en la planning del Sprint 3. **Entra a `main` antes de que arranquen las historias.**
+- **Estado:** implementada (Sprint 3)
 
 ## Objetivo
 

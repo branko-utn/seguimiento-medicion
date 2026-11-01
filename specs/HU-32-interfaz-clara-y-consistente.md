@@ -4,7 +4,7 @@
 - **Escenarios BDD:** uno por parte, en `features/hu-32-<parte>.feature`
 - **Redactada por:** Branko Almeira (Agile Enabler) · **Validada por:** el equipo al aprobar el PR de las specs del Sprint 4
 - **Depende de:** TEC-21 (base visual), que entra antes. Cada parte depende solo de TEC-21 y de sus propias pantallas.
-- **Estado:** aprobada para el Sprint 4
+- **Estado:** implementada (Sprint 4)
 
 ## Historia
 

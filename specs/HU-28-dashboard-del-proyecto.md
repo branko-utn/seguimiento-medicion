@@ -7,7 +7,7 @@
   TEC-17 (velocidad del proyecto en la pantalla del sprint) y TEC-20 (`Proyecto.EstadoAl`, `Proyecto.DiasRestantes` y
   `metrics.HorasEnPeriodo`). **No espera a HU-04 ni a HU-14**: arma su resumen con el dominio y los servicios que ya
   existen.
-- **Estado:** aprobada en la planning del Sprint 3
+- **Estado:** implementada (Sprint 3)
 
 ## Historia
 

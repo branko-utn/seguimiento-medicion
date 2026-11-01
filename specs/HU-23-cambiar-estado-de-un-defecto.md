@@ -4,7 +4,7 @@
 - **Escenarios BDD:** [`features/hu-23-cambiar-estado-de-un-defecto.feature`](../features/hu-23-cambiar-estado-de-un-defecto.feature)
 - **Depende de:** HU-22 (`Defecto`, en `main`), HU-10 (`Sprint`, en `main`)
 - **Redactada por:** Branko Almeira (Agile Enabler) después de la planning del Sprint 2 · **Validada por:** Agustín Lara (al aprobar el PR)
-- **Estado:** aprobada para el Sprint 2
+- **Estado:** implementada (Sprint 2)
 
 ## Historia
 

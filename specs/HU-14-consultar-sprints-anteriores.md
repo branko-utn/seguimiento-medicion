@@ -4,7 +4,7 @@
 - **Escenarios BDD:** [`features/hu-14-consultar-sprints-anteriores.feature`](../features/hu-14-consultar-sprints-anteriores.feature)
 - **Redactada por:** Branko Almeira (Agile Enabler) · **Validada por:** el responsable al aprobar el PR de la planning del Sprint 3
 - **Depende de:** HU-10 (`Sprint`), HU-12 (`Sprint.Completadas`), HU-13 (`Sprint.Cerrar`, SP fijos al cerrar)
-- **Estado:** aprobada en la planning del Sprint 3
+- **Estado:** implementada (Sprint 3)
 
 ## Historia
 
