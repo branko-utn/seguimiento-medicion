@@ -59,6 +59,7 @@ empezar de cero, borrá la carpeta `data/`.
 | [specs/](specs/) | Especificaciones SDD |
 | [features/](features/) | Escenarios BDD (Given–When–Then) |
 | [docs/ia/registro.md](docs/ia/registro.md) | Registro de uso de IA |
+| [docs/despliegue.md](docs/despliegue.md) | Despliegue en Azure: URL, cómo se despliega, secretos y cómo volver atrás |
 
 ## Equipo
 
