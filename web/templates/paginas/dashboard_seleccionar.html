@@ -1,16 +1,28 @@
 {{define "titulo"}}Dashboard{{end}}
 {{define "contenido"}}
-<section>
-  <h1>Dashboard</h1>
-  <form method="get" action="/dashboard">
-    <label>Proyecto
-      <select name="proyecto">
-        {{range .Datos}}
-        <option value="{{.ID}}">{{.Nombre}}</option>
-        {{end}}
-      </select>
-    </label>
-    <button type="submit">Ver dashboard</button>
-  </form>
-</section>
+<div class="encabezado">
+  <hgroup>
+    <h1 class="titulo-con-icono">
+      {{- range .Secciones}}{{if $.Activa .Ruta}}<svg class="icono" viewBox="0 0 24 24" aria-hidden="true"><path d="{{.Icono}}"/></svg>{{end}}{{end -}}
+      Dashboard</h1>
+    <p>Métricas y gráficos de un proyecto</p>
+  </hgroup>
+</div>
+{{- if .Datos}}
+<form method="get" action="/dashboard">
+  <label>Proyecto
+    <select name="proyecto">
+      {{- range .Datos}}
+      <option value="{{.ID}}">{{.Nombre}}</option>
+      {{- end}}
+    </select>
+  </label>
+  <button type="submit">Ver dashboard</button>
+</form>
+{{- else}}
+<div class="vacio">
+  <p>Todavía no hay proyectos.</p>
+  <p><a href="/proyectos/nuevo">Crear el primer proyecto</a></p>
+</div>
+{{- end}}
 {{end}}
