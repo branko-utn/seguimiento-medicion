@@ -4,7 +4,7 @@
 - **Escenarios BDD:** [`features/hu-21-consultar-el-esfuerzo-registrado.feature`](../features/hu-21-consultar-el-esfuerzo-registrado.feature)
 - **Redactada por:** Branko Almeira (Agile Enabler) · **Validada por:** el responsable al aprobar el PR de la planning del Sprint 3
 - **Depende de:** HU-20 (`effort.Registro`), HU-03 (integrantes), HU-05 (historias), HU-26 (`metrics.HorasReales`)
-- **Estado:** aprobada en la planning del Sprint 3
+- **Estado:** implementada (Sprint 3)
 
 ## Historia
 

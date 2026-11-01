@@ -4,7 +4,7 @@
 - **Escenarios BDD:** [`features/hu-09-ver-el-backlog-ordenado-por-prioridad.feature`](../features/hu-09-ver-el-backlog-ordenado-por-prioridad.feature)
 - **Redactada por:** Branko Almeira (Agile Enabler) · **Validada por:** el responsable al aprobar el PR de la planning del Sprint 3
 - **Depende de:** HU-05 (`Historia`, `Prioridad`), HU-08 (estados)
-- **Estado:** aprobada en la planning del Sprint 3
+- **Estado:** implementada (Sprint 3)
 
 ## Historia
 

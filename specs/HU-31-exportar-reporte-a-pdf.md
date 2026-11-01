@@ -1,10 +1,10 @@
 # HU-31 · Exportar reporte a PDF
 
-- **Issue:** #38 · **Épica:** E9 Reportes · **Responsable:** Agustín Giorlando · **Story Points:** 5
+- **Issue:** #38 · **Épica:** E9 Reportes · **Responsable:** Agustín Lara (asignada a Agustín Giorlando; pasó a Lara por el corte de las 18:00 del 31/10, ver la planning del Sprint 4) · **Story Points:** 5
 - **Escenarios BDD:** [`features/hu-31-exportar-reporte-a-pdf.feature`](../features/hu-31-exportar-reporte-a-pdf.feature)
 - **Redactada por:** Branko Almeira (Agile Enabler) · **Validada por:** el equipo al aprobar el PR de las specs del Sprint 4
 - **Depende de:** solo código en `main`: HU-29 y HU-30 (`report.ReporteSprint` y `report.ReporteProyecto`)
-- **Estado:** aprobada para el Sprint 4
+- **Estado:** implementada (Sprint 4)
 
 ## Historia
 

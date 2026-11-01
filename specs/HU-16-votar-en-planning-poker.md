@@ -4,7 +4,7 @@
 - **Escenarios BDD:** [`features/hu-16-votar-en-planning-poker.feature`](../features/hu-16-votar-en-planning-poker.feature)
 - **Redactada por:** Branko Almeira (Agile Enabler) · **Validada por:** el equipo en la planning del Sprint 2 (aprobada)
 - **Depende de:** HU-03 (`Integrante`), HU-05 (`Historia`), HU-15 (`estimation.Escala`)
-- **Estado:** aprobada en la planning del Sprint 2
+- **Estado:** implementada (Sprint 2)
 
 ## Historia
 

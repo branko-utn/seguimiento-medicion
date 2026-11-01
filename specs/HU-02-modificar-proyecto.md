@@ -4,7 +4,7 @@
 - **Escenarios BDD:** [`features/hu-02-modificar-proyecto.feature`](../features/hu-02-modificar-proyecto.feature)
 - **Depende de:** HU-01 (en `main`)
 - **Redactada por:** Branko Almeira (Agile Enabler) después de la planning del Sprint 2 · **Validada por:** Federico Sosa (al aprobar el PR)
-- **Estado:** aprobada para el Sprint 2
+- **Estado:** implementada (Sprint 2)
 
 ## Historia
 

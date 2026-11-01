@@ -4,7 +4,7 @@
 - **Escenarios BDD:** [`features/hu-13-cerrar-sprint.feature`](../features/hu-13-cerrar-sprint.feature)
 - **Redactada por:** Branko Almeira (Agile Enabler) · **Validada por:** el equipo en la planning del Sprint 2 (aprobada)
 - **Depende de:** HU-10 y HU-11 (`Sprint`), HU-12 (`Sprint.Completadas`), HU-08 (estados de la historia), HU-24 (SP)
-- **Estado:** aprobada en la planning del Sprint 2
+- **Estado:** implementada (Sprint 2)
 
 ## Historia
 

@@ -5,7 +5,7 @@
 - **Redactada por:** Branko Almeira (Agile Enabler) · **Validada por:** el responsable al aprobar el PR de la planning del Sprint 3
 - **Depende de:** solo código en `main`: HU-01, HU-10, HU-05, HU-08, HU-25 y TEC-20 (`Proyecto.EstadoAl` y
   `Proyecto.DiasRestantes`, que entran antes de que arranque el sprint)
-- **Estado:** aprobada en la planning del Sprint 3
+- **Estado:** implementada (Sprint 3)
 
 ## Historia
 

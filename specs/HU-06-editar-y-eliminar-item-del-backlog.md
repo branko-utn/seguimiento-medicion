@@ -5,7 +5,7 @@
 - **Redactada por:** Branko Almeira (Agile Enabler) · **Validada por:** el responsable al aprobar el PR de la planning del Sprint 3
 - **Depende de:** solo código en `main`: HU-05 (`Historia`, validaciones), HU-11 (asignación a sprint), HU-08 (estados),
   HU-20 (`Registros.DeHistoria`) y HU-22 (`Defectos.Listar`)
-- **Estado:** aprobada en la planning del Sprint 3
+- **Estado:** implementada (Sprint 3)
 
 ## Historia
 

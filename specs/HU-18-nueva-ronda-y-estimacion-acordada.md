@@ -5,7 +5,7 @@
 - **Redactada por:** Branko Almeira (Agile Enabler) · **Validada por:** el responsable al aprobar el PR de la planning del Sprint 3
 - **Depende de:** solo código en `main`: HU-16 (`estimation.Sesion`, `service.PlanningPoker`), HU-17 (`Sesion.Revelar`),
   HU-15 (`Historia.Estimar`)
-- **Estado:** aprobada en la planning del Sprint 3
+- **Estado:** implementada (Sprint 3)
 
 ## Historia
 

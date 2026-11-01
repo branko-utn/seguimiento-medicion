@@ -4,7 +4,7 @@
 - **Escenarios BDD:** [`features/hu-26-horas-estimadas-reales-y-desviacion.feature`](../features/hu-26-horas-estimadas-reales-y-desviacion.feature)
 - **Depende de:** nada: funciones puras con tipos de entrada propios (ADR 0002, sección 3)
 - **Redactada por:** Branko Almeira (Agile Enabler) después de la planning del Sprint 2 · **Validada por:** Agustín Giorlando (al aprobar el PR)
-- **Estado:** aprobada para el Sprint 2
+- **Estado:** implementada (Sprint 2)
 
 ## Historia
 
