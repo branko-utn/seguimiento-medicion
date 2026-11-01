@@ -3,7 +3,7 @@
 {{define "contenido"}}
 <h1>Esfuerzo</h1>
 
-<section>
+<section id="registrar-horas">
   <h2>Registrar horas trabajadas</h2>
   <form method="post" action="/esfuerzo">
     {{- with .Datos.Form.Error}}
@@ -49,14 +49,14 @@
   <h2>Horas registradas</h2>
   {{- if .Datos.Registros}}
   <div class="overflow-auto">
-    <table>
+    <table class="tabla">
       <thead>
         <tr>
           <th scope="col">Fecha</th>
           <th scope="col">Integrante</th>
           <th scope="col">Historia</th>
           <th scope="col">Actividad</th>
-          <th scope="col">Horas</th>
+          <th scope="col" class="num">Horas</th>
         </tr>
       </thead>
       <tbody>
@@ -66,53 +66,64 @@
           <td>{{.Integrante}}</td>
           <td>{{.HistoriaID}}</td>
           <td>{{.Actividad}}</td>
-          <td>{{.Horas}}</td>
+          <td class="num">{{.HorasTexto}}</td>
         </tr>
         {{- end}}
       </tbody>
     </table>
   </div>
   {{- else}}
-  <p>Todavía no hay horas registradas.</p>
+  <div class="vacio">
+    <p>Todavía no hay horas registradas.</p>
+    <p><a href="#registrar-horas">Registrar las primeras horas</a></p>
+  </div>
   {{- end}}
 </section>
 
 <section>
   <h2>Esfuerzo por proyecto</h2>
   {{- range .Datos.Resumenes}}
-  <article id="esfuerzo-{{.ID}}">
-    <header><strong>{{.Nombre}}</strong> · {{.Total}} horas</header>
+  <section id="esfuerzo-{{.ID}}">
+    <h3>{{.Nombre}}</h3>
     {{- if .PorHistoria}}
+    <div class="tarjetas">
+      <article class="tarjeta-metrica"><span class="valor">{{.Total}}</span><span class="etiqueta">horas registradas</span></article>
+      <article class="tarjeta-metrica"><span class="valor">{{len .PorHistoria}}</span><span class="etiqueta">historias con esfuerzo</span></article>
+      <article class="tarjeta-metrica"><span class="valor">{{len .PorIntegrante}}</span><span class="etiqueta">integrantes con esfuerzo</span></article>
+    </div>
     <div class="grid">
       <div class="overflow-auto">
-        <table>
+        <table class="tabla">
           <thead>
-            <tr><th scope="col">Historia</th><th scope="col">Horas</th></tr>
+            <tr><th scope="col">Historia</th><th scope="col" class="num">Horas</th></tr>
           </thead>
           <tbody>
             {{- range .PorHistoria}}
-            <tr><td><a href="/backlog/{{.Historia}}">{{.Historia}}</a></td><td>{{.Horas}}</td></tr>
+            <tr><td><a href="/backlog/{{.Historia}}">{{.Historia}}</a></td><td class="num">{{.Horas}}</td></tr>
             {{- end}}
           </tbody>
         </table>
       </div>
       <div class="overflow-auto">
-        <table>
+        <table class="tabla">
           <thead>
-            <tr><th scope="col">Integrante</th><th scope="col">Horas</th></tr>
+            <tr><th scope="col">Integrante</th><th scope="col" class="num">Horas</th></tr>
           </thead>
           <tbody>
             {{- range .PorIntegrante}}
-            <tr><td>{{.Nombre}}</td><td>{{.Horas}}</td></tr>
+            <tr><td>{{.Nombre}}</td><td class="num">{{.Horas}}</td></tr>
             {{- end}}
           </tbody>
         </table>
       </div>
     </div>
     {{- else}}
-    <p>Todavía no hay esfuerzo registrado.</p>
+    <div class="vacio">
+      <p>Todavía no hay esfuerzo registrado.</p>
+      <p><a href="#registrar-horas">Registrar horas</a></p>
+    </div>
     {{- end}}
-  </article>
+  </section>
   {{- end}}
 </section>
 
@@ -120,11 +131,11 @@
   <h2>Horas estimadas por historia</h2>
   {{- if .Datos.Historias}}
   <div class="overflow-auto">
-    <table>
+    <table class="tabla">
       <thead>
         <tr>
           <th scope="col">Historia</th>
-          <th scope="col">Horas estimadas</th>
+          <th scope="col" class="num">Horas estimadas</th>
           <th scope="col">Estimar</th>
         </tr>
       </thead>
@@ -132,7 +143,7 @@
         {{- range .Datos.Historias}}
         <tr>
           <td>{{.ID}} · {{.Titulo}}</td>
-          <td>{{if .Estimada}}{{.Horas}}{{else}}Sin estimar{{end}}</td>
+          <td class="num">{{if .Estimada}}{{.Horas}}{{else}}Sin estimar{{end}}</td>
           <td>
             <form method="post" action="/esfuerzo/historias/{{.ID}}/estimacion">
               {{- with .Error}}
@@ -150,7 +161,10 @@
     </table>
   </div>
   {{- else}}
-  <p>Todavía no hay historias en el backlog.</p>
+  <div class="vacio">
+    <p>Todavía no hay historias en el backlog.</p>
+    <p><a href="/backlog/nueva">Crear la primera historia</a></p>
+  </div>
   {{- end}}
 </section>
 {{end}}
