@@ -41,7 +41,10 @@ El ejemplo completo está en el historial de `chore/TEC-01-esqueleto` (endpoint 
 ## 3. Pull Requests
 
 1. `git push -u origin <rama>` y `gh pr create` (o desde la web). Se puede abrir como *draft* desde el primer commit.
-2. Completar la plantilla del PR, **incluida la tabla de trazabilidad**, y escribir `Closes #N` para vincular el issue.
+2. Completar la plantilla del PR, **incluida la tabla de trazabilidad**, y escribir `Closes #N` para vincular el issue
+   (**solo si el PR termina el ítem**; si hace una parte, `Parte de #N`). Antes de abrirlo, `git merge origin/main` y,
+   en un conflicto de un archivo compartido, **quedarse con los dos lados**: ver el
+   [anexo A.7 del manual](docs/manual-de-usuario.md#a7-antes-de-abrir-un-pr-acciones-de-las-retrospectivas).
 3. **Revisión cruzada**: cada uno revisa los PRs de quien está a su izquierda en la rotación
 
    `Sosa → Bianchi → Lara → Giorlando → Branko → Sosa`

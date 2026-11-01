@@ -53,10 +53,12 @@ type totalIntegrante struct {
 	Nombre, Horas string
 }
 
-// filaRegistro es un registro de esfuerzo de la lista, con el nombre del integrante.
+// filaRegistro es un registro de esfuerzo de la lista, con el nombre del integrante y las horas ya escritas con un
+// decimal y coma (HU-32.3, RN-32.3).
 type filaRegistro struct {
 	effort.Registro
 	Integrante string
+	HorasTexto string
 }
 
 // opcionIntegrante es un integrante del formulario, con el nombre de su proyecto para distinguirlo.
@@ -71,7 +73,7 @@ type filaHistoria struct {
 	ID       domain.HistoriaID
 	Titulo   string
 	Estimada bool
-	Horas    float64
+	Horas    string // con un decimal y coma (HU-32.3, RN-32.3)
 	// Valor es lo que muestra el campo de horas: lo que se escribió si hubo un error, o la estimación guardada.
 	Valor string
 	Error string
@@ -152,7 +154,7 @@ func (a *app) mostrarEsfuerzo(w http.ResponseWriter, r *http.Request, codigo int
 	datos := datosEsfuerzo{Integrantes: integrantes, Form: form}
 	for _, h := range historias {
 		for _, reg := range a.svc.Registros.DeHistoria(h.ID) {
-			datos.Registros = append(datos.Registros, filaRegistro{Registro: reg, Integrante: nombres[reg.IntegranteID]})
+			datos.Registros = append(datos.Registros, filaRegistro{Registro: reg, Integrante: nombres[reg.IntegranteID], HorasTexto: unDecimal(reg.Horas)})
 		}
 		fila := filaHistoria{ID: h.ID, Titulo: h.Titulo}
 		e, ok, err := a.svc.Estimaciones.Buscar(h.ID)
@@ -161,7 +163,7 @@ func (a *app) mostrarEsfuerzo(w http.ResponseWriter, r *http.Request, codigo int
 			return
 		}
 		if ok {
-			fila.Estimada, fila.Horas = true, e.Horas
+			fila.Estimada, fila.Horas = true, unDecimal(e.Horas)
 			fila.Valor = strconv.FormatFloat(e.Horas, 'f', -1, 64)
 		}
 		if h.ID == est.Historia {
