@@ -1,5 +1,5 @@
 # language: es
-@HU-32 @HU-32.3 @pendiente
+@HU-32 @HU-32.3
 Característica: Interfaz de esfuerzo y defectos
   Como integrante del equipo
   Quiero ver la severidad de los defectos y los totales de esfuerzo de un vistazo

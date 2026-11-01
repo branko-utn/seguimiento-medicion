@@ -1,5 +1,5 @@
 # language: es
-@HU-31 @pendiente
+@HU-31
 Característica: Exportar reporte a PDF
   Como líder del proyecto
   Quiero exportar un reporte a PDF
