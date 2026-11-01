@@ -52,7 +52,8 @@ El workflow hace, en orden:
 2. **`imagen`:** calcula el hash de la CSP del dashboard (`deploy/csp-hash.sh`), construye las dos imágenes, las
    publica como `sha-<commit>` y toma sus **digests**.
 3. **`desplegar`:**
-   1. crea el entorno `utnapp-env` en `switzerlandnorth` **solo si no existe** (nunca lo borra);
+   1. crea nuestro entorno `grupo02-env` en `switzerlandnorth` **solo si no existe** (nunca lo borra), en **modo
+      estándar** con el perfil `Consumption`, y **falla si quedó en modo express** (ver abajo);
    2. arma la plantilla con los digests y los secretos en un archivo temporal, que **se borra siempre**;
    3. crea o actualiza `grupo02-seguimiento-medicion` **por digest** (otro grupo no puede pisarnos la imagen);
    4. **prueba de humo:** hasta 3 minutos esperando que `/health` responda `{"estado":"ok"}` y que `/backlog` muestre
@@ -62,6 +63,11 @@ El workflow hace, en orden:
 
 **Regla de oro:** el workflow solo crea, cambia o borra lo que empieza con `grupo02-`. El grupo de recursos, el
 registro y la cuenta son de la cátedra y los comparten los 16 grupos.
+
+**Por qué un entorno propio:** el que indicó la cátedra, `utnapp-env`, quedó en **modo express** (lo creó nuestro
+workflow con `az containerapp env create` el 01/11), y express no admite init containers, sidecars ni volúmenes. Por
+eso usamos `grupo02-env`, creado con la API de Azure en modo estándar. `utnapp-env` no se toca. Detalle: [ADR
+0005](adr/0005-despliegue-en-azure.md).
 
 ## Secretos
 
