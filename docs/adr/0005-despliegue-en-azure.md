@@ -41,8 +41,19 @@ Lo que comprobamos el 01/11 con consultas de solo lectura:
    **pide usuario y clave para cualquier escritura** (todas las escrituras son `POST`).
 4. Mínimo 0 y **máximo 1 réplica**.
 
-Si `utnapp-env` no existe, el workflow lo crea con ese nombre (el que fijó la cátedra) y nunca lo borra; lo decidió el equipo el 01/11. Se le avisa
-al profesor.
+**La app corre en un entorno propio, `grupo02-env`, en modo estándar** (perfiles de carga, con el perfil
+`Consumption`). El workflow lo crea si no existe, verifica que no haya quedado en modo express y nunca lo borra.
+
+**Por qué no `utnapp-env` (actualización del 01/11):** en la primera prueba del despliegue, `utnapp-env` no existía y
+nuestro workflow lo creó con `az containerapp env create`. Azure lo creó en **modo express**, que **no admite init
+containers, sidecars ni volúmenes**, y rechazó la app. Las tres piezas de esta decisión dependen de eso. Por eso:
+
+- `grupo02-env` se crea con la API de Azure (`az rest --method PUT` a `Microsoft.App/managedEnvironments`), pidiendo
+  `environmentMode: WorkloadProfiles` con el perfil `Consumption`, que cobra por uso y escala a cero.
+- Después de crearlo, el workflow consulta el modo y **corta si es express**, con un mensaje claro.
+- El nombre entra en la regla de solo tocar lo que empieza con `grupo02-`, así que ya no hay excepciones a esa regla.
+- `utnapp-env` queda como está: no se modifica ni se borra, porque otros grupos pueden estar usándolo. Branko le
+  avisa al profesor que lo creó nuestro workflow y que quedó en modo express.
 
 **Plan B:** ACI en `switzerlandnorth` con el mismo sidecar Caddy sirviendo HTTPS, y un workflow para encenderlo y
 apagarlo. Se usa solo si Container Apps no se puede crear.

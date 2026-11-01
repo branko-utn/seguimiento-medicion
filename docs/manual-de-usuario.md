@@ -665,6 +665,10 @@ Además, [`revisor.yml`](../.github/workflows/revisor.yml) le pide la revisión 
 rotación (Sosa → Bianchi → Lara → Giorlando → Branko → Sosa). `main` está protegida: solo entra un PR con el CI en
 verde y una aprobación.
 
+**Despliegue continuo:** cada merge a `main` que cambia código corre
+[`cd-azure.yml`](../.github/workflows/cd-azure.yml), que publica la app en Azure Container Apps con HTTPS y los datos
+de la demo. Cómo funciona, la URL, los secretos y cómo volver atrás: [despliegue.md](despliegue.md).
+
 ### A.6 Cómo contribuir: SDD → BDD → TDD
 
 Cada historia recorre la misma cadena, con el mismo ID en todos los artefactos:

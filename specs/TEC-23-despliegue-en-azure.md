@@ -17,7 +17,7 @@ los datos de la demo cargados.
 | `CONTAINER_APP_NAME` | `grupo02-seguimiento-medicion` | Variable del workflow |
 | `ACR_NAME` / `ACR_NAME_URL` | `ingcalidad2026` / `ingcalidad2026.azurecr.io` | Variables del workflow |
 | `AZURE_RESOURCE_GROUP` | `frsrutn` | Variable del workflow |
-| `AZURE_CONTAINERAPPS_ENVIRONMENT` | `utnapp-env` | Variable del workflow |
+| `AZURE_CONTAINERAPPS_ENVIRONMENT` | `grupo02-env` (la cátedra indicó `utnapp-env`; ver ADR 0005) | Variable del workflow |
 | `AZURE_CREDENTIALS` | JSON del service principal | **Secreto** del Environment `azure` (TEC-24) |
 | `ACR_PASSWORD` | Clave del registro | **Secreto** del Environment `azure` (TEC-24) |
 
@@ -53,7 +53,10 @@ Región: `switzerlandnorth` (política de regiones permitidas y misma región qu
   2. Construye las dos imágenes con la etiqueta `sha-<commit>` y las publica en el registro como
      `grupo02-seguimiento-medicion` y `grupo02-proxy`.
   3. Toma el **digest** de cada imagen recién publicada.
-  4. Si `utnapp-env` no existe, lo crea en `switzerlandnorth`. Si existe, no lo toca.
+  4. Si el entorno propio `grupo02-env` no existe, lo crea en `switzerlandnorth` en **modo estándar** (perfil
+     `Consumption`) con `az rest --method PUT`, espera a que termine y **falla si quedó en modo express**. Si existe,
+     no lo toca. (Actualización del 01/11: `az containerapp env create` creó `utnapp-env` en modo express, que no
+     admite init containers, sidecars ni volúmenes. Ver ADR 0005.)
   5. Crea o actualiza `grupo02-seguimiento-medicion` con `deploy/containerapp.yaml` y los digests.
   6. **Prueba de humo:** espera hasta 3 minutos a que `https://<fqdn>/health` responda `{"estado":"ok"}` y a que
      `/backlog` muestre el proyecto de la demo. Si falla, el job queda en rojo y muestra los logs de la réplica.
@@ -64,8 +67,8 @@ Región: `switzerlandnorth` (política de regiones permitidas y misma región qu
 
 ## Reglas
 
-- **Solo se crea, cambia o borra lo que empieza con `grupo02-`.** Las excepciones son crear `utnapp-env` si no existe
-  y leer el registro. Nunca se borra el entorno, el registro ni el grupo de recursos.
+- **Solo se crea, cambia o borra lo que empieza con `grupo02-`**, incluido el entorno `grupo02-env`. La única
+  excepción es leer el registro. Nunca se toca `utnapp-env` ni se borra el registro o el grupo de recursos.
 - **Sin Terraform** (ADR 0005).
 - **La demo local no cambia:** `make demo` y `make run` siguen igual. La presentación se hace en local y la URL
   pública es el respaldo, o al revés si lo pide la cátedra.

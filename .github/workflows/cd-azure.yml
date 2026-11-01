@@ -1,0 +1,308 @@
+# Despliegue continuo en Azure Container Apps (TEC-23, ADR 0005). Seguridad: TEC-24.
+#
+# Construye la imagen de la app y la del proxy, las publica en el registro de la cátedra con la etiqueta sha-<commit>,
+# despliega por digest y prueba que la app responda. Solo crea, cambia o borra lo que empieza con grupo02- (A12).
+#
+# Secretos del Environment `azure` (nunca en archivos ni en logs, A3): AZURE_CREDENTIALS, ACR_PASSWORD y
+# WRITE_PASSWORD_HASH. Si falta alguno, construye las imágenes para validarlas y termina en verde sin publicar.
+name: CD Azure
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "cmd/**"
+      - "internal/**"
+      - "web/**"
+      - "go.mod"
+      - "go.sum"
+      - "Dockerfile"
+      - ".dockerignore"
+      - "deploy/**"
+      - ".github/workflows/cd-azure.yml"
+  # A mano: "Run workflow" (GitHub solo lo ofrece para workflows que ya están en main).
+  workflow_dispatch:
+
+# Nunca en pull_request ni pull_request_target: un PR no puede correr código con los secretos (A4).
+permissions:
+  contents: read
+
+# Un despliegue por vez; el siguiente espera en lugar de cortar uno a medias.
+concurrency:
+  group: cd-azure
+  cancel-in-progress: false
+
+env:
+  CONTAINER_APP_NAME: grupo02-seguimiento-medicion
+  IMAGEN_APP: grupo02-seguimiento-medicion
+  IMAGEN_PROXY: grupo02-proxy
+  ACR_NAME: ingcalidad2026
+  ACR_LOGIN_SERVER: ingcalidad2026.azurecr.io
+  AZURE_RESOURCE_GROUP: frsrutn
+  # Entorno propio en modo estándar (ADR 0005): utnapp-env se creó en modo express, que no admite init containers,
+  # sidecars ni volúmenes. grupo02-env entra en la regla de grupo02-*; utnapp-env no se toca.
+  AZURE_CONTAINERAPPS_ENVIRONMENT: grupo02-env
+  AZURE_LOCATION: switzerlandnorth
+  API_ENTORNO: "2026-07-01" # versión de la API de Microsoft.App/managedEnvironments
+
+jobs:
+  # 1. ¿Están los secretos? Si falta alguno, se construye sin publicar.
+  configuracion:
+    runs-on: ubuntu-latest
+    environment: azure
+    outputs:
+      publicar: ${{ steps.secretos.outputs.publicar }}
+    steps:
+      - name: Verificar los secretos
+        id: secretos
+        env:
+          AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
+          ACR_PASSWORD: ${{ secrets.ACR_PASSWORD }}
+          WRITE_PASSWORD_HASH: ${{ secrets.WRITE_PASSWORD_HASH }}
+        run: |
+          faltan=""
+          [ -n "$AZURE_CREDENTIALS" ] || faltan="$faltan AZURE_CREDENTIALS"
+          [ -n "$ACR_PASSWORD" ] || faltan="$faltan ACR_PASSWORD"
+          [ -n "$WRITE_PASSWORD_HASH" ] || faltan="$faltan WRITE_PASSWORD_HASH"
+          if [ -n "$faltan" ]; then
+            echo "::warning::Faltan secretos del Environment azure:$faltan. Se construyen las imágenes sin publicar."
+            echo "publicar=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "publicar=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  # TEC-24 (A6): govulncheck con el mismo Go de la imagen. Si encuentra una vulnerabilidad que el código alcanza,
+  # falla, e `imagen` no corre: no se publica nada. No usa secretos.
+  vulnerabilidades:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
+        with:
+          go-version: "1.26.10" # el mismo que compila la imagen (Dockerfile)
+
+      - name: govulncheck
+        run: go run golang.org/x/vuln/cmd/govulncheck@v1.9.0 ./...
+
+  # 2. Construye las dos imágenes y, si hay secretos, las publica. Devuelve sus digests (A5).
+  imagen:
+    needs: [configuracion, vulnerabilidades]
+    runs-on: ubuntu-latest
+    environment: azure
+    outputs:
+      digest-app: ${{ steps.app.outputs.digest }}
+      digest-proxy: ${{ steps.proxy.outputs.digest }}
+      csp-script-hash: ${{ steps.csp.outputs.hash }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - name: Hash del script del dashboard para la CSP
+        id: csp
+        run: echo "hash=$(sh deploy/csp-hash.sh)" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
+
+      - name: Entrar al registro
+        if: needs.configuracion.outputs.publicar == 'true'
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
+        with:
+          registry: ${{ env.ACR_LOGIN_SERVER }}
+          username: ${{ env.ACR_NAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+
+      - name: Imagen de la app
+        id: app
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6.19.2
+        with:
+          context: .
+          push: ${{ needs.configuracion.outputs.publicar == 'true' }}
+          tags: ${{ env.ACR_LOGIN_SERVER }}/${{ env.IMAGEN_APP }}:sha-${{ github.sha }}
+          provenance: false
+
+      - name: Imagen del proxy
+        id: proxy
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6.19.2
+        with:
+          context: deploy
+          file: deploy/proxy/Dockerfile
+          push: ${{ needs.configuracion.outputs.publicar == 'true' }}
+          tags: ${{ env.ACR_LOGIN_SERVER }}/${{ env.IMAGEN_PROXY }}:sha-${{ github.sha }}
+          provenance: false
+
+  # 3. Despliega por digest, prueba que responda y deja la URL en el resumen.
+  desplegar:
+    needs: [configuracion, imagen]
+    if: needs.configuracion.outputs.publicar == 'true'
+    runs-on: ubuntu-latest
+    environment: azure
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - uses: azure/login@7184910d9eb2b1c5e48f7073824a90609bb9b6d6 # v2.3.1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      # `az containerapp env create` lo crea en modo express, que no admite init containers, sidecars ni volúmenes.
+      # Por eso se crea con la API (PUT) pidiendo el modo estándar con el perfil Consumption, y se verifica el modo.
+      - name: Entorno propio grupo02-env en modo estándar (nunca se borra)
+        id: entorno
+        run: |
+          suscripcion=$(az account show --query id -o tsv)
+          url="https://management.azure.com/subscriptions/$suscripcion/resourceGroups/$AZURE_RESOURCE_GROUP/providers/Microsoft.App/managedEnvironments/$AZURE_CONTAINERAPPS_ENVIRONMENT?api-version=$API_ENTORNO"
+
+          # Solo se crea si no existe: un PUT sobre un entorno existente podría cambiarle la configuración.
+          if ! az rest --method GET --url "$url" -o none 2>/dev/null; then
+            cuerpo=$(jq -n --arg lugar "$AZURE_LOCATION" '{
+              location: $lugar,
+              properties: {
+                environmentMode: "WorkloadProfiles",
+                workloadProfiles: [{name: "Consumption", workloadProfileType: "Consumption"}]
+              }
+            }')
+            az rest --method PUT --url "$url" --body "$cuerpo" -o none
+          fi
+
+          # La creación es asíncrona: hasta 10 minutos esperando que termine.
+          estado=""
+          for intento in $(seq 1 60); do
+            estado=$(az rest --method GET --url "$url" --query properties.provisioningState -o tsv)
+            [ "$estado" = "Succeeded" ] && break
+            [ "$estado" = "Failed" ] && { echo "::error::El entorno $AZURE_CONTAINERAPPS_ENVIRONMENT quedó en estado Failed."; exit 1; }
+            echo "Entorno en estado ${estado:-desconocido} (intento $intento)…"
+            sleep 10
+          done
+          [ "$estado" = "Succeeded" ] || { echo "::error::El entorno no terminó de crearse en 10 minutos (estado: $estado)."; exit 1; }
+
+          # Si vuelve en modo express, el despliegue fallaría más adelante: se corta acá con un mensaje claro.
+          modo=$(az rest --method GET --url "$url" --query properties.environmentMode -o tsv)
+          echo "Entorno $AZURE_CONTAINERAPPS_ENVIRONMENT: modo ${modo:-sin informar}, estado $estado."
+          case "$modo" in
+            [Ee]xpress)
+              echo "::error::El entorno $AZURE_CONTAINERAPPS_ENVIRONMENT quedó en modo $modo: no admite init containers, sidecars ni volúmenes."
+              exit 1 ;;
+          esac
+          echo "id=$(az rest --method GET --url "$url" --query id -o tsv)" >> "$GITHUB_OUTPUT"
+
+      - name: Armar la plantilla con los digests y los secretos
+        env:
+          ENTORNO_ID: ${{ steps.entorno.outputs.id }}
+          IMAGEN_APP: ${{ env.ACR_LOGIN_SERVER }}/${{ env.IMAGEN_APP }}@${{ needs.imagen.outputs.digest-app }}
+          IMAGEN_PROXY: ${{ env.ACR_LOGIN_SERVER }}/${{ env.IMAGEN_PROXY }}@${{ needs.imagen.outputs.digest-proxy }}
+          CSP_SCRIPT_HASH: ${{ needs.imagen.outputs.csp-script-hash }}
+          ACR_PASSWORD: ${{ secrets.ACR_PASSWORD }}
+          WRITE_PASSWORD_HASH: ${{ secrets.WRITE_PASSWORD_HASH }}
+        run: |
+          # Solo se reemplazan estos marcadores; el archivo queda en $RUNNER_TEMP y se borra al terminar.
+          # La lista va entre comillas simples a propósito: envsubst la recibe textual, sin expandir.
+          # shellcheck disable=SC2016
+          envsubst '${ENTORNO_ID} ${IMAGEN_APP} ${IMAGEN_PROXY} ${CSP_SCRIPT_HASH} ${ACR_PASSWORD} ${WRITE_PASSWORD_HASH}' \
+            < deploy/containerapp.yaml > "$RUNNER_TEMP/containerapp.yaml"
+
+      - name: Crear o actualizar la app
+        run: |
+          if az containerapp show -g "$AZURE_RESOURCE_GROUP" -n "$CONTAINER_APP_NAME" >/dev/null 2>&1; then
+            az containerapp update -g "$AZURE_RESOURCE_GROUP" -n "$CONTAINER_APP_NAME" \
+              --yaml "$RUNNER_TEMP/containerapp.yaml" -o none
+          else
+            az containerapp create -g "$AZURE_RESOURCE_GROUP" -n "$CONTAINER_APP_NAME" \
+              --environment "$AZURE_CONTAINERAPPS_ENVIRONMENT" --yaml "$RUNNER_TEMP/containerapp.yaml" -o none
+          fi
+
+      - name: Borrar la plantilla con secretos
+        if: always()
+        run: rm -f "$RUNNER_TEMP/containerapp.yaml"
+
+      - name: Prueba de humo
+        id: humo
+        run: |
+          fqdn=$(az containerapp show -g "$AZURE_RESOURCE_GROUP" -n "$CONTAINER_APP_NAME" \
+            --query properties.configuration.ingress.fqdn -o tsv)
+          echo "url=https://$fqdn" >> "$GITHUB_OUTPUT"
+          # Hasta 3 minutos: el primer pedido puede tardar por el arranque en frío.
+          # "Exportar reporte a PDF" es una historia de la demo (cmd/demo/datos.go): prueba que el init container
+          # cargó los datos. El nombre de la app no sirve, porque aparece en todas las páginas aunque no haya datos.
+          for intento in $(seq 1 36); do
+            salud=$(curl -fsS --max-time 10 "https://$fqdn/health" || true)
+            # La página se guarda antes de buscar: con pipefail, `curl | grep -q` puede dar falso aunque encuentre el
+            # texto (grep termina antes y curl recibe SIGPIPE).
+            backlog=$(curl -fsS --max-time 10 "https://$fqdn/backlog" || true)
+            if [ "$salud" = '{"estado":"ok"}' ] && grep -q "Exportar reporte a PDF" <<<"$backlog"; then
+              echo "La app responde y tiene los datos de la demo (intento $intento)."
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "::error::La app no respondió /health o /backlog no muestra el proyecto de la demo en 3 minutos."
+          exit 1
+
+      # TEC-24: lo que se ve desde afuera. Corre todas las pruebas y falla al final si alguna no pasó.
+      - name: Pruebas de seguridad
+        env:
+          URL: ${{ steps.humo.outputs.url }}
+          CSP_SCRIPT_HASH: ${{ needs.imagen.outputs.csp-script-hash }}
+        run: |
+          # Cada curl termina en "|| true": si uno no conecta, se informa como falla y se siguen las demás pruebas.
+          fallas=0
+          falla() { echo "::error::$1"; fallas=$((fallas + 1)); }
+
+          # A1: sin clave, una escritura y /ingresar responden 401.
+          for ruta in /backlog /ingresar; do
+            metodo=POST; [ "$ruta" = /ingresar ] && metodo=GET
+            codigo=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 -X "$metodo" "$URL$ruta" || true)
+            [ "$codigo" = 401 ] && echo "$metodo $ruta sin clave: 401" || falla "$metodo $ruta sin clave respondió $codigo y no 401"
+          done
+
+          # A2: http:// redirige a https://.
+          redireccion=$(curl -s -o /dev/null -w '%{http_code} %{redirect_url}' --max-time 10 "http://${URL#https://}/" || true)
+          case "$redireccion" in
+            30[1278]" https://"*) echo "http:// redirige: $redireccion" ;;
+            *) falla "http:// no redirige a https:// (respondió: $redireccion)" ;;
+          esac
+
+          # A2 y A11: cabeceras de seguridad, y sin la cabecera Server.
+          cabeceras=$( (curl -s -D - -o /dev/null --max-time 10 "$URL/" || true) | tr -d '\r')
+          for esperada in \
+              "strict-transport-security: max-age=31536000" \
+              "x-content-type-options: nosniff" \
+              "x-frame-options: DENY" \
+              "referrer-policy: same-origin" \
+              "content-security-policy: default-src 'self'; script-src 'self' '$CSP_SCRIPT_HASH';"; do
+            grep -qiF "$esperada" <<<"$cabeceras" && echo "ok: ${esperada%%:*}" || falla "falta la cabecera: $esperada"
+          done
+          grep -qi "^server:" <<<"$cabeceras" && falla "la respuesta tiene cabecera Server" || echo "ok: sin cabecera Server"
+
+          [ "$fallas" -eq 0 ] || exit 1
+
+      - name: Logs de la réplica si falló
+        if: failure()
+        run: |
+          for c in app proxy; do
+            echo "::group::Logs de $c"
+            az containerapp logs show -g "$AZURE_RESOURCE_GROUP" -n "$CONTAINER_APP_NAME" --container "$c" --tail 100 || true
+            echo "::endgroup::"
+          done
+
+      - name: URL en el resumen
+        if: success()
+        run: |
+          {
+            echo "### App desplegada"
+            echo ""
+            echo "${{ steps.humo.outputs.url }}"
+            echo ""
+            echo "Imagen de la app: \`${{ needs.imagen.outputs.digest-app }}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Limpiar el registro (quedan las 5 últimas de cada imagen grupo02-)
+        if: success()
+        env:
+          ACR_PASSWORD: ${{ secrets.ACR_PASSWORD }}
+        run: |
+          for repo in "$IMAGEN_APP" "$IMAGEN_PROXY"; do
+            az acr repository show-tags -n "$ACR_NAME" --repository "$repo" --orderby time_desc -o tsv \
+                --username "$ACR_NAME" --password "$ACR_PASSWORD" | tail -n +6 | while read -r etiqueta; do
+              az acr repository delete -n "$ACR_NAME" --image "$repo:$etiqueta" --yes \
+                --username "$ACR_NAME" --password "$ACR_PASSWORD" -o none
+            done
+          done
