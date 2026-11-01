@@ -52,6 +52,9 @@
 
 ## Demo
 
+La guía detallada de la demo (entorno, verificación de pantallas, qué decir en cada una con las cifras y cómo
+dejar los datos como al principio) está en [`docs/demo.md`](../../demo.md), de Agustín Giorlando. Acá va el resumen.
+
 **Preparación (antes de entrar):**
 
 ```bash
