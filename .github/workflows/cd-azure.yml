@@ -43,8 +43,11 @@ env:
   ACR_NAME: ingcalidad2026
   ACR_LOGIN_SERVER: ingcalidad2026.azurecr.io
   AZURE_RESOURCE_GROUP: frsrutn
-  AZURE_CONTAINERAPPS_ENVIRONMENT: utnapp-env
+  # Entorno propio en modo estándar (ADR 0005): utnapp-env se creó en modo express, que no admite init containers,
+  # sidecars ni volúmenes. grupo02-env entra en la regla de grupo02-*; utnapp-env no se toca.
+  AZURE_CONTAINERAPPS_ENVIRONMENT: grupo02-env
   AZURE_LOCATION: switzerlandnorth
+  API_ENTORNO: "2026-07-01" # versión de la API de Microsoft.App/managedEnvironments
 
 jobs:
   # 1. ¿Están los secretos? Si falta alguno, se construye sin publicar.
@@ -144,22 +147,56 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Crear el entorno si no existe (nunca se borra)
+      # `az containerapp env create` lo crea en modo express, que no admite init containers, sidecars ni volúmenes.
+      # Por eso se crea con la API (PUT) pidiendo el modo estándar con el perfil Consumption, y se verifica el modo.
+      - name: Entorno propio grupo02-env en modo estándar (nunca se borra)
+        id: entorno
         run: |
-          az containerapp env show -g "$AZURE_RESOURCE_GROUP" -n "$AZURE_CONTAINERAPPS_ENVIRONMENT" >/dev/null 2>&1 || \
-            az containerapp env create -g "$AZURE_RESOURCE_GROUP" -n "$AZURE_CONTAINERAPPS_ENVIRONMENT" \
-              -l "$AZURE_LOCATION" --logs-destination none
+          suscripcion=$(az account show --query id -o tsv)
+          url="https://management.azure.com/subscriptions/$suscripcion/resourceGroups/$AZURE_RESOURCE_GROUP/providers/Microsoft.App/managedEnvironments/$AZURE_CONTAINERAPPS_ENVIRONMENT?api-version=$API_ENTORNO"
+
+          # Solo se crea si no existe: un PUT sobre un entorno existente podría cambiarle la configuración.
+          if ! az rest --method GET --url "$url" -o none 2>/dev/null; then
+            cuerpo=$(jq -n --arg lugar "$AZURE_LOCATION" '{
+              location: $lugar,
+              properties: {
+                environmentMode: "WorkloadProfiles",
+                workloadProfiles: [{name: "Consumption", workloadProfileType: "Consumption"}]
+              }
+            }')
+            az rest --method PUT --url "$url" --body "$cuerpo" -o none
+          fi
+
+          # La creación es asíncrona: hasta 10 minutos esperando que termine.
+          estado=""
+          for intento in $(seq 1 60); do
+            estado=$(az rest --method GET --url "$url" --query properties.provisioningState -o tsv)
+            [ "$estado" = "Succeeded" ] && break
+            [ "$estado" = "Failed" ] && { echo "::error::El entorno $AZURE_CONTAINERAPPS_ENVIRONMENT quedó en estado Failed."; exit 1; }
+            echo "Entorno en estado ${estado:-desconocido} (intento $intento)…"
+            sleep 10
+          done
+          [ "$estado" = "Succeeded" ] || { echo "::error::El entorno no terminó de crearse en 10 minutos (estado: $estado)."; exit 1; }
+
+          # Si vuelve en modo express, el despliegue fallaría más adelante: se corta acá con un mensaje claro.
+          modo=$(az rest --method GET --url "$url" --query properties.environmentMode -o tsv)
+          echo "Entorno $AZURE_CONTAINERAPPS_ENVIRONMENT: modo ${modo:-sin informar}, estado $estado."
+          case "$modo" in
+            [Ee]xpress)
+              echo "::error::El entorno $AZURE_CONTAINERAPPS_ENVIRONMENT quedó en modo $modo: no admite init containers, sidecars ni volúmenes."
+              exit 1 ;;
+          esac
+          echo "id=$(az rest --method GET --url "$url" --query id -o tsv)" >> "$GITHUB_OUTPUT"
 
       - name: Armar la plantilla con los digests y los secretos
         env:
+          ENTORNO_ID: ${{ steps.entorno.outputs.id }}
           IMAGEN_APP: ${{ env.ACR_LOGIN_SERVER }}/${{ env.IMAGEN_APP }}@${{ needs.imagen.outputs.digest-app }}
           IMAGEN_PROXY: ${{ env.ACR_LOGIN_SERVER }}/${{ env.IMAGEN_PROXY }}@${{ needs.imagen.outputs.digest-proxy }}
           CSP_SCRIPT_HASH: ${{ needs.imagen.outputs.csp-script-hash }}
           ACR_PASSWORD: ${{ secrets.ACR_PASSWORD }}
           WRITE_PASSWORD_HASH: ${{ secrets.WRITE_PASSWORD_HASH }}
         run: |
-          ENTORNO_ID=$(az containerapp env show -g "$AZURE_RESOURCE_GROUP" -n "$AZURE_CONTAINERAPPS_ENVIRONMENT" --query id -o tsv)
-          export ENTORNO_ID
           # Solo se reemplazan estos marcadores; el archivo queda en $RUNNER_TEMP y se borra al terminar.
           # La lista va entre comillas simples a propósito: envsubst la recibe textual, sin expandir.
           # shellcheck disable=SC2016

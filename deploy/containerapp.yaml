@@ -3,7 +3,7 @@
 # Los ${…} son marcadores: el workflow cd-azure.yml los reemplaza con envsubst en un archivo de $RUNNER_TEMP que se
 # borra al terminar. Ese archivo tiene secretos: nunca se sube al repo ni se imprime (TEC-24, A3).
 #
-#   ${ENTORNO_ID}           id del entorno utnapp-env
+#   ${ENTORNO_ID}           id del entorno grupo02-env (modo estándar con el perfil Consumption; ADR 0005)
 #   ${IMAGEN_APP}           imagen de la app por digest: ingcalidad2026.azurecr.io/grupo02-seguimiento-medicion@sha256:…
 #   ${IMAGEN_PROXY}         imagen del proxy por digest:  ingcalidad2026.azurecr.io/grupo02-proxy@sha256:…
 #   ${CSP_SCRIPT_HASH}      hash del script del dashboard para la CSP (deploy/csp-hash.sh)
@@ -18,6 +18,8 @@ location: switzerlandnorth
 type: Microsoft.App/containerApps
 properties:
   managedEnvironmentId: ${ENTORNO_ID}
+  # En un entorno con perfiles de carga, la app dice en cuál corre: Consumption cobra por uso y escala a cero.
+  workloadProfileName: Consumption
   configuration:
     activeRevisionsMode: Single
     ingress:
