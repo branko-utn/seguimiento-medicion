@@ -482,8 +482,93 @@ un cambio, avisa con alguno de estos mensajes:
 
 ## 8. Métricas y dashboard (E7 y E8) — Agustín Giorlando
 
-<!-- Qué significa cada métrica (SP, velocidad, %, horas, desviación, defectos) y cómo leer el dashboard
-     (HU-24 a HU-28). -->
+El **Dashboard** (`/dashboard`) junta en una sola pantalla cómo viene un proyecto: un resumen con las métricas en
+tarjetas y cuatro gráficos con la evolución sprint a sprint. Sirve para la Sprint Review o para mostrar el estado del
+proyecto sin tener que recorrer el backlog, los sprints, el esfuerzo y los defectos por separado. La pantalla solo
+muestra datos: para cambiarlos se usan las otras secciones.
+
+### Elegir el proyecto
+
+En la navegación, tocá **Dashboard**. Elegí el proyecto en el desplegable **Proyecto** y tocá **Ver dashboard**.
+Para mirar otro proyecto, usá **Cambiar de proyecto**, arriba a la derecha.
+
+Si todavía no hay proyectos, en lugar del desplegable aparece "Todavía no hay proyectos." con el enlace **Crear el
+primer proyecto** (sección 2). Si se abre la dirección de un proyecto que no existe, la app muestra "el proyecto no
+existe".
+
+### El resumen
+
+Debajo del título está el nombre del proyecto, su estado con una insignia de color (gris *Planificado*, azul
+*En curso*, verde *Finalizado*; ver sección 2) y sus fechas. Las tarjetas del resumen muestran:
+
+| Tarjeta | Qué muestra |
+|---|---|
+| Días restantes | Los días que faltan para la fecha de fin del proyecto |
+| Sprint activo | El sprint en curso, o "Ninguno" |
+| Velocidad del proyecto | El promedio de Story Points completados de los sprints **cerrados** |
+| Historias completadas | El porcentaje de historias del proyecto que están completadas |
+| Horas estimadas | La suma de las horas estimadas de todas las historias del proyecto |
+| Horas reales | La suma de todas las horas registradas en el proyecto |
+| Desviación | Cuánto se apartaron las horas reales de las estimadas, en porcentaje, o "no calculable" |
+| Defectos detectados, resueltos y abiertos | Los defectos del proyecto: los abiertos son los detectados que todavía no se resolvieron |
+
+Los números con decimales se muestran con coma y un decimal, igual que en el resto de la app (por ejemplo, 10,3).
+
+<!-- Captura: docs/manual/img/dashboard-resumen.jpg — encabezado con la insignia y las tarjetas del resumen, con los
+     datos de demo. -->
+
+### Qué significa cada métrica
+
+Las mismas métricas aparecen en el detalle del sprint (sección 4) y en los reportes (sección 9), y se calculan igual
+en todas las pantallas:
+
+- **Story Points planificados:** la suma de los SP de las historias asignadas al sprint.
+- **Story Points completados:** la suma de los SP de las historias completadas en el sprint. Al cerrar el sprint, los
+  dos valores quedan fijos.
+- **Velocidad:** el promedio de SP completados de los sprints cerrados. Sin sprints cerrados es 0, y un sprint cerrado
+  sin historias completadas también cuenta (con 10 y 0 SP completados, la velocidad es 5). El sprint en curso no
+  cuenta hasta que se cierra.
+- **Porcentaje de historias completadas:** completadas dividido el total de historias, por 100. Cuenta historias, no
+  Story Points: 1 de 3 da 33,3 %. Sin historias es 0 %.
+- **Horas reales:** la suma de las horas registradas (sección 6).
+- **Desviación:** (horas reales − horas estimadas) / horas estimadas × 100. Si es **positiva**, se trabajó más de lo
+  estimado; si es **negativa**, menos. Si no hay horas estimadas no se puede calcular, y la tarjeta dice
+  "no calculable". Con horas estimadas y ninguna hora registrada, da −100 %.
+- **Defectos detectados y resueltos:** un defecto cuenta como detectado en su sprint de detección y como resuelto en
+  su sprint de resolución (sección 7). Uno que todavía no tiene sprint de resolución no está resuelto.
+
+### Los gráficos
+
+Debajo del resumen hay cuatro gráficos, en dos columnas (en un celular o una ventana angosta pasan a una sola
+columna). Cada uno tiene un punto o una barra por **sprint cerrado**, ordenados por fecha de inicio. El sprint en
+curso no aparece porque sus valores todavía cambian: se sigue desde el resumen y desde su detalle.
+
+- **Velocidad por sprint:** los SP completados de cada sprint (línea) y, en línea punteada, la velocidad promedio del
+  proyecto. Muestra si el equipo acelera o se frena respecto de su promedio.
+- **Story Points planificados vs. completados:** una barra de cada uno por sprint. Si los completados quedan muy por
+  debajo de los planificados, el equipo se está comprometiendo de más.
+- **Horas estimadas vs. reales:** las horas estimadas de las historias planificadas en el sprint y las horas
+  registradas entre su fecha de inicio y de fin.
+- **Defectos detectados vs. resueltos:** cuántos defectos se encontraron y cuántos se resolvieron en cada sprint.
+
+Al pasar el mouse sobre un punto o una barra se ve el valor exacto. Tocá un elemento de la leyenda para ocultar o
+mostrar esa serie.
+
+<!-- Captura: docs/manual/img/dashboard-graficos.jpg — los cuatro gráficos en la grilla de dos columnas, con los
+     datos de demo. -->
+
+### Cuando todavía no hay datos
+
+Un gráfico sin datos no se dibuja vacío: en su lugar aparece un mensaje con un enlace a la sección que lo completa.
+
+| Mensaje | Cuándo aparece | Enlace |
+|---|---|---|
+| "Todavía no hay sprints cerrados para graficar" | En los cuatro gráficos, mientras el proyecto no tenga ningún sprint cerrado | **Ir a Sprints** |
+| "Todavía no hay horas registradas" | En el de horas, si los sprints cerrados no tienen horas estimadas ni registradas | **Registrar esfuerzo** |
+| "No hay defectos registrados" | En el de defectos, si los sprints cerrados no tienen defectos | **Ir a Defectos** |
+
+En un proyecto recién creado el resumen igual se ve completo: las métricas en 0, la desviación "no calculable" y los
+cuatro mensajes en lugar de los gráficos. A medida que se cierran sprints, los gráficos se van llenando.
 
 ## 9. Reportes y exportación a PDF (E9) — Agustín Giorlando
 
