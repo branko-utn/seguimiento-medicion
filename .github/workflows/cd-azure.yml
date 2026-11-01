@@ -9,11 +9,7 @@ name: CD Azure
 
 on:
   push:
-    branches:
-      - main
-      # TEMPORAL: GitHub solo deja correr a mano un workflow que ya está en main. Con esto se prueba el despliegue
-      # antes del merge, desde la rama del PR (el Environment azure la permite). Se quita antes de mergear.
-      - feature/TEC-23-24-despliegue
+    branches: [main]
     paths:
       - "cmd/**"
       - "internal/**"
@@ -24,7 +20,7 @@ on:
       - ".dockerignore"
       - "deploy/**"
       - ".github/workflows/cd-azure.yml"
-  # A mano: "Run workflow" eligiendo la rama (main, o la del PR mientras el Environment la permita).
+  # A mano: "Run workflow" (GitHub solo lo ofrece para workflows que ya están en main).
   workflow_dispatch:
 
 # Nunca en pull_request ni pull_request_target: un PR no puede correr código con los secretos (A4).
