@@ -34,7 +34,7 @@ al final.
 | Cabecera | Valor |
 |---|---|
 | `Strict-Transport-Security` | `max-age=31536000` |
-| `Content-Security-Policy` | `default-src 'self'; script-src 'self' 'sha256-<hash del script del dashboard>'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; frame-ancestors 'none'; form-action 'self'; base-uri 'self'` |
+| `Content-Security-Policy` | `default-src 'self'; script-src 'self' 'sha256-<hash del script del dashboard>'; style-src 'self' 'sha256-<hash del estilo que inyecta htmx>'; img-src 'self' data:; frame-ancestors 'none'; form-action 'self'; base-uri 'self'` |
 | `X-Content-Type-Options` | `nosniff` |
 | `X-Frame-Options` | `DENY` |
 | `Referrer-Policy` | `same-origin` |
@@ -44,9 +44,9 @@ El único script en línea es el del dashboard (`web/templates/paginas/dashboard
 plantilla adentro, así que su hash no cambia entre pedidos. Se autoriza por ese hash, que el build del proxy calcula
 en cada corrida. Así los scripts no necesitan `'unsafe-inline'`.
 
-Los estilos sí llevan `'unsafe-inline'`. Las plantillas no tienen atributos `style=`, pero HTMX 2.0.4 agrega un
-`<style>` propio para los indicadores de carga. Bloquearlo exigiría cambiar la configuración de HTMX en las
-plantillas, que están congeladas. Un estilo inyectado no ejecuta código, así que el riesgo es bajo.
+Los estilos tampoco usan `'unsafe-inline'`. Las plantillas no tienen atributos `style=`, pero HTMX 2.0.4 agrega un
+`<style>` propio para los indicadores de carga, siempre con el mismo texto. Se autoriza por su hash, que queda fijo en
+el Caddyfile. Si se actualiza HTMX, el hash cambia y el navegador muestra el bloqueo en la consola.
 
 ## Guía técnica
 
