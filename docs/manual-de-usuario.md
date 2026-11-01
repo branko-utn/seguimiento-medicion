@@ -189,9 +189,43 @@ es el tamaño de la historia y alimenta las métricas de los sprints (E7).
 - Una completada no: si lo intentás, la pantalla avisa "no se puede re-estimar una historia completada".
 - También se puede acordar el valor con el equipo en el Planning Poker (sección 5): es la misma operación de fondo.
 
-<!--
-Lara: editar y eliminar, backlog ordenado y filtro por estado (HU-06, HU-09).
--->
+### Editar y eliminar una historia (HU-06) — Agustín Lara
+
+Al final del detalle de la historia, la sección **Editar** trae el formulario con el título, la descripción y la
+prioridad que tiene hoy.
+
+- **Editar:** cambiá lo que necesites y tocá **Guardar cambios**. Solo se editan esos tres datos: el estado, los
+  Story Points y los criterios tienen su propia sección. Valen las reglas del alta: el título es obligatorio y la
+  prioridad es Alta, Media o Baja. Una historia asignada a un sprint se puede editar mientras no esté completada.
+- **Eliminar:** tocá **Eliminar** y volvés al backlog, donde la historia ya no aparece. La app **no pide
+  confirmación**: revisá antes de tocarlo. El ID de una historia eliminada no se vuelve a usar (si borrás la HU-3,
+  la próxima historia nueva no es la HU-3).
+
+| Regla | Mensaje |
+|---|---|
+| El título es obligatorio | "el título es obligatorio" |
+| La prioridad es Alta, Media o Baja | "la prioridad debe ser Alta, Media o Baja" |
+| Una historia completada no se edita: ya es parte del resultado de un sprint | "una historia completada no se puede editar" |
+| No se elimina una historia completada | "no se puede eliminar una historia completada" |
+| No se elimina una historia asignada a un sprint (primero hay que quitarla del sprint) | "no se puede eliminar una historia asignada a un sprint" |
+| No se elimina una historia con horas o defectos cargados: quedarían registros sin historia | "no se puede eliminar una historia con esfuerzo o defectos registrados" |
+
+### Ver el backlog ordenado y filtrar por estado (HU-09) — Agustín Lara
+
+La pantalla **Backlog** muestra el backlog de cada proyecto en el orden en que conviene trabajarlo, para saber qué
+sigue:
+
+1. Primero por **prioridad**: Alta, después Media y al final Baja.
+2. A igual prioridad, por **número de historia**: HU-2 va antes que HU-10.
+
+Arriba de la lista, el desplegable **Todos / Pendiente / En progreso / Completada** con el botón **Filtrar** deja
+solo las historias de ese estado, en el mismo orden. Por ejemplo, **Pendiente** muestra lo que todavía no se empezó.
+Para volver a ver todo, elegí **Todos**.
+
+- Un proyecto sin historias, o sin ninguna en el estado elegido, no aparece en la lista. Si no queda ninguno, la
+  pantalla dice "No hay historias en el backlog." con un enlace para crear la primera.
+- Si la dirección trae un estado que no existe (por ejemplo, un enlace mal copiado), la app avisa "el estado debe ser
+  Pendiente, En progreso o Completada".
 
 ## 4. Sprints (E3) — Federico Sosa
 
@@ -344,11 +378,107 @@ adelante hay que re-estimarla.
 
 ## 6. Esfuerzo (E5) — Agustín Lara
 
-<!-- Horas estimadas, registro de horas trabajadas y consulta del esfuerzo (HU-19 a HU-21). -->
+La pantalla **Esfuerzo** (`/esfuerzo`) junta todo lo que tiene que ver con horas: el formulario para cargar las
+horas trabajadas, la lista de lo cargado, el esfuerzo de cada proyecto y las horas estimadas de cada historia. Las
+horas se escriben y se muestran con coma decimal (1,5 es una hora y media), aunque los formularios también aceptan
+punto.
+
+### Registrar horas trabajadas (HU-20)
+
+1. En **Registrar horas trabajadas**, elegí el **integrante** (al lado del nombre figura su proyecto) y la
+   **historia** en la que trabajó.
+2. Completá la **fecha** (viene cargada la de hoy), la **actividad** (por ejemplo, Desarrollo, Tests o Revisión de
+   PR) y las **horas**. Se aceptan fracciones, como 0,5 o 2,5.
+3. Tocá **Registrar horas**. El registro aparece en la lista **Horas registradas**, agrupado por historia.
+
+Si algo no cumple las reglas, el formulario vuelve con lo que escribiste y el motivo:
+
+| Regla | Mensaje |
+|---|---|
+| La actividad es obligatoria | "la actividad es obligatoria" |
+| La fecha es obligatoria | "la fecha es obligatoria" |
+| Las horas son mayores que cero | "las horas deben ser mayores que cero" |
+| La fecha no puede ser futura (hoy sí vale) | "la fecha no puede ser futura" |
+| Una persona no carga más de 24 horas en un mismo día, sumando todos sus registros de ese día | "el integrante superaría las 24 horas en ese día" |
+| El integrante tiene que ser del proyecto de la historia | "el integrante no pertenece al proyecto de la historia" |
+
+### Consultar el esfuerzo de un proyecto (HU-21)
+
+En **Esfuerzo por proyecto**, cada proyecto tiene su bloque con tres tarjetas:
+
+- **Horas registradas:** el total de horas cargadas en las historias del proyecto.
+- **Historias con esfuerzo:** cuántas historias tienen al menos un registro.
+- **Integrantes con esfuerzo:** cuántas personas cargaron horas.
+
+Debajo, dos tablas con el detalle: las horas **por historia** (en orden de número, con un enlace a cada una) y las
+horas **por integrante** (en orden alfabético). Las dos suman lo mismo que la tarjeta de horas registradas. Un
+proyecto sin horas cargadas muestra "Todavía no hay esfuerzo registrado." con un enlace al formulario.
+
+![Pantalla de esfuerzo con las tarjetas y los totales de un proyecto](manual/img/esfuerzo.jpg)
+
+### Estimar las horas de una historia (HU-19)
+
+En **Horas estimadas por historia**, cada historia del backlog tiene un campo para escribir cuántas horas se calcula
+que va a llevar y el botón **Guardar**. Las que todavía no tienen estimación dicen "Sin estimar".
+
+- Una historia tiene **una sola** estimación de horas: si guardás otra, reemplaza a la anterior.
+- Las horas tienen que ser mayores que cero ("las horas deben ser mayores que cero"). El error aparece en la fila de
+  esa historia.
+- Es distinta de los Story Points: los Story Points miden el tamaño relativo (sección 3) y las horas estimadas se
+  comparan con las horas reales en las métricas (sección 8).
 
 ## 7. Defectos (E6) — Agustín Lara
 
-<!-- Registrar un defecto, cambiar su estado y resolverlo (HU-22, HU-23). -->
+La pantalla **Defectos** (`/defectos`) lista los defectos encontrados, con su severidad y su estado como insignias de
+color, y abajo tiene el formulario para registrar uno nuevo.
+
+![Lista de defectos con las insignias de severidad y estado](manual/img/defectos.jpg)
+
+### Registrar un defecto (HU-22)
+
+1. En **Registrar defecto**, escribí la **descripción** del problema.
+2. Elegí la **severidad** (Crítica, Alta, Media o Baja), la **historia** en la que apareció y el **sprint de
+   detección**, es decir, el sprint en el que se encontró.
+3. Tocá **Registrar defecto**. Aparece en la lista con un ID (`D1`, `D2`, …) y en estado **Abierto**.
+
+Se puede registrar un defecto en una historia ya completada (suele ser justo cuando aparecen) y en un sprint ya
+cerrado, si se encontró en ese sprint y se carga tarde.
+
+| Regla | Mensaje |
+|---|---|
+| La descripción es obligatoria | "la descripción es obligatoria" |
+| La severidad es una de las cuatro de la lista | "la severidad debe ser Crítica, Alta, Media o Baja" |
+| El sprint de detección es del mismo proyecto que la historia | "el sprint de detección no pertenece al proyecto de la historia" |
+
+Las insignias de severidad van de más grave a menos grave: **Crítica** en rojo, **Alta** en ámbar, **Media** en
+azul y **Baja** en gris.
+
+### Seguir y resolver un defecto (HU-23)
+
+Un defecto pasa por tres estados:
+
+| Estado | Qué significa | Insignia |
+|---|---|---|
+| **Abierto** | Se encontró y nadie lo está corrigiendo | Rojo |
+| **En progreso** | Alguien lo está corrigiendo | Ámbar |
+| **Resuelto** | Ya se corrigió, en un sprint de resolución | Verde |
+
+En la columna **Acciones** de cada defecto:
+
+- **Pasar a En progreso / Pasar a Abierto:** mueve el defecto entre esos dos estados, para cualquiera de los dos
+  lados.
+- **Resolver:** elegí el **sprint de resolución** en el desplegable y tocá **Resolver**. Se puede resolver desde
+  Abierto o desde En progreso. El desplegable solo ofrece los sprints del mismo proyecto que no empiezan antes que el
+  de detección, y puede ser el mismo sprint.
+
+**Resuelto es final:** un defecto resuelto ya no ofrece acciones y no vuelve a cambiar de estado. Si la app rechaza
+un cambio, avisa con alguno de estos mensajes:
+
+| Situación | Mensaje |
+|---|---|
+| Cambiar un defecto resuelto o pasarlo al estado que ya tiene | "no se puede pasar de Resuelto a Abierto" (con los estados que correspondan) |
+| El sprint de resolución es de otro proyecto | "el sprint de resolución no pertenece al proyecto del defecto" |
+| El sprint de resolución empieza antes que el de detección | "el sprint de resolución no puede ser anterior al de detección" |
 
 ## 8. Métricas y dashboard (E7 y E8) — Agustín Giorlando
 
