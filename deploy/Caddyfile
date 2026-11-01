@@ -1,0 +1,61 @@
+# Proxy delante de la app (TEC-24, specs/TEC-24-seguridad-del-despliegue.md).
+# Es el único contenedor con ingreso: Azure Container Apps termina el HTTPS y le pasa el tráfico al puerto 8081.
+# La app escucha en localhost:8080, dentro de la misma réplica.
+#
+# Variables de entorno:
+#   WRITE_PASSWORD_HASH  hash bcrypt de la clave de escritura (secreto de la app; la clave en claro nunca va al repo)
+#   CSP_SCRIPT_HASH      hash del script en línea del dashboard, por ejemplo sha256-AbC= (lo calcula deploy/csp-hash.sh)
+
+{
+	# El certificado lo da la plataforma: Caddy no pide certificados ni abre la API de administración.
+	auto_https off
+	admin off
+
+	servers {
+		# A9: corta las lecturas lentas.
+		timeouts {
+			read_header 5s
+			read_body 10s
+			write 30s
+			idle 2m
+		}
+	}
+}
+
+:8081 {
+	# A9: pedidos de más de 1 MB responden 413.
+	request_body {
+		max_size 1MB
+	}
+
+	# A2 y A11: cabeceras de seguridad en todas las respuestas.
+	# style-src autoriza por hash el único estilo en línea: el que htmx 2 inyecta en cada página para sus
+	# indicadores de carga (web/static/vendor/htmx.min.js). Si se actualiza htmx, el hash cambia: el navegador
+	# lo muestra en la consola al bloquearlo.
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		Content-Security-Policy "default-src 'self'; script-src 'self' '{$CSP_SCRIPT_HASH}'; style-src 'self' 'sha256-bsV5JivYxvGywDAZ22EZJKBFip65Ng9xoJVLbBg7bdo='; img-src 'self' data:; frame-ancestors 'none'; form-action 'self'; base-uri 'self'"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "same-origin"
+		-Server
+	}
+
+	# A1: /ingresar pide la clave y vuelve a la portada. Está en la raíz, así el navegador
+	# manda la clave sola en todas las escrituras que siguen.
+	route /ingresar {
+		basic_auth {
+			equipo {$WRITE_PASSWORD_HASH}
+		}
+		redir / 303
+	}
+
+	# A1: toda escritura es POST y pide la clave. Las lecturas (GET) son públicas.
+	# Se protege todo lo que no sea GET o HEAD, por si alguna vez aparece otro método.
+	@escritura not method GET HEAD
+	basic_auth @escritura {
+		equipo {$WRITE_PASSWORD_HASH}
+	}
+
+	reverse_proxy localhost:8080
+}
