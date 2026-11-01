@@ -220,9 +220,14 @@ jobs:
             --query properties.configuration.ingress.fqdn -o tsv)
           echo "url=https://$fqdn" >> "$GITHUB_OUTPUT"
           # Hasta 3 minutos: el primer pedido puede tardar por el arranque en frío.
+          # "Exportar reporte a PDF" es una historia de la demo (cmd/demo/datos.go): prueba que el init container
+          # cargó los datos. El nombre de la app no sirve, porque aparece en todas las páginas aunque no haya datos.
           for intento in $(seq 1 36); do
             salud=$(curl -fsS --max-time 10 "https://$fqdn/health" || true)
-            if [ "$salud" = '{"estado":"ok"}' ] && curl -fsS --max-time 10 "https://$fqdn/backlog" | grep -q "Software Metrics"; then
+            # La página se guarda antes de buscar: con pipefail, `curl | grep -q` puede dar falso aunque encuentre el
+            # texto (grep termina antes y curl recibe SIGPIPE).
+            backlog=$(curl -fsS --max-time 10 "https://$fqdn/backlog" || true)
+            if [ "$salud" = '{"estado":"ok"}' ] && grep -q "Exportar reporte a PDF" <<<"$backlog"; then
               echo "La app responde y tiene los datos de la demo (intento $intento)."
               exit 0
             fi
