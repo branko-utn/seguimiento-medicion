@@ -154,3 +154,19 @@ Sus dos ítems pasan a los Product Builders, y Giorlando, que venía con menos t
   en Planning Poker con votos ocultos** (historia → spec → criterios → BDD → tests → código Go). Reemplaza a HU-13, que
   es del Agile Enabler: cada uno defiende su propio trabajo.
 - La carga de Bianchi no cambia: las diapositivas no estaban sumadas en sus Story Points.
+
+## Cambio de alcance: despliegue en Azure (01/11)
+
+La cátedra pide desplegar la aplicación y entregó una cuenta de Azure compartida por todos los grupos. Se suman dos
+ítems técnicos. No cambian el código congelado: solo agregan archivos de despliegue, la imagen y la configuración.
+
+| Responsable | Ítem | SP |
+|---|---|---|
+| Federico Sosa | TEC-23 · Despliegue en Azure (#138) | 5 |
+| Agustín Lara | TEC-24 · Seguridad del despliegue (#139) | 3 |
+
+- **Decisión:** Azure Container Apps con un proxy delante, y no Terraform (ADR 0005). Si el entorno `utnapp-env` no
+  existe, lo crea nuestro workflow y se le avisa al profesor.
+- **Van en un solo PR**, porque la seguridad es condición para publicar: sin TEC-24 no se despliega.
+- **Riesgo:** llega sobre la presentación del 2/11. Mitigación: la demo principal sigue siendo en local (`make demo`)
+  y la URL pública es un extra.
