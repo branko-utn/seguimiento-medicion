@@ -155,9 +155,10 @@ revela (HU-17). En el Sprint 4 la pantalla recibió el pulido de HU-32.2: cartas
 Con `make demo` sobre una carpeta `data/` limpia y `make run`, en `/planning-poker`:
 
 1. **Abrir votación** en una historia sin estimar → fila en ronda 1, "Votaron: todavía nadie". *(RN-16.5, salidas)*
-2. **Votar** como Ana la carta 5 y como Beto la carta 8, cada uno sin ver el otro → la fila muestra "Votaron:
-   Ana Pérez, Beto Gómez" y nada más. *(RN-16.1, 16.2, 16.4)*
-3. **Revelar** como Agile Enabler → tabla con los dos valores y, sin consenso, el más alto y el más bajo.
+2. **Votar** como Federico Sosa la carta 5 y como Agustín Lara la carta 8, cada uno sin ver el otro → la fila
+   muestra "Votaron: Federico Sosa, Agustín Lara" y nada más. *(RN-16.1, 16.2, 16.4)* (Ana Pérez y Beto Gómez son
+   los integrantes de los escenarios BDD; en los datos de demo votamos con nuestros nombres.)
+3. **Revelar** como Branko Almeira (Agile Enabler) → tabla con los dos valores y, sin consenso, el más alto y el más bajo.
    *(Puente a HU-17)*
 4. Si sobra tiempo: **la escala sin fisuras** — las cartas solo son 1, 2, 3, 5, 8, 13, 21: votar 4 no es posible
    ni en la pantalla ni en la API. *(RN-16.3)*
