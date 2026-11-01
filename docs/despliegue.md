@@ -7,8 +7,10 @@ Specs: [TEC-23](../specs/TEC-23-despliegue-en-azure.md) (despliegue) y
 
 ## URL
 
-**Pendiente:** se completa con la primera corrida del workflow. Mientras tanto, la URL de cada despliegue queda en el
-resumen del job `desplegar` (pestaña *Actions* → *CD Azure* → la corrida).
+**<https://grupo02-seguimiento-medicion.wonderfulwave-ff1bf196.switzerlandnorth.azurecontainerapps.io>**
+
+Primer despliegue: 01/11/2026, en el entorno `grupo02-env`. Si la app se recrea, la URL de cada despliegue también
+queda en el resumen del job `desplegar` (pestaña *Actions* → *CD Azure* → la corrida).
 
 - **Leer es público:** cualquiera puede recorrer la app sin credenciales.
 - **Escribir pide usuario y clave** (usuario `equipo`). La clave la reparte el Agile Enabler por privado: nunca va en
