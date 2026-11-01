@@ -47,7 +47,8 @@
 		basic_auth {
 			equipo {$WRITE_PASSWORD_HASH}
 		}
-		redir / 303
+		# El * es el filtro (cualquier pedido); sin él, Caddy toma el / como filtro de ruta y no redirige.
+		redir * / 303
 	}
 
 	# A1: toda escritura es POST y pide la clave. Las lecturas (GET) son públicas.
