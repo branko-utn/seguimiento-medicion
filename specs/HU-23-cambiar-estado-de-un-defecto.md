@@ -64,4 +64,4 @@ defectos resueltos por sprint. Incluye la pantalla de cambio de estado.
 | ID | Criterio | Escenario BDD |
 |---|---|---|
 | CA-23.1 | Los estados son Abierto → En progreso → Resuelto | `Escenario: empezar a trabajar un defecto`, `Escenario: resolver un defecto`, `Escenario: cambiar un defecto resuelto` |
-| CA-23.2 | Al resolverlo, el sprint de resolución es obligatorio y no puede ser anterior al de detección | `Escenario: resolver en un sprint anterior al de detección`, `Escenario: resolver en el mismo sprint`, `Escenario: resolver sin sprint` |
+| CA-23.2 | Al resolverlo, el sprint de resolución es obligatorio y no puede ser anterior al de detección | `Escenario: resolver en un sprint anterior al de detección`, `Escenario: resolver en el mismo sprint directamente desde Abierto`, `Escenario: resolver sin sprint` |
