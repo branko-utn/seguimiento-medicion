@@ -28,6 +28,10 @@ mini-sprints de 2–3 días, y el Sprint 2 pide una interfaz usable y el Sprint 
 Login de usuarios, base de datos en la nube y deploy público: no son requerimientos de la consigna y priorizamos
 los requerimientos mínimos. La demo se hace con la aplicación corriendo localmente.
 
+> **Actualización (01/11/2026):** el deploy público dejó de estar fuera de alcance porque lo pidió la cátedra. Lo
+> decide el [ADR 0005](0005-despliegue-en-azure.md): Azure Container Apps, con la imagen compilada con Go 1.26.10.
+> El resto de esta decisión sigue vigente.
+
 ## Consecuencias
 
 - Cada épica tiene su paquete en `internal/domain/<épica>`, así cada integrante trabaja en su carpeta y hay menos conflictos.

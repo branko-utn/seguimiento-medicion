@@ -1,6 +1,6 @@
 # TEC-21 · Base visual
 
-- **Issue:** a crear con la aprobación · **Responsable:** Federico Sosa · **Story Points:** 2
+- **Issue:** #115 · **Responsable:** Federico Sosa · **Story Points:** 2
 - **Redactada por:** Branko Almeira (Agile Enabler) · **Validada por:** el equipo al aprobar el PR de las specs del Sprint 4
 - **Depende de:** nada
 - **Estado:** implementada (Sprint 4)
