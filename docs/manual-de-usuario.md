@@ -487,6 +487,8 @@ tarjetas y cuatro gráficos con la evolución sprint a sprint. Sirve para la Spr
 proyecto sin tener que recorrer el backlog, los sprints, el esfuerzo y los defectos por separado. La pantalla solo
 muestra datos: para cambiarlos se usan las otras secciones.
 
+![Dashboard con las tarjetas del resumen y los cuatro gráficos, con los datos de demo](manual/img/dashboard.jpg)
+
 ### Elegir el proyecto
 
 En la navegación, tocá **Dashboard**. Elegí el proyecto en el desplegable **Proyecto** y tocá **Ver dashboard**.
@@ -513,9 +515,6 @@ Debajo del título está el nombre del proyecto, su estado con una insignia de c
 | Defectos detectados, resueltos y abiertos | Los defectos del proyecto: los abiertos son los detectados que todavía no se resolvieron |
 
 Los números con decimales se muestran con coma y un decimal, igual que en el resto de la app (por ejemplo, 10,3).
-
-<!-- Captura: docs/manual/img/dashboard-resumen.jpg — encabezado con la insignia y las tarjetas del resumen, con los
-     datos de demo. -->
 
 ### Qué significa cada métrica
 
@@ -554,9 +553,6 @@ curso no aparece porque sus valores todavía cambian: se sigue desde el resumen 
 Al pasar el mouse sobre un punto o una barra se ve el valor exacto. Tocá un elemento de la leyenda para ocultar o
 mostrar esa serie.
 
-<!-- Captura: docs/manual/img/dashboard-graficos.jpg — los cuatro gráficos en la grilla de dos columnas, con los
-     datos de demo. -->
-
 ### Cuando todavía no hay datos
 
 Un gráfico sin datos no se dibuja vacío: en su lugar aparece un mensaje con un enlace a la sección que lo completa.
@@ -572,7 +568,86 @@ cuatro mensajes en lugar de los gráficos. A medida que se cierran sprints, los 
 
 ## 9. Reportes y exportación a PDF (E9) — Agustín Giorlando
 
-<!-- Reporte de sprint y de proyecto, y cómo guardarlos como PDF (HU-29 a HU-31). -->
+La sección **Reportes** (`/reportes`) arma dos documentos listos para compartir: el **reporte de un sprint**, para la
+Sprint Review, y el **reporte del proyecto**, para el cierre o para mostrar cómo viene. Los dos usan los mismos
+cálculos que el dashboard y el detalle del sprint (ver "Qué significa cada métrica" en la sección 8), así que los
+números coinciden en todas las pantallas. Igual que el dashboard, los reportes solo muestran datos.
+
+### Elegir un reporte
+
+En la navegación, tocá **Reportes**. La pantalla muestra un bloque por proyecto con:
+
+- el botón **Reporte del proyecto**, y
+- una tabla con los sprints que tienen reporte (Sprint Goal, inicio, fin y estado). Tocá el Sprint Goal para abrir el
+  reporte de ese sprint.
+
+Solo aparecen los sprints **activos** y **cerrados**. Si un proyecto todavía no inició ninguno, el bloque dice
+"Todavía no hay sprints iniciados: un sprint planificado no tiene resultado para reportar." Si no hay proyectos, la
+pantalla ofrece el enlace **Creá un proyecto** (sección 2).
+
+### El reporte de un sprint (HU-29)
+
+Dirección: `/reportes/sprints/{sprint}`, por ejemplo `/reportes/sprints/S3`. Debajo del título están el Sprint Goal,
+el estado y las fechas del sprint, y después cuatro partes:
+
+| Parte | Qué muestra |
+|---|---|
+| Historias planificadas | Cada historia asignada al sprint, en el orden en que se asignó: ID, título, Story Points, horas estimadas, horas reales y si se completó (✔ o "No") |
+| Métricas | SP planificados y completados, porcentaje de historias completadas, horas estimadas, horas reales y la desviación (o "desviación no calculable (sin horas estimadas)") |
+| Esfuerzo registrado | Cada registro de horas con fecha **dentro** del sprint (fecha, integrante, historia, actividad y horas), ordenados por fecha, y abajo el **total por integrante** |
+| Defectos | Cuántos defectos se detectaron y cuántos se resolvieron en el sprint, y la lista de los detectados en él con su severidad y su estado |
+
+Las horas reales de cada historia son solo las registradas entre la fecha de inicio y la de fin del sprint, ambas
+incluidas. En un sprint cerrado, los Story Points planificados y completados son los que quedaron fijos al cerrarlo
+(sección 4).
+
+![Reporte de un sprint activo, con la marca de reporte parcial y los botones para descargar o imprimir](manual/img/reporte-sprint.jpg)
+
+### El reporte del proyecto (HU-30)
+
+Dirección: `/reportes/proyecto?proyecto=P1` (cambiá `P1` por el ID del proyecto). Debajo del título están el nombre,
+el estado, las fechas y los días restantes del proyecto, y después tres partes:
+
+| Parte | Qué muestra |
+|---|---|
+| Resumen de sprints | Una fila por sprint activo o cerrado, por fecha de inicio: estado, SP planificados y completados, % de historias completadas, horas estimadas y reales, y defectos detectados y resueltos. Tocá el sprint para abrir su reporte |
+| Métricas acumuladas | La velocidad (con cuántos sprints cerrados se calculó), los SP completados, el porcentaje de historias completadas del proyecto ("12 de 15"), las horas estimadas y reales y la desviación |
+| Defectos | Cuántos se detectaron, cuántos se resolvieron y cuántos siguen abiertos, y la lista de los **abiertos**, de más grave a menos grave |
+
+Cada fila del resumen tiene los mismos valores que el reporte de ese sprint. En cambio, las horas reales de las
+métricas acumuladas suman **todo** el esfuerzo del proyecto, también el registrado fuera de las fechas de un sprint;
+el reporte lo aclara debajo de la lista.
+
+### Guardar un reporte en PDF (HU-31)
+
+Arriba de cada reporte hay dos botones. Ninguno de los dos aparece en el papel ni en el PDF.
+
+- **Descargar PDF:** la app genera el archivo y el navegador lo descarga. Se llama `reporte-sprint-S3.pdf` o
+  `reporte-proyecto-P1.pdf`, es una hoja A4 con las mismas partes y los mismos números que la pantalla, y debajo del
+  título dice "Generado el" con la fecha del día. Es la opción recomendada para mandar el reporte por mail o subirlo.
+- **Imprimir o guardar como PDF:** abre el diálogo de impresión del navegador. Elegí una impresora o, como destino,
+  **Guardar como PDF** (en Chrome y Edge) o **Microsoft Print to PDF**. Para imprimir, la app esconde la barra de
+  navegación, el pie y los botones, y evita cortar una parte entre dos hojas. Sirve como alternativa si la descarga
+  falla, o para imprimir en papel.
+
+Las direcciones de descarga también se pueden abrir directo: `/reportes/sprints/{sprint}/pdf` y
+`/reportes/proyecto.pdf?proyecto=P1`.
+
+### Sprints planificados y sprints activos
+
+- **Un sprint planificado no tiene reporte:** todavía no empezó, así que no hay resultado. No aparece en la lista de
+  Reportes ni en el resumen del reporte del proyecto, y si se abre su dirección (o la de su PDF) la app muestra "el
+  sprint todavía no empezó".
+- **Un sprint activo tiene un reporte parcial:** arriba aparece, resaltado, "Reporte parcial: el sprint sigue activo
+  y el resultado todavía puede cambiar." Los SP son los del momento y cambian a medida que se completan historias. El
+  PDF lleva la misma marca. En el reporte del proyecto, el sprint activo figura en el resumen con su estado, pero no
+  cuenta para la velocidad hasta que se cierra.
+
+| Situación | Mensaje |
+|---|---|
+| El sprint todavía está planificado | "el sprint todavía no empezó" |
+| El sprint no existe | "el sprint no existe" |
+| El proyecto no existe (o falta `?proyecto=`) | "el proyecto no existe" |
 
 ## Anexo · Documentación técnica — Branko Almeira
 
