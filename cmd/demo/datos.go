@@ -97,7 +97,7 @@ var historiasDemo = []historiaDemo{
 	{"Dashboard del proyecto", 8, "giorlando", 3, "Muestra estado del proyecto, sprint activo y métricas principales", 1.3},
 	{"Reporte de sprint", 5, "branko", 3, "Incluye historias planificadas y completadas, estimaciones, esfuerzo registrado, métricas y defectos", 0.9},
 	{"Reporte de proyecto", 3, "branko", 3, "Incluye el resumen de todos los sprints, métricas acumuladas y defectos", 0.8},
-	{"Exportar reporte a PDF", 5, "branko", 4, "El reporte de sprint o de proyecto se puede guardar como PDF", 0.2},
+	{"Exportar reporte a PDF", 5, "lara", 4, "El reporte de sprint o de proyecto se puede guardar como PDF", 0.2},
 }
 
 // horasPorSP es el criterio con el que se cargan las horas estimadas de la demo.

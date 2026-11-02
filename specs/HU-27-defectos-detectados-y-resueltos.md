@@ -25,6 +25,8 @@ type DefectoSprint struct {
 }
 ```
 
+## Salidas esperadas
+
 | Función | Salida |
 |---|---|
 | `DefectosDetectados(ds []DefectoSprint, sprint string) int` | Defectos cuyo sprint de detección es `sprint` |
@@ -54,4 +56,4 @@ Las funciones no devuelven error: reciben datos ya validados por el dominio (HU-
 
 | ID | Criterio | Escenario BDD |
 |---|---|---|
-| CA-27.1 | Se cuentan por sprint (según el sprint de detección y el de resolución) y en total | `Escenario: defectos por sprint`, `Escenario: totales del proyecto`, `Escenario: sin defectos` |
+| CA-27.1 | Se cuentan por sprint (según el sprint de detección y el de resolución) y en total | `Escenario: defectos por sprint`, `Escenario: totales del proyecto`, `Escenario: sprint sin defectos` |
